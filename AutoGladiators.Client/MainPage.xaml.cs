@@ -7,6 +7,8 @@ File: `AutoGladiators.Client/MainPage.xaml.cs`
 
 
 using Xamarin.Forms;
+using StateMachineLib;
+using BehaviorEngineLib;
 using SkillTreeLib;
 using System.Linq;
 using System.Text;
