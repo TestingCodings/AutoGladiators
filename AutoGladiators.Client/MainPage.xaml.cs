@@ -1,44 +1,97 @@
 
 ---
 
-## 🖥️ **Advanced AutoGladiators.Client** (Xamarin.Forms App)
+🖥️ **Advanced AutoGladiators.Client** (Xamarin.Forms App)
 
-**File:** `AutoGladiators.Client/MainPage.xaml.cs`
+File: `AutoGladiators.Client/MainPage.xaml.cs`
 
-```csharp
+
 using Xamarin.Forms;
 using StateMachineLib;
 using BehaviorEngineLib;
 using SkillTreeLib;
+using System.Linq;
+using System.Text;
 
-namespace AutoGladiators.Client {
-    public partial class MainPage : ContentPage {
-        private StateMachine robotStateMachine;
-        private BehaviorProfile currentBehaviorProfile;
-        private SkillTree currentSkillTree;
+namespace AutoGladiators.Client
+{
+    public partial class MainPage : ContentPage
+    {
+        private SkillTree skillTree;
+        private List<Skill> selectedPhysicalSkills = new();
+        private List<Skill> selectedWeaponrySkills = new();
 
-        public MainPage() {
+        public MainPage()
+        {
             InitializeComponent();
-            SetupRobot();
+            skillTree = new SkillTree();
+            LoadSkills();
         }
 
-        private void SetupRobot() {
-            robotStateMachine = new StateMachine();
-            currentBehaviorProfile = new BehaviorProfile {
-                Intelligence = 85,
-                ReactionTimeMs = 100,
-                Aggression = 0.75f,
-                AwarenessRadius = 15f,
-                Patience = 0.5f,
-                HasLearningEnabled = true
-            };
+        private void LoadSkills()
+        {
+            foreach (var skill in skillTree.PhysicalSkills)
+            {
+                var button = new Button
+                {
+                    Text = skill.Name,
+                    BackgroundColor = Color.Gray,
+                    TextColor = Color.White
+                };
+                button.Clicked += (s, e) => ToggleSkill(skill, SkillCategory.Physical, button);
+                PhysicalSkillsLayout.Children.Add(button);
+            }
 
-            currentSkillTree = new SkillTree();
+            foreach (var skill in skillTree.WeaponrySkills)
+            {
+                var button = new Button
+                {
+                    Text = skill.Name,
+                    BackgroundColor = Color.DarkRed,
+                    TextColor = Color.White
+                };
+                button.Clicked += (s, e) => ToggleSkill(skill, SkillCategory.Weaponry, button);
+                WeaponrySkillsLayout.Children.Add(button);
+            }
+
+            UpdateStats();
         }
 
-        private void StartMatchButton_Clicked(object sender, EventArgs e) {
-            robotStateMachine.TransitionTo(RobotState.Patrol);
-            // Further logic to initiate match simulations
+        private void ToggleSkill(Skill skill, SkillCategory category, Button button)
+        {
+            var list = category == SkillCategory.Physical ? selectedPhysicalSkills : selectedWeaponrySkills;
+
+            if (list.Contains(skill))
+            {
+                list.Remove(skill);
+                button.BackgroundColor = category == SkillCategory.Physical ? Color.Gray : Color.DarkRed;
+            }
+            else
+            {
+                list.Add(skill);
+                button.BackgroundColor = Color.LimeGreen;
+            }
+
+            UpdateStats();
+        }
+
+        private void UpdateStats()
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine("Physical:");
+            foreach (var skill in selectedPhysicalSkills)
+                builder.AppendLine($"- {skill.Name}");
+
+            builder.AppendLine("Weaponry:");
+            foreach (var skill in selectedWeaponrySkills)
+                builder.AppendLine($"- {skill.Name}");
+
+            StatsLabel.Text = builder.ToString();
+        }
+
+        private void RunSimulation_Clicked(object sender, EventArgs e)
+        {
+            DisplayAlert("Simulating...", "Battle simulator not implemented yet", "OK");
         }
     }
 }
