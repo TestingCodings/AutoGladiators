@@ -1,36 +1,15 @@
-<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="AutoGladiators.Client.MainPage"
-             BackgroundColor="Black">
+             x:Class="AutoGladiators_MAUI.MainPage">
 
-    <ScrollView>
-        <StackLayout Padding="20" Spacing="15">
-
-            <Label Text="AutoGladiators Robot Builder"
-                   FontSize="24"
-                   TextColor="White"
-                   HorizontalOptions="Center" />
-
-            <Label Text="Select Physical Skills:"
-                   FontAttributes="Bold"
-                   TextColor="LightGray" />
-            <StackLayout x:Name="PhysicalSkillsLayout" />
-
-            <Label Text="Select Weaponry Skills:"
-                   FontAttributes="Bold"
-                   TextColor="LightGray" />
-            <StackLayout x:Name="WeaponrySkillsLayout" />
-
-            <Label Text="Bot Stats Preview:" FontAttributes="Bold" TextColor="LightGray" />
-            <Label x:Name="StatsLabel"
-                   TextColor="White"
-                   FontSize="14"
-                   FontAttributes="Italic" />
-
-            <Button Text="Run Simulation"
-                    BackgroundColor="Green"
-                    TextColor="White"
-                    Clicked="RunSimulation_Clicked" />
-        </StackLayout>
-    </ScrollView>
+    <VerticalStackLayout Spacing="25" Padding="30" VerticalOptions="Center">
+        <Label Text="Welcome to AutoGladiators!"
+               SemanticProperties.HeadingLevel="Level1"
+               FontSize="32"
+               HorizontalOptions="Center" />
+        <Button Text="Run Simulation"
+                SemanticProperties.Hint="Starts the simulation"
+                Clicked="OnRunSimulationClicked"/>
+    </VerticalStackLayout>
 </ContentPage>
