@@ -1,11 +1,3 @@
-
----
-
-🖥️ **Advanced AutoGladiators.Client** (Xamarin.Forms App)
-
-File: `AutoGladiators.Client/MainPage.xaml.cs`
-
-
 using Xamarin.Forms;
 using StateMachineLib;
 using BehaviorEngineLib;

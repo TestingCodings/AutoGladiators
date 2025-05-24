@@ -1,0 +1,39 @@
+## Ignore build outputs
+bin/
+obj/
+publish/
+
+## Ignore VS settings
+.vscode/
+.vs/
+*.user
+*.suo
+
+## Ignore test results
+TestResults/
+*.trx
+*.coverage
+
+## Ignore logs
+*.log
+
+## Ignore temporary files
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+Thumbs.db
+
+## Ignore Mac/Linux system files
+ehthumbs.db
+Icon?
+Desktop.ini
+
+## Ignore Rider/JetBrains
+.idea/
+
+## Ignore solution-specific artifacts
+*.ncrunch*
+_ReSharper*/
+*.resharper
+*.sln.docstates
