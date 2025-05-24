@@ -1,10 +1,36 @@
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="AutoGladiators.Client.MainPage">
+             x:Class="AutoGladiators.Client.MainPage"
+             BackgroundColor="Black">
 
-    <StackLayout Padding="20" Spacing="15">
-        <Label Text="AutoGladiators" FontSize="24" HorizontalOptions="Center"/>
-        <Button Text="Start Match" Clicked="StartMatchButton_Clicked"/>
-        <!-- Placeholder for future UI components -->
-    </StackLayout>
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="15">
+
+            <Label Text="AutoGladiators Robot Builder"
+                   FontSize="24"
+                   TextColor="White"
+                   HorizontalOptions="Center" />
+
+            <Label Text="Select Physical Skills:"
+                   FontAttributes="Bold"
+                   TextColor="LightGray" />
+            <StackLayout x:Name="PhysicalSkillsLayout" />
+
+            <Label Text="Select Weaponry Skills:"
+                   FontAttributes="Bold"
+                   TextColor="LightGray" />
+            <StackLayout x:Name="WeaponrySkillsLayout" />
+
+            <Label Text="Bot Stats Preview:" FontAttributes="Bold" TextColor="LightGray" />
+            <Label x:Name="StatsLabel"
+                   TextColor="White"
+                   FontSize="14"
+                   FontAttributes="Italic" />
+
+            <Button Text="Run Simulation"
+                    BackgroundColor="Green"
+                    TextColor="White"
+                    Clicked="RunSimulation_Clicked" />
+        </StackLayout>
+    </ScrollView>
 </ContentPage>
