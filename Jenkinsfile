@@ -20,25 +20,27 @@ pipeline {
 
         stage('Build SharedLibs') {
             steps {
-                bat 'dotnet build SharedLibs/ -c Release'
+                bat 'dotnet build SharedLibs\\StateMachineLib\\StateMachineLib.csproj --configuration Release'
+                bat 'dotnet build SharedLibs\\BehaviorEngineLib\\BehaviorEngineLib.csproj --configuration Release'
+                bat 'dotnet build SharedLibs\\SkillTreeLib\\SkillTreeLib.csproj --configuration Release'
             }
         }
 
         stage('Build Client') {
             steps {
-                bat 'dotnet build AutoGladiators.Client/ -c Release'
+                bat 'dotnet build AutoGladiators.Client\\AutoGladiators.Client.csproj --configuration Release'
             }
         }
 
         stage('Test') {
             steps {
-                bat 'dotnet test Tests/ --no-build --verbosity normal'
+                bat 'dotnet test Tests\\Tests.csproj --no-build --verbosity normal --configuration Release'
             }
         }
 
         stage('Publish Artifacts') {
             steps {
-                bat 'dotnet publish AutoGladiators.Client/ -c Release -o publish/'
+                bat 'dotnet publish AutoGladiators.Client\\AutoGladiators.Client.csproj --configuration Release -o publish\\'
             }
         }
     }
