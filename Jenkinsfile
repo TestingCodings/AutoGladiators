@@ -1,21 +1,51 @@
-
 pipeline {
     agent any
+
+    environment {
+        DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 'true'
+    }
+
     stages {
         stage('Checkout') {
-            steps { git 'https://github.com/yourusername/AutoGladiators.git' }
+            steps {
+                checkout([$class: 'GitSCM',
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/TestingCodings/AutoGladiators.git',
+                        credentialsId: 'github-token'
+                    ]],
+                    branches: [[name: '*/main']]
+                ])
+            }
         }
-        stage('Build DLLs') {
-            steps { bat 'dotnet build SharedLibs/ -c Release' }
+
+        stage('Build SharedLibs') {
+            steps {
+                bat 'dotnet build SharedLibs/ -c Release'
+            }
         }
+
         stage('Build Client') {
-            steps { bat 'dotnet build AutoGladiators.Client/ -c Release' }
+            steps {
+                bat 'dotnet build AutoGladiators.Client/ -c Release'
+            }
         }
-        stage('Run Tests') {
-            steps { bat 'dotnet test Tests/' }
+
+        stage('Test') {
+            steps {
+                bat 'dotnet test Tests/ --no-build --verbosity normal'
+            }
         }
-        stage('Package Artifacts') {
-            steps { bat 'dotnet publish AutoGladiators.Client/ -c Release -o publish/' }
+
+        stage('Publish Artifacts') {
+            steps {
+                bat 'dotnet publish AutoGladiators.Client/ -c Release -o publish/'
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'publish/**/*', allowEmptyArchive: true
         }
     }
 }
