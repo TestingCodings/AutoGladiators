@@ -1,0 +1,10 @@
+
+{
+    "levelName": "Arena Battle Alpha",
+    "levelType": "Battle",
+    "environment": {"size": "Large", "hazards": ["fire pits", "moving walls"]},
+    "opponents": [
+        {"botName": "Titan", "skills": ["Heavy Armor", "Cannon"], "behavior": "Aggressive"},
+        {"botName": "Swift", "skills": ["Speed Boost", "Sword"], "behavior": "Cautious"}
+    ]
+}
