@@ -3,13 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="AutoGladiators_MAUI.MainPage">
 
-    <VerticalStackLayout Spacing="25" Padding="30" VerticalOptions="Center">
-        <Label Text="Welcome to AutoGladiators!"
-               SemanticProperties.HeadingLevel="Level1"
-               FontSize="32"
-               HorizontalOptions="Center" />
-        <Button Text="Run Simulation"
-                SemanticProperties.Hint="Starts the simulation"
-                Clicked="OnRunSimulationClicked"/>
-    </VerticalStackLayout>
+    <StackLayout>
+        <Label Text="Welcome to AutoGladiators!" 
+               VerticalOptions="CenterAndExpand" 
+               HorizontalOptions="CenterAndExpand" />
+    </StackLayout>
+
 </ContentPage>

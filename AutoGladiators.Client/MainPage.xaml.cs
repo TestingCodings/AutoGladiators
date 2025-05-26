@@ -1,18 +1,11 @@
-using System;
 using Microsoft.Maui.Controls;
 
-namespace AutoGladiators_MAUI
-{
-    public partial class MainPage : ContentPage
-    {
-        public MainPage()
-        {
-            InitializeComponent();
-        }
+namespace AutoGladiators_MAUI;
 
-        private void OnRunSimulationClicked(object sender, EventArgs e)
-        {
-            DisplayAlert("Simulation", "Simulation started!", "OK");
-        }
+public partial class MainPage : ContentPage
+{
+    public MainPage()
+    {
+        InitializeComponent();
     }
 }

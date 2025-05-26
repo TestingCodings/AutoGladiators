@@ -1,17 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst;net6.0-windows10.0.19041.0</TargetFrameworks>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>AutoGladiators_MAUI</RootNamespace>
+    <TargetFrameworks>net8.0-android</TargetFrameworks>
     <UseMaui>true</UseMaui>
+    <MauiEnable>true</MauiEnable>
+    <UseMauiEssentials>true</UseMauiEssentials>
+    <OutputType>Exe</OutputType>
     <SingleProject>true</SingleProject>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <ApplicationTitle>AutoGladiators</ApplicationTitle>
+    <ApplicationId>com.cortexa.autogladiators</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <MauiIncludeAllPlatformResources>true</MauiIncludeAllPlatformResources>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
+    <PackageReference Include="CommunityToolkit.Maui" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Maui.Essentials" Version="8.0.100" />
   </ItemGroup>
 
 </Project>
+

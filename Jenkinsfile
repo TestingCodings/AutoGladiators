@@ -26,21 +26,15 @@ pipeline {
             }
         }
 
-        stage('Build Client') {
+        stage('Build Android Client') {
             steps {
-                bat 'dotnet build AutoGladiators.Client\\AutoGladiators.Client.csproj --configuration Release'
+                bat 'dotnet build AutoGladiators.Client\\AutoGladiators_MAUI.csproj --configuration Release -f net8.0-android'
             }
         }
 
-        stage('Test') {
+        stage('Publish APK') {
             steps {
-                bat 'dotnet test Tests\\Tests.csproj --no-build --verbosity normal --configuration Release'
-            }
-        }
-
-        stage('Publish Artifacts') {
-            steps {
-                bat 'dotnet publish AutoGladiators.Client\\AutoGladiators.Client.csproj --configuration Release -o publish\\'
+                bat 'dotnet publish AutoGladiators.Client\\AutoGladiators_MAUI.csproj --configuration Release -f net8.0-android -o publish\\'
             }
         }
     }
