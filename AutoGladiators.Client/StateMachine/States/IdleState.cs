@@ -1,24 +1,28 @@
 
 using AutoGladiators.Client.Core;
-using AutoGladiators.Client.StateMachine.States;
-public class IdleState : IGameState
+using AutoGladiators.Client.StateMachine;
+
+namespace AutoGladiators.Client.StateMachine.States
 {
-    public string Name => "Idle";
-
-    public void Enter(GladiatorBot bot)
+    public class IdleState : IGameState
     {
-        bot.ResetTempStats();
-        Console.WriteLine($"[{bot.Name}] has entered Idle state.");
-    }
+        public string Name => "Idle";
 
-    public void Execute(GladiatorBot bot)
-    {
-        Console.WriteLine($"[{bot.Name}] is waiting...");
-        // Could check for decision to train, race, or battle
-    }
+        public void Enter(GladiatorBot bot)
+        {
+            bot.ResetTempStats();
+            Console.WriteLine($"[{bot.Name}] has entered Idle state.");
+        }
 
-    public void Exit(GladiatorBot bot)
-    {
-        Console.WriteLine($"[{bot.Name}] is exiting Idle state.");
+        public void Execute(GladiatorBot bot)
+        {
+            Console.WriteLine($"[{bot.Name}] is waiting...");
+            // Could check for decision to train, race, or battle
+        }
+
+        public void Exit(GladiatorBot bot)
+        {
+            Console.WriteLine($"[{bot.Name}] is exiting Idle state.");
+        }
     }
 }

@@ -1,27 +1,44 @@
 using System;
+using System.Collections.Generic;
 using AutoGladiators.Client.StateMachine;
+using AutoGladiators.Client.StateMachine.States;
 using AutoGladiators.Client.Core.Behaviors;
-
 
 namespace AutoGladiators.Client.Core
 {
     public class GladiatorBot
     {
+        // Identity
         public string Name { get; set; }
+
+        // Vital stats
         public int Health { get; set; }
         public int Energy { get; set; }
-
         public int MaxHealth { get; private set; }
         public int MaxEnergy { get; private set; }
 
-        public IBehaviorProfile Behavior { get; set; }
+        // Traits and progression
+        public double Speed { get; set; }
+        public double Agility { get; set; }
+        public double Strength { get; set; }
+        public double Intelligence { get; set; }
+        public int Level { get; set; }
+        public int Experience { get; set; }
+        public double LastDamageTaken { get; set; }
+
+        // Modifiers and dynamic battle environment
         public List<string> Modifiers { get; private set; } = new();
 
+        // State and AI
         public GladiatorAction LastAction { get; private set; } = GladiatorAction.None;
         public bool IsCharging { get; private set; } = false;
         public bool IsDefending { get; private set; } = false;
-
+        public IBehaviorProfile Behavior { get; set; }
         public GameStateMachine StateMachine { get; set; }
+
+        // Historical outcomes
+        public object LastRaceResult { get; set; }
+        public object LastBattleResult { get; set; }
 
         public GladiatorBot(string name, IBehaviorProfile behavior, int maxHealth, int startEnergy, List<string>? modifiers = null)
         {
@@ -37,8 +54,10 @@ namespace AutoGladiators.Client.Core
 
             ApplyModifiers();
 
-            StateMachine = new GameStateMachine(this);
-            StateMachine.Initialize(new IdleState());
+            var initialState = new IdleState();
+            StateMachine = new GameStateMachine(initialState);
+            StateMachine.Initialize(this);
+
         }
 
         private void ApplyModifiers()
@@ -59,14 +78,13 @@ namespace AutoGladiators.Client.Core
                         Energy -= 10;
                         break;
                     case "EvadeBoost":
-                        // You can define a property like EvadeChance if needed
                         Console.WriteLine($"{Name} gains higher evade ability.");
                         break;
                     case "LavaHazard":
                         Health -= 5;
                         break;
                     case "SlowRegeneration":
-                        // Regeneration logic will go slower
+                        Console.WriteLine($"{Name} regenerates slower.");
                         break;
                     case "Stealth":
                         Console.WriteLine($"{Name} gains stealth advantage.");
@@ -77,9 +95,8 @@ namespace AutoGladiators.Client.Core
                 }
             }
 
-            // Clamp to valid ranges
             Health = Math.Min(Health, MaxHealth);
-            Energy = Math.Max(0, Math.Min(Energy, MaxEnergy));
+            Energy = Math.Clamp(Energy, 0, MaxEnergy);
         }
 
         public void TakeTurn(GladiatorBot opponent)
@@ -138,6 +155,37 @@ namespace AutoGladiators.Client.Core
                 amount /= 2;
 
             Health -= amount;
+            LastDamageTaken = amount;
+        }
+
+        public void Train()
+        {
+            // TODO: Training logic based on current behavior
+        }
+
+        public void LevelUp()
+        {
+            Level++;
+            Experience = 0;
+            MaxHealth += 10;
+            MaxEnergy += 5;
+        }
+
+        public void ResetTempStats()
+        {
+            // TODO: Reset temporary buffs like IsCharging or turn-limited effects
+        }
+
+        public void ResetBattleState()
+        {
+            IsCharging = false;
+            IsDefending = false;
+            LastAction = GladiatorAction.None;
+        }
+
+        public void RecordDefeat()
+        {
+            // TODO: Log defeat stats or penalties
         }
 
         public bool IsAlive => Health > 0;

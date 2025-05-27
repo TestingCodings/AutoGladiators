@@ -1,14 +1,12 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using AutoGladiators.Client.Core;
-using AutoGladiators.Client.Config;
 
-
-namespace AutoGladiators.Core.Simulation
+namespace AutoGladiators.Client.Simulation
 {
     public class RaceSimulator
     {
-        public GladiatorBot SimulateRace(List<GladiatorBot> bots)
+        public RaceResult Run(List<GladiatorBot> bots)
         {
             var scores = bots.ToDictionary(bot => bot, bot =>
             {
@@ -17,7 +15,13 @@ namespace AutoGladiators.Core.Simulation
                 return speedScore + reactionBonus;
             });
 
-            return scores.OrderByDescending(kv => kv.Value).First().Key;
+            var winner = scores.OrderByDescending(kv => kv.Value).First().Key;
+
+            return new RaceResult
+            {
+                Winner = winner,
+                Scores = scores
+            };
         }
     }
 }

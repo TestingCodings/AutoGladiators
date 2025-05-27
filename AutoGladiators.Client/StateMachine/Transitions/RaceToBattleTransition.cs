@@ -1,11 +1,16 @@
 using AutoGladiators.Client.Core;
-using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.StateMachine.States;
 
-public class RaceToBattleTransition : IStateTransition
+namespace AutoGladiators.Client.StateMachine.Transitions
 {
-    public bool CanTransition(GladiatorBot bot)
+    public class RaceToBattleTransition : StateTransitionBase
     {
-        return bot.LastRaceResult != null && bot.LastRaceResult.TimeTaken < 30;
+        public override string Name => "RaceToBattle";
+        public override IGameState TargetState => new BattlingState();
+
+        public override bool ShouldTransition(GladiatorBot bot)
+        {
+            return bot.LastRaceResult?.ToString() == "ChallengeIssued";
+        }
     }
 }

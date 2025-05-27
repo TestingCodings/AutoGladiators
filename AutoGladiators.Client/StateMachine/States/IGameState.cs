@@ -1,4 +1,5 @@
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.StateMachine.States;
 
 public interface IGameState
 {

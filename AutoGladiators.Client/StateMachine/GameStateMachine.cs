@@ -16,6 +16,11 @@ namespace AutoGladiators.Client.StateMachine
             _currentState = initialState;
         }
 
+        public void Initialize(GladiatorBot bot)
+        {
+            _currentState?.Enter(bot);
+        }
+
         public void AddTransition(string from, string to, IStateTransition transition)
         {
             _transitions[(from, to)] = transition;
@@ -47,3 +52,6 @@ namespace AutoGladiators.Client.StateMachine
         public string CurrentStateName => _currentState?.Name ?? "None";
     }
 }
+
+// This code defines a GameStateMachine that manages the state transitions of a GladiatorBot in a game.
+// It allows adding transitions between states, updating the current state based on conditions, and forcing transitions.

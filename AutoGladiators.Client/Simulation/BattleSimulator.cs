@@ -1,40 +1,45 @@
-using System;
-using System.Collections.Generic;
 using AutoGladiators.Client.Core;
-using AutoGladiators.Client.Config;
 
-namespace AutoGladiators.Client.Simulations
+
+namespace AutoGladiators.Client.Simulation
+
 {
+    public class BattleResult
+    {
+        public string Winner { get; set; }
+        public List<string> Log { get; set; } = new();
+    }
+
     public class BattleSimulator
     {
-        public static string SimulateBattle(GladiatorBot bot1, GladiatorBot bot2)
+        public static BattleResult Run(GladiatorBot bot1, GladiatorBot bot2)
         {
-            var round = 1;
-            var log = new List<string>();
+            var result = new BattleResult();
+            int round = 1;
 
             while (bot1.IsAlive && bot2.IsAlive && round <= 20)
             {
-                log.Add($"--- Round {round} ---");
+                result.Log.Add($"--- Round {round} ---");
 
                 bot1.TakeTurn(bot2);
                 bot2.TakeTurn(bot1);
 
-                log.Add($"{bot1.Name}: HP {bot1.Health}, Energy {bot1.Energy}, Last: {bot1.LastAction}");
-                log.Add($"{bot2.Name}: HP {bot2.Health}, Energy {bot2.Energy}, Last: {bot2.LastAction}");
+                result.Log.Add($"{bot1.Name}: HP {bot1.Health}, Energy {bot1.Energy}, Last: {bot1.LastAction}");
+                result.Log.Add($"{bot2.Name}: HP {bot2.Health}, Energy {bot2.Energy}, Last: {bot2.LastAction}");
 
                 round++;
             }
 
             if (!bot1.IsAlive && !bot2.IsAlive)
-                return "It's a draw!\n" + string.Join("\n", log);
+                result.Winner = "Draw";
+            else if (!bot1.IsAlive)
+                result.Winner = bot2.Name;
+            else if (!bot2.IsAlive)
+                result.Winner = bot1.Name;
+            else
+                result.Winner = "Timeout";
 
-            if (!bot1.IsAlive)
-                return $"{bot2.Name} wins!\n" + string.Join("\n", log);
-
-            if (!bot2.IsAlive)
-                return $"{bot1.Name} wins!\n" + string.Join("\n", log);
-
-            return "Battle timed out.\n" + string.Join("\n", log);
+            return result;
         }
     }
 }

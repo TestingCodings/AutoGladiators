@@ -1,22 +1,26 @@
 using AutoGladiators.Client.Core;
-using AutoGladiators.Client.StateMachine.States;
-public class VictoryState : IGameState
+using AutoGladiators.Client.StateMachine;
+
+namespace AutoGladiators.Client.StateMachine.States
 {
-    public string Name => "Victory";
-
-    public void Enter(GladiatorBot bot)
+    public class VictoryState : IGameState
     {
-        bot.LevelUp();
-        Console.WriteLine($"[{bot.Name}] achieved VICTORY! XP: {bot.Experience}, Level: {bot.Level}");
-    }
+        public string Name => "Victory";
 
-    public void Execute(GladiatorBot bot)
-    {
-        Console.WriteLine($"[{bot.Name}] is celebrating victory...");
-    }
+        public void Enter(GladiatorBot bot)
+        {
+            bot.LevelUp();
+            Console.WriteLine($"[{bot.Name}] achieved VICTORY! XP: {bot.Experience}, Level: {bot.Level}");
+        }
 
-    public void Exit(GladiatorBot bot)
-    {
-        Console.WriteLine($"[{bot.Name}] ends victory sequence.");
+        public void Execute(GladiatorBot bot)
+        {
+            Console.WriteLine($"[{bot.Name}] is celebrating victory...");
+        }
+
+        public void Exit(GladiatorBot bot)
+        {
+            Console.WriteLine($"[{bot.Name}] ends victory sequence.");
+        }
     }
 }

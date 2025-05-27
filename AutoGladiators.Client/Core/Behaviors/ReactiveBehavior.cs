@@ -1,9 +1,8 @@
 using System;
-using AutoGladiators.Client.Core;
 using AutoGladiators.Client.Core.Behaviors;
+using AutoGladiators.Client.Core;
 
-
-namespace AutoGladiators.Client.Core
+namespace AutoGladiators.Client.Core.Behaviors
 {
     public class ReactiveBehavior : IBehaviorProfile
     {
@@ -11,28 +10,43 @@ namespace AutoGladiators.Client.Core
 
         public double Aggression => 0.5;
         public double Caution => 0.5;
-        public double ReactionTime => 0.9; // Fast reactions
+        public double ReactionTime => 0.95;
+        public double Intelligence => 0.7;
+        public double Adaptability => 0.9;
+
+        private Random _random = new();
 
         public void ExecuteStrategy(GladiatorBot bot, GladiatorBot opponent)
         {
-            // Respond to opponent's last action
             switch (opponent.LastAction)
             {
                 case GladiatorAction.Attack:
-                    bot.Parry();
+                    bot.Defend();
                     break;
-
                 case GladiatorAction.Defend:
-                    bot.PowerStrike(opponent);
-                    break;
-
-                case GladiatorAction.Evade:
                     bot.Charge();
                     break;
-
+                case GladiatorAction.Charge:
+                    bot.Attack(opponent);
+                    break;
                 default:
                     bot.Attack(opponent);
                     break;
+            }
+        }
+
+        public GladiatorAction DecideAction(GladiatorBot bot, GladiatorBot opponent, string environment)
+        {
+            switch (opponent.LastAction)
+            {
+                case GladiatorAction.Attack:
+                    return GladiatorAction.Defend;
+                case GladiatorAction.Defend:
+                    return GladiatorAction.Charge;
+                case GladiatorAction.Charge:
+                    return GladiatorAction.Attack;
+                default:
+                    return GladiatorAction.Attack;
             }
         }
     }

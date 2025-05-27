@@ -1,11 +1,16 @@
 using AutoGladiators.Client.Core;
-using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.StateMachine.States;
 
-public class IdleToTrainingTransition : IStateTransition
+namespace AutoGladiators.Client.StateMachine.Transitions
 {
-    public bool CanTransition(GladiatorBot bot)
+    public class IdleToTrainingTransition : StateTransitionBase
     {
-        return bot.ShouldTrain(); // Define in GladiatorBot
+        public override string Name => "IdleToTraining";
+        public override IGameState TargetState => new TrainingState();
+
+        public override bool ShouldTransition(GladiatorBot bot)
+        {
+            return bot.Energy >= 10 && bot.Health > 50;
+        }
     }
 }

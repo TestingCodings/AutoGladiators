@@ -1,11 +1,16 @@
 using AutoGladiators.Client.Core;
-using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.StateMachine.States;
 
-public class BattleToVictoryTransition : IStateTransition
+namespace AutoGladiators.Client.StateMachine.Transitions
 {
-    public bool CanTransition(GladiatorBot bot)
+    public class BattleToVictoryTransition : StateTransitionBase
     {
-        return bot.LastBattleResult != null && bot.LastBattleResult.Won;
+        public override string Name => "BattleToVictory";
+        public override IGameState TargetState => new VictoryState();
+
+        public override bool ShouldTransition(GladiatorBot bot)
+        {
+            return bot.IsAlive && bot.LastBattleResult?.ToString() == "Win";
+        }
     }
 }

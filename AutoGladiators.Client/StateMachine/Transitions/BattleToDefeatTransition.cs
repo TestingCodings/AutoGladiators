@@ -1,11 +1,16 @@
 using AutoGladiators.Client.Core;
-using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.StateMachine.States;
 
-public class BattleToDefeatTransition : IStateTransition
+namespace AutoGladiators.Client.StateMachine.Transitions
 {
-    public bool CanTransition(GladiatorBot bot)
+    public class BattleToDefeatTransition : StateTransitionBase
     {
-        return bot.LastBattleResult != null && !bot.LastBattleResult.Won;
+        public override string Name => "BattleToDefeat";
+        public override IGameState TargetState => new DefeatState();
+
+        public override bool ShouldTransition(GladiatorBot bot)
+        {
+            return !bot.IsAlive;
+        }
     }
 }

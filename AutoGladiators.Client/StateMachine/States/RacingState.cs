@@ -1,23 +1,40 @@
+using System;
+using System.Collections.Generic;
 using AutoGladiators.Client.Core;
-using AutoGladiators.Client.StateMachine.States;
-public class RacingState : IGameState
+using AutoGladiators.Client.Simulation;
+
+namespace AutoGladiators.Client.StateMachine.States
 {
-    public string Name => "Racing";
-
-    public void Enter(GladiatorBot bot)
+    public class RacingState : IGameState
     {
-        Console.WriteLine($"[{bot.Name}] starts racing...");
-    }
+        public string Name => "Racing";
 
-    public void Execute(GladiatorBot bot)
-    {
-        var result = RaceSimulator.Run(bot);
-        bot.LastRaceResult = result;
-        Console.WriteLine($"[{bot.Name}] finished race. Time: {result.TimeTaken}, Crashes: {result.Crashes}");
-    }
+        public void Enter(GladiatorBot bot)
+        {
+            Console.WriteLine($"{bot.Name} has entered the race track!");
 
-    public void Exit(GladiatorBot bot)
-    {
-        Console.WriteLine($"[{bot.Name}] completed racing.");
+            // TEMP: Simulate against 2 dummy bots for now
+            var opponent1 = new GladiatorBot("ZoomBot", bot.Behavior, 100, 50);
+            var opponent2 = new GladiatorBot("QuickBot", bot.Behavior, 100, 50);
+            var participants = new List<GladiatorBot> { bot, opponent1, opponent2 };
+
+            var result = new RaceSimulator().Run(participants);
+
+            Console.WriteLine($"🏁 Winner: {result.Winner.Name}");
+            foreach (var entry in result.Scores)
+            {
+                Console.WriteLine($"{entry.Key.Name}: Score = {entry.Value}");
+            }
+        }
+
+        public void Execute(GladiatorBot bot)
+        {
+            // Future logic
+        }
+
+        public void Exit(GladiatorBot bot)
+        {
+            Console.WriteLine($"{bot.Name} exits the race.");
+        }
     }
 }

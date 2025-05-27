@@ -6,11 +6,14 @@ namespace AutoGladiators.Client.Core.Behaviors
 {
     public interface IBehaviorProfile
     {
+        string Name { get; }
         double Aggression { get; }
+        double Caution { get; }
+        double ReactionTime { get; }
         double Intelligence { get; }
-        double ReactionTime { get; } // in milliseconds
         double Adaptability { get; }
 
-        string DecideAction(GladiatorBot self, GladiatorBot opponent, string context);
+        void ExecuteStrategy(GladiatorBot bot, GladiatorBot opponent);
+        GladiatorAction DecideAction(GladiatorBot bot, GladiatorBot opponent, string environment);
     }
 }

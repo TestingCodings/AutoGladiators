@@ -1,11 +1,17 @@
 using AutoGladiators.Client.Core;
-using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.StateMachine.States;
 
-public class AnyToIdleTransition : IStateTransition
+namespace AutoGladiators.Client.StateMachine.Transitions
 {
-    public bool CanTransition(GladiatorBot bot)
+    public class AnyToIdleTransition : StateTransitionBase
     {
-        return bot.Fatigue > 80 || bot.Health < 20; // Or user override
+        public override string Name => "AnyToIdle";
+        public override IGameState TargetState => new IdleState();
+
+        public override bool ShouldTransition(GladiatorBot bot)
+        {
+            // Example: transition to idle if energy is depleted
+            return bot.Energy <= 0;
+        }
     }
 }

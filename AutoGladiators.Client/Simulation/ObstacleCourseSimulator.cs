@@ -4,7 +4,7 @@ using AutoGladiators.Client.Core;
 using AutoGladiators.Client.Config;
 
 
-namespace AutoGladiators.Core.Simulation
+namespace AutoGladiators.Client.Simulation
 {
     public class ObstacleCourseSimulator
     {

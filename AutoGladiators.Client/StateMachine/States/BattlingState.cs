@@ -1,25 +1,34 @@
 using AutoGladiators.Client.Core;
-using AutoGladiators.Client.StateMachine.States;
+using AutoGladiators.Client.Simulation;
+using System;
 
-public class BattlingState : IGameState
+namespace AutoGladiators.Client.StateMachine.States
 {
-    public string Name => "Battling";
-
-    public void Enter(GladiatorBot bot)
+    public class BattlingState : IGameState
     {
-        Console.WriteLine($"[{bot.Name}] enters battle.");
-        bot.ResetBattleState();
-    }
+        public string Name => "Battling";
 
-    public void Execute(GladiatorBot bot)
-    {
-        var result = BattleSimulator.Run(bot);
-        bot.LastBattleResult = result;
-        Console.WriteLine($"[{bot.Name}] battle outcome: {(result.Won ? "Victory" : "Defeat")}");
-    }
+        public void Enter(GladiatorBot bot)
+        {
+            Console.WriteLine($"{bot.Name} has entered the battlefield!");
 
-    public void Exit(GladiatorBot bot)
-    {
-        Console.WriteLine($"[{bot.Name}] exits battle.");
+            // TEMP FIX: Use a dummy opponent until multi-bot injection is added
+            var opponent = new GladiatorBot("DummyBot", bot.Behavior, 100, 50);
+            var result = BattleSimulator.Run(bot, opponent);
+
+            Console.WriteLine($"{result.Winner} won the battle!");
+            foreach (var logLine in result.Log)
+                Console.WriteLine(logLine);
+        }
+
+        public void Execute(GladiatorBot bot)
+        {
+            // Future combat loop logic
+        }
+
+        public void Exit(GladiatorBot bot)
+        {
+            Console.WriteLine($"{bot.Name} leaves the battle.");
+        }
     }
 }
