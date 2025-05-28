@@ -26,7 +26,7 @@ pipeline {
             }
         }
 
-        stage('Build Android Client') {
+        stage('Build Game Client (Android)') {
             steps {
                 bat 'dotnet build AutoGladiators.Client\\AutoGladiators_MAUI.csproj --configuration Release -f net8.0-android'
             }
@@ -37,11 +37,28 @@ pipeline {
                 bat 'dotnet publish AutoGladiators.Client\\AutoGladiators_MAUI.csproj --configuration Release -f net8.0-android -o publish\\'
             }
         }
+
+        // Optional: Add tests if you have any
+        // stage('Run Tests') {
+        //     steps {
+        //         bat 'dotnet test Tests\\AutoGladiators.Tests.csproj --configuration Release'
+        //     }
+        // }
+
+        stage('Archive APK') {
+            steps {
+                archiveArtifacts artifacts: 'publish\\**\\*.apk', allowEmptyArchive: true
+            }
+        }
     }
 
     post {
-        always {
-            archiveArtifacts artifacts: 'publish/**/*', allowEmptyArchive: true
+        failure {
+            echo '❌ Build failed. Check console output above.'
+        }
+        success {
+            echo '✅ Build and publish successful.'
         }
     }
 }
+// This Jenkinsfile is designed to build and publish the AutoGladiators game client for Android using .NET MAUI.
