@@ -1,12 +1,14 @@
 using Microsoft.Maui.Controls;
+using AutoGladiators.Client.Pages;
 
-namespace AutoGladiators_MAUI;
-
-public partial class App : Application
+namespace AutoGladiators.Client
 {
-    public App()
+    public partial class App : Application
     {
-        InitializeComponent();
-        MainPage = new MainPage();
+        public App()
+        {
+            InitializeComponent(); // must match the x:Class in App.xaml
+            MainPage = new NavigationPage(new SimulationPage());
+        }
     }
 }

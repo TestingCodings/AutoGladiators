@@ -1,43 +1,51 @@
+using System.Collections.Generic;
 using AutoGladiators.Client.Core;
 
-
 namespace AutoGladiators.Client.Simulation
-
 {
-    public class BattleResult
-    {
-        public string Winner { get; set; }
-        public List<string> Log { get; set; } = new();
-    }
-
     public class BattleSimulator
     {
-        public static BattleResult Run(GladiatorBot bot1, GladiatorBot bot2)
+        public static BattleResult SimulateBattle(GladiatorBot bot1, GladiatorBot bot2)
         {
+            var round = 1;
             var result = new BattleResult();
-            int round = 1;
 
             while (bot1.IsAlive && bot2.IsAlive && round <= 20)
             {
                 result.Log.Add($"--- Round {round} ---");
-
                 bot1.TakeTurn(bot2);
                 bot2.TakeTurn(bot1);
-
                 result.Log.Add($"{bot1.Name}: HP {bot1.Health}, Energy {bot1.Energy}, Last: {bot1.LastAction}");
                 result.Log.Add($"{bot2.Name}: HP {bot2.Health}, Energy {bot2.Energy}, Last: {bot2.LastAction}");
-
                 round++;
             }
 
+            result.TotalRounds = round - 1;
+            result.FinalHealth[bot1.Name] = bot1.Health;
+            result.FinalHealth[bot2.Name] = bot2.Health;
+            result.LastActions[bot1.Name] = bot1.LastAction;
+            result.LastActions[bot2.Name] = bot2.LastAction;
+
             if (!bot1.IsAlive && !bot2.IsAlive)
-                result.Winner = "Draw";
+            {
+                result.Winner = "None";
+                result.Outcome = "Draw";
+            }
             else if (!bot1.IsAlive)
+            {
                 result.Winner = bot2.Name;
+                result.Outcome = "Loss";
+            }
             else if (!bot2.IsAlive)
+            {
                 result.Winner = bot1.Name;
+                result.Outcome = "Win";
+            }
             else
-                result.Winner = "Timeout";
+            {
+                result.Winner = "None";
+                result.Outcome = "Timeout";
+            }
 
             return result;
         }
