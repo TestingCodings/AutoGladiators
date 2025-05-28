@@ -1,6 +1,6 @@
+using System;
 using AutoGladiators.Client.Core;
 using AutoGladiators.Client.Simulation;
-using System;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
@@ -10,25 +10,30 @@ namespace AutoGladiators.Client.StateMachine.States
 
         public void Enter(GladiatorBot bot)
         {
-            Console.WriteLine($"{bot.Name} has entered the battlefield!");
+            if (bot == null) return;
 
-            // TEMP FIX: Use a dummy opponent until multi-bot injection is added
+            Console.WriteLine($"\n=== {bot.Name} enters the battlefield ===");
+
+            // TEMP: Create a placeholder opponent
             var opponent = new GladiatorBot("DummyBot", bot.Behavior, 100, 50);
-            var result = BattleSimulator.Run(bot, opponent);
 
-            Console.WriteLine($"{result.Winner} won the battle!");
-            foreach (var logLine in result.Log)
-                Console.WriteLine(logLine);
+            var result = BattleSimulator.SimulateBattle(bot, opponent);
+            bot.LastBattleResult = result;
+
+            Console.WriteLine($"\n🏆 Result: {result.Outcome} — Winner: {result.Winner}\n");
+
+            foreach (var line in result.Log)
+                Console.WriteLine($"• {line}");
         }
 
         public void Execute(GladiatorBot bot)
         {
-            // Future combat loop logic
+            // Placeholder for real-time battle updates, AI decisions, etc.
         }
 
         public void Exit(GladiatorBot bot)
         {
-            Console.WriteLine($"{bot.Name} leaves the battle.");
+            Console.WriteLine($"{bot.Name} leaves the battlefield.");
         }
     }
 }

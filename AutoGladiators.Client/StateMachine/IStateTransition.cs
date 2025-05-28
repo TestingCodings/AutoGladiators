@@ -4,18 +4,11 @@ namespace AutoGladiators.Client.StateMachine
 {
     public interface IStateTransition
     {
-        /// <summary>
-        /// Checks if the transition should occur based on logic involving the bot.
-
-        
-        /// <returns>True if the transition condition is met.</returns>
+      
         bool ShouldTransition(GladiatorBot bot);
 
 
-        /// Determines if the transition is allowed from the current state.
-
-    
-        /// <returns>True if the transition can legally occur.</returns>
+   
         bool CanTransition(GladiatorBot bot);
 
 
@@ -24,11 +17,10 @@ namespace AutoGladiators.Client.StateMachine
 
 
 
-        /// The state to transition to if conditions are met.
         IGameState TargetState { get; }
 
 
-        /// <returns>The name of the transition.</returns>
+
         string Name { get; }
     }
 }

@@ -1,3 +1,5 @@
+
+
 namespace AutoGladiators.Client.Core
 {
     public enum GladiatorAction
