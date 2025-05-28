@@ -4,6 +4,7 @@ using AutoGladiators.Client.Simulation;
 using AutoGladiators.Client.Core.Behaviors;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AutoGladiators.Client.Pages
 {
@@ -20,8 +21,17 @@ namespace AutoGladiators.Client.Pages
             var bot2 = new GladiatorBot("Bot Omega", new DefensiveBehavior(), 100, 50);
             var result = BattleSimulator.SimulateBattle(bot1, bot2);
 
-            // Display the result in a Label
-            ResultLabel.Text = $"🏆 Winner: {result.Winner}\nOutcome: {result.Outcome}\n\n{string.Join("\n", result.Log)}";
+            WinnerLabel.Text = $"🏆 Winner: {result.Winner}";
+            OutcomeLabel.Text = $"Outcome: {result.Outcome}";
+
+            BattleLogLabel.Text = string.Join("\n", result.Log);
+
+            var statsText = string.Join("\n\n", result.BotStats.Select(kvp =>
+                $"- {kvp.Key} -" +
+                string.Join("\n", kvp.Value.Select(stat => $"{stat.Key}: {stat.Value}"))
+            ));
+
+            StatsSummaryLabel.Text = statsText;
         }
     }
 }
