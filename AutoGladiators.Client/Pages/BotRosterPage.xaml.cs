@@ -1,37 +1,38 @@
 using Microsoft.Maui.Controls;
-using AutoGladiators.Client.Core;
-using AutoGladiators.Client.Simulation;
-using AutoGladiators.Client.Core.Behaviors;
-using System;
 using System.Collections.Generic;
-using System.Linq;
+using System;
 
 namespace AutoGladiators.Client.Pages
 {
-    public partial class SimulationPage : ContentPage
+    public partial class BotRosterPage : ContentPage
     {
-        public SimulationPage()
+        public class BotSummary
         {
-            InitializeComponent();
+            public string Name { get; set; }
+            public string ElementalCore { get; set; }
+            public string Description { get; set; }
         }
 
-        private void OnRunSimulationClicked(object sender, EventArgs e)
+        public BotRosterPage()
         {
-            var bot1 = new GladiatorBot("Bot Alpha", new AggressiveBehavior(), 100, 50);
-            var bot2 = new GladiatorBot("Bot Omega", new DefensiveBehavior(), 100, 50);
-            var result = BattleSimulator.SimulateBattle(bot1, bot2);
+            InitializeComponent();
 
-            WinnerLabel.Text = $"🏆 Winner: {result.Winner}";
-            OutcomeLabel.Text = $"Outcome: {result.Outcome}";
+            BotList.ItemsSource = new List<BotSummary>
+            {
+                new BotSummary { Name = "AegisCore", ElementalCore = "Steel", Description = "Heavy armored defender bot." },
+                new BotSummary { Name = "FlareByte", ElementalCore = "Fire", Description = "Fast and aggressive striker bot." },
+                new BotSummary { Name = "VoltZerker", ElementalCore = "Electric", Description = "Precision ranged attacker." }
+            };
+        }
 
-            BattleLogLabel.Text = string.Join("\n", result.Log);
-
-            var statsText = string.Join("\n\n", result.BotStats.Select(kvp =>
-                $"- {kvp.Key} -" +
-                string.Join("\n", kvp.Value.Select(stat => $"{stat.Key}: {stat.Value}"))
-            ));
-
-            StatsSummaryLabel.Text = statsText;
+        private async void OnBotSelected(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.CurrentSelection.FirstOrDefault() is BotSummary selectedBot)
+            {
+                await DisplayAlert("Bot Selected", $"{selectedBot.Name} - {selectedBot.ElementalCore}", "OK");
+                // You could Navigate to a BotDetailPage here later
+                BotList.SelectedItem = null;
+            }
         }
     }
 }
