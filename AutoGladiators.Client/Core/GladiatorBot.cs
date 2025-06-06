@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.StateMachine.States;
 using AutoGladiators.Client.Core.Behaviors;
+using SQLite;
 
 namespace AutoGladiators.Client.Core
 {
     public class GladiatorBot
     {
         // Identity
+        [PrimaryKey, AutoIncrement]
+        public int Id { get; set; }
         public string Name { get; set; }
 
         // Vital stats
@@ -22,6 +25,14 @@ namespace AutoGladiators.Client.Core
         public double Agility { get; set; }
         public double Strength { get; set; }
         public double Intelligence { get; set; }
+
+        public double Endurance { get; set; }
+
+        public double Luck { get; set; }
+
+        public string ElementalCore { get; set; }
+        public double CriticalHitChance { get; set; }
+
         public int Level { get; set; }
         public int Experience { get; set; }
         public double LastDamageTaken { get; set; }

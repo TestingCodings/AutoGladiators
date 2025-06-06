@@ -1,14 +1,13 @@
-using Microsoft.Maui.Controls;
-using AutoGladiators.Client.Pages;
 
-namespace AutoGladiators.Client
+namespace AutoGladiators.Client.Models
 {
-    public partial class App : Application
+    public class MapTile
     {
-        public App()
-        {
-            InitializeComponent(); // must match the x:Class in App.xaml
-            MainPage = new NavigationPage(new SimulationPage());
-        }
+        public string Region { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public string TileType { get; set; } // e.g., Grass, Road, NPC, EncounterZone
+        public bool IsEncounterZone { get; set; }
+        public string NPCId { get; set; } // Optional: ID of NPC if applicable
     }
 }

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="AutoGladiators.Client.Pages.BotDetailPage"
+    Title="Bot Details">
+
+    <ScrollView>
+        <StackLayout Padding="20">
+            <Label Text="{Binding Bot.Name}" FontSize="24" FontAttributes="Bold" />
+            <Label Text="{Binding Bot.Description}" FontSize="16" />
+            <Image Source="{Binding Bot.ImagePath}" HeightRequest="200" />
+
+            <Label Text="Stats:" FontSize="18" FontAttributes="Bold" Margin="0,10,0,0"/>
+            <Label Text="{Binding BotStats}" FontSize="14" />
+
+            <Button Text="Add to Inventory" Clicked="OnAddToInventoryClicked" Margin="0,20,0,0"/>
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

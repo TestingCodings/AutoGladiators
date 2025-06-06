@@ -1,14 +1,11 @@
-using Microsoft.Maui.Controls;
-using AutoGladiators.Client.Pages;
 
-namespace AutoGladiators.Client
+namespace AutoGladiators.Client.Models
 {
-    public partial class App : Application
+    public class Item
     {
-        public App()
-        {
-            InitializeComponent(); // must match the x:Class in App.xaml
-            MainPage = new NavigationPage(new SimulationPage());
-        }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Type { get; set; } // e.g., "Healing", "Capture", "Upgrade"
+        public int Quantity { get; set; }
     }
 }

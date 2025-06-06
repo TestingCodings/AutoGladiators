@@ -1,14 +1,15 @@
-using Microsoft.Maui.Controls;
-using AutoGladiators.Client.Pages;
 
-namespace AutoGladiators.Client
+namespace AutoGladiators.Client.Models
 {
-    public partial class App : Application
+    public class Inventory
     {
-        public App()
+        public List<Item> Items { get; set; }
+        public List<GladiatorBot> Bots { get; set; }
+
+        public Inventory()
         {
-            InitializeComponent(); // must match the x:Class in App.xaml
-            MainPage = new NavigationPage(new SimulationPage());
+            Items = new List<Item>();
+            Bots = new List<GladiatorBot>();
         }
     }
 }

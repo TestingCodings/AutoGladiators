@@ -1,17 +1,47 @@
 using Microsoft.Maui.Controls;
 using System;
+using AutoGladiators.Client.Core;
 
 namespace AutoGladiators.Client.Pages
 {
     public partial class BattlePage : ContentPage
     {
+        private GladiatorBot _enemyBot;
+        private BattleStateMachine _battleStateMachine;
+
+
+        
+        private void PlayIntroAnimation()
+        {
+            // Stub: Replace with your actual animation logic
+            LogAction($"A wild {_enemyBot.Name} appears!");
+        }
+
+        private void StartBattle()
+        {
+            _battleStateMachine = new BattleStateMachine(_enemyBot, OnBattleEvent);
+            _battleStateMachine.Start();
+        }
+
+        private void OnBattleEvent(string message)
+        {
+            LogAction(message);
+            EnemyHealth.Text = $"HP: {_enemyBot.Health}";
+        }
         int enemyHealth = 100;
         string enemyName = "OmegaX";
 
-        public BattlePage()
+        public BattlePage(GladiatorBot encounteredBot)
         {
             InitializeComponent();
+            _enemyBot = encounteredBot;
+            EnemyHealth.Text = $"HP: {_enemyBot.Health}";
+            enemyName = _enemyBot.Name;
+
+            PlayIntroAnimation();
+            StartBattle();
         }
+
 
         private void LogAction(string message)
         {
