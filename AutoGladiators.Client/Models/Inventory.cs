@@ -1,3 +1,5 @@
+using AutoGladiators.Client.Core;
+
 
 namespace AutoGladiators.Client.Models
 {

@@ -1,9 +1,9 @@
 using AutoGladiators.Client.Models;
 using AutoGladiators.Client.Services;
 using System;
-using System.Threading.Timer;
+using System.Timers;
 
-namespace AutoGladiators.Client.Logic {
+namespace AutoGladiators.Client.Logic 
 {
     public class MovementHandler
     {
@@ -98,5 +98,4 @@ namespace AutoGladiators.Client.Logic {
             _movementTimer?.Dispose();
         }
     }
-}
 }

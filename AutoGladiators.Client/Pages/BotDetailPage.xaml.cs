@@ -1,6 +1,8 @@
 using AutoGladiators.Client.Models;
 using AutoGladiators.Client.Services;
 using Microsoft.Maui.Controls;
+using AutoGladiators.Client.Core;
+using System;
 
 namespace AutoGladiators.Client.Pages
 {

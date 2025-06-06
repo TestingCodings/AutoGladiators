@@ -1,6 +1,6 @@
 namespace AutoGladiators.Client.Models
 {
-    public class PlayerLocation : IEquatable<PlayerLocation>
+    public class PlayerLocation 
     {
         public string Region { get; set; }
         public int X { get; set; }
@@ -18,33 +18,37 @@ namespace AutoGladiators.Client.Models
                 Y = this.Y
             };
         }
-        public bool IsEqual(PlayerLocation other)
+        interface IEquatable<PlayerLocation>
         {
-            if (other == null) return false;
-            return this.Region == other.Region && this.X == other.X && this.Y == other.Y;
-        }
-        public override bool Equals(object obj)
-        {
-            if (obj is PlayerLocation other)
+            public bool IsEqual(PlayerLocation other)
             {
-                return IsEqual(other);
+                if (other == null) return false;
+                return this.Region == other.Region && this.X == other.X && this.Y == other.Y;
             }
-            return false;
+            public override bool Equals(object obj)
+            {
+                if (obj is PlayerLocation other)
+                {
+                    return IsEqual(other);
+                }
+                return false;
+            }
         }
 
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Region, X, Y);
-        }
-        public static bool operator ==(PlayerLocation left, PlayerLocation right)
-        {
-            if (left is null) return right is null;
-            return left.Equals(right);
-        }
-        public static bool operator !=(PlayerLocation left, PlayerLocation right)
-        {
-            return !(left == right);
-        }
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(Region, X, Y);
+            }
+            public static bool operator ==(PlayerLocation left, PlayerLocation right)
+            {
+                if (left is null) return right is null;
+                return left.Equals(right);
+            }
+            public static bool operator !=(PlayerLocation left, PlayerLocation right)
+            {
+                return !(left == right);
+            }
+        
         public static PlayerLocation operator +(PlayerLocation loc, (int deltaX, int deltaY) delta)
         {
             return new PlayerLocation

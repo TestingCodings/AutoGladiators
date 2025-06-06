@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AutoGladiators.Client.Models;
+using AutoGladiators.Client.Core;
 
 namespace AutoGladiators.Client.Services
 {

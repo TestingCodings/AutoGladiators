@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoGladiators.Client.Models;
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Tables;
 
 
 namespace AutoGladiators.Client.Services
