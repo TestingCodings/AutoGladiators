@@ -2,18 +2,18 @@ using AutoGladiators.Client.Core;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
-    public class IdleState : IGameState
+    public class DefendState : IGameState
     {
-        public string Name => "Idle";
+        public string Name => "Defend";
 
         public void Enter(GladiatorBot bot)
         {
-            bot.ResetBattleState();
+            bot.Defend();
         }
 
         public void Execute(GladiatorBot bot)
         {
-            // Idle logic: maybe regen or transition
+            // Maintain defense
         }
 
         public void Exit(GladiatorBot bot) { }

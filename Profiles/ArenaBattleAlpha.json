@@ -7,4 +7,22 @@
         {"botName": "Titan", "skills": ["Heavy Armor", "Cannon"], "behavior": "Aggressive"},
         {"botName": "Swift", "skills": ["Speed Boost", "Sword"], "behavior": "Cautious"}
     ]
+},
+{
+    "levelName": "Arena Battle Beta",
+    "levelType": "Battle",
+    "environment": {"size": "Medium", "hazards": ["spike traps", "water pits"]},
+    "opponents": [
+        {"botName": "Crusher", "skills": ["Hammer", "Shield"], "behavior": "Defensive"},
+        {"botName": "Phantom", "skills": ["Stealth", "Dagger"], "behavior": "Sneaky"}
+    ]
+},
+{
+    "levelName": "Arena Battle Gamma",
+    "levelType": "Battle",
+    "environment": {"size": "Small", "hazards": ["lava pools", "explosive barrels"]},
+    "opponents": [
+        {"botName": "Blaze", "skills": ["Fire Breath", "Claws"], "behavior": "Aggressive"},
+        {"botName": "Shadow", "skills": ["Invisibility", "Poison"], "behavior": "Cunning"}
+    ]
 }

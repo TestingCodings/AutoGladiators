@@ -1,5 +1,6 @@
 using Microsoft.Maui.Controls;
 using System;
+using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.Core;
 
 namespace AutoGladiators.Client.Pages

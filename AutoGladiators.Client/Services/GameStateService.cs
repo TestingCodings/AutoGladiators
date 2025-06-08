@@ -1,14 +1,54 @@
-using Microsoft.Maui.Controls;
-using AutoGladiators.Client.Pages;
 
-namespace AutoGladiators.Client
+using AutoGladiators.Client.Models;
+using AutoGladiators.Client.Services;
+using System.Collections.Generic;
+using AutoGladiators.Client.Core;
+
+
+namespace AutoGladiators.Client.Services
 {
-    public partial class App : Application
+    public class GameStateService
     {
-        public App()
+        public PlayerProfile CurrentPlayer { get; private set; }
+        public List<GladiatorBot> BotRoster { get; private set; } = new();
+        public Inventory Inventory { get; private set; } = new();
+        public PlayerLocation CurrentLocation { get; private set; } = new();
+
+        public void InitializeNewGame(string playerName)
         {
-            InitializeComponent(); // must match the x:Class in App.xaml
-            MainPage = new NavigationPage(new SimulationPage());
+            CurrentPlayer = new PlayerProfile { Name = playerName, Level = 1 };
+            BotRoster.Clear();
+            Inventory.Clear();
+            CurrentLocation = new PlayerLocation { Region = "StarterZone", X = 0, Y = 0 };
+        }
+
+        public void LoadGame(GameData data)
+        {
+            CurrentPlayer = data.PlayerProfile;
+            BotRoster = new List<GladiatorBot>(data.Bots);
+            Inventory = data.Inventory;
+            CurrentLocation = data.PlayerLocation;
+        }
+
+        public GameData SaveGame()
+        {
+            return new GameData
+            {
+                PlayerProfile = CurrentPlayer,
+                Bots = new List<GladiatorBot>(BotRoster),
+                Inventory = Inventory,
+                PlayerLocation = CurrentLocation
+            };
+        }
+
+        public void AddBotToRoster(GladiatorBot bot)
+        {
+            BotRoster.Add(bot);
+        }
+
+        public void UpdateLocation(PlayerLocation location)
+        {
+            CurrentLocation = location;
         }
     }
 }

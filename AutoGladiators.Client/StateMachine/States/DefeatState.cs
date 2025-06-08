@@ -1,28 +1,19 @@
-using AutoGladiators.Client.Core;
-using AutoGladiators.Client.StateMachine;
+
+using AutoGladiators.Client.StateMachine.Interfaces;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
-
     public class DefeatState : IGameState
     {
-        public string Name => "Defeat";
-
-        public void Enter(GladiatorBot bot)
+        public void Enter(IGameStateContext context)
         {
-            Console.WriteLine($"[{bot.Name}] has been DEFEATED.");
-            bot.RecordDefeat();
+            context.Log("You lost the battle.");
+            // TODO: Add consequences (e.g., faint, respawn, money loss).
         }
 
-        public void Execute(GladiatorBot bot)
+        public void Update(IGameStateContext context)
         {
-            Console.WriteLine($"[{bot.Name}] is recovering...");
-            bot.Health = Math.Max(bot.Health - 10, 0); // simulate cost
-        }
-
-        public void Exit(GladiatorBot bot)
-        {
-            Console.WriteLine($"[{bot.Name}] exits defeat and prepares to restart.");
+            context.TransitionTo("Idle");
         }
     }
 }

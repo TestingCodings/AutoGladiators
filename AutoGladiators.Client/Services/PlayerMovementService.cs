@@ -1,6 +1,6 @@
 
 using System;
-using System.Threading.Timer;
+using System.Timers;
 using AutoGladiators.Client.Models;
 
 namespace AutoGladiators.Client.Services
@@ -8,7 +8,7 @@ namespace AutoGladiators.Client.Services
     public class PlayerMovementService : IDisposable
     {
         private PlayerLocation _currentLocation;
-        private Timer _movementTimer;
+        private System.Timers.Timer _movementTimer;
         private EncounterService _encounterService;
 
         public event Action<PlayerLocation> OnPlayerMoved;
@@ -17,7 +17,7 @@ namespace AutoGladiators.Client.Services
         {
             _currentLocation = startingLocation.Clone();
             _encounterService = encounterService;
-            _movementTimer = new Timer(intervalMs);
+            _movementTimer = new System.Timers.Timer(intervalMs);
             _movementTimer.Elapsed += OnTimedMove;
             _movementTimer.AutoReset = false;
         }

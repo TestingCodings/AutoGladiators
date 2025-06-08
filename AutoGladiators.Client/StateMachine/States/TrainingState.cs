@@ -1,26 +1,21 @@
+
+using AutoGladiators.Client.StateMachine.Interfaces;
 using AutoGladiators.Client.Core;
-using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
     public class TrainingState : IGameState
     {
-        public string Name => "Training";
-
-        public void Enter(GladiatorBot bot)
+        public void Enter(IGameStateContext context)
         {
-            Console.WriteLine($"[{bot.Name}] begins training...");
+            context.Log("Training session started.");
+            var result = context.TrainingSimulator.Run(context.Self);
+            context.Log(result.Summary);
         }
 
-        public void Execute(GladiatorBot bot)
+        public void Update(IGameStateContext context)
         {
-            bot.Train(); // Increase stats or XP
-            Console.WriteLine($"[{bot.Name}] trained. New stats: STR={bot.Strength}, SPD={bot.Speed}, INT={bot.Intelligence}");
-        }
-
-        public void Exit(GladiatorBot bot)
-        {
-            Console.WriteLine($"[{bot.Name}] finishes training.");
+            context.TransitionTo("Idle");
         }
     }
 }

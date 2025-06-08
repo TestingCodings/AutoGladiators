@@ -2,41 +2,49 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="AutoGladiators.Client.Pages.BattlePage"
+             xmlns:vm="clr-namespace:AutoGladiators.Client.ViewModels"
+             x:DataType="vm:BattleViewModel"
              Title="Battle"
              BackgroundColor="#121212">
+
+    <ContentPage.BindingContext>
+        <vm:BattleViewModel />
+    </ContentPage.BindingContext>
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="15">
+
+            <!-- Opponent Bot Display -->
+            <Frame BackgroundColor="#2d2d2d" CornerRadius="10" Padding="15">
+                <StackLayout>
+                    <Label Text="{Binding EnemyBot.Name}" FontSize="20" TextColor="Red"/>
+                    <Label Text="{Binding EnemyBotHealthDisplay}" FontSize="14" TextColor="LightGray"/>
+                    <Label Text="{Binding EnemyBot.Status}" FontSize="14" TextColor="Gray"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- Battle Log -->
+            <ScrollView HeightRequest="180">
+                <Label Text="{Binding BattleLog}" TextColor="White"/>
+            </ScrollView>
+
+            <!-- Action Buttons -->
+            <Grid ColumnSpacing="10" RowSpacing="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Row="0" Grid.Column="0" Text="Power Strike" Command="{Binding PowerStrikeCommand}"/>
+                <Button Grid.Row="0" Grid.Column="1" Text="Evade" Command="{Binding EvadeCommand}"/>
+                <Button Grid.Row="1" Grid.Column="0" Text="Repair" Command="{Binding RepairCommand}"/>
+                <Button Grid.Row="1" Grid.Column="1" Text="Control Chip" Command="{Binding CaptureCommand}"/>
+            </Grid>
+        </StackLayout>
+    </ScrollView>
 </ContentPage>
 
-    <StackLayout Padding="20" Spacing="15">
-
-        <!-- Opponent Bot Display -->
-        <Frame BackgroundColor="#2d2d2d" CornerRadius="10" Padding="15">
-            <StackLayout>
-                <Label Text="Enemy Bot: OmegaX" FontSize="20" TextColor="Red"/>
-                <Label x:Name="EnemyHealth" Text="HP: 100" FontSize="14" TextColor="LightGray"/>
-                <Label x:Name="EnemyStatus" Text="Status: Idle" FontSize="14" TextColor="Gray"/>
-            </StackLayout>
-        </Frame>
-
-        <!-- Battle Log -->
-        <ScrollView HeightRequest="180">
-            <Label x:Name="BattleLog" Text="" TextColor="White"/>
-        </ScrollView>
-
-        <!-- Action Buttons -->
-        <Grid ColumnSpacing="10" RowSpacing="10">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <Button Grid.Row="0" Grid.Column="0" Text="Power Strike" Clicked="OnPowerStrike"/>
-            <Button Grid.Row="0" Grid.Column="1" Text="Evade" Clicked="OnEvade"/>
-            <Button Grid.Row="1" Grid.Column="0" Text="Repair" Clicked="OnRepair"/>
-            <Button Grid.Row="1" Grid.Column="1" Text="Control Chip" Clicked="OnCapture"/>
-        </Grid>
-    </StackLayout>
-</ContentPage>

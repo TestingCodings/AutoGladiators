@@ -1,15 +1,14 @@
 using AutoGladiators.Client.Models;
 using AutoGladiators.Client.Services;
 using System;
-using System.Timers;
-
+using System.Timers; 
 namespace AutoGladiators.Client.Logic 
 {
     public class MovementHandler
     {
-        private readonly EncounterService _encounterService;
-        private readonly PlayerLocation _currentLocation;
-        private readonly Timer _movementTimer;
+        private EncounterService _encounterService;
+        private PlayerLocation _currentLocation;
+        private System.Timers.Timer _movementTimer;
 
         public event Action<PlayerLocation> OnPlayerMoved;
         public event Action OnEncounterTriggered;

@@ -1,14 +1,31 @@
-using Microsoft.Maui.Controls;
-using AutoGladiators.Client.Pages;
 
-namespace AutoGladiators.Client
+using AutoGladiators.Client.Models;
+using System.IO;
+using System.Text.Json;
+
+namespace AutoGladiators.Client.Services
 {
-    public partial class App : Application
+    public class SaveLoadService
     {
-        public App()
+        private const string SaveFileName = "autosave.json";
+
+        public void Save(GameData data)
         {
-            InitializeComponent(); // must match the x:Class in App.xaml
-            MainPage = new NavigationPage(new SimulationPage());
+            string json = JsonSerializer.Serialize(data);
+            File.WriteAllText(SaveFileName, json);
+        }
+
+        public GameData Load()
+        {
+            if (!File.Exists(SaveFileName)) return null;
+            string json = File.ReadAllText(SaveFileName);
+            return JsonSerializer.Deserialize<GameData>(json);
+        }
+
+        public void DeleteSave()
+        {
+            if (File.Exists(SaveFileName))
+                File.Delete(SaveFileName);
         }
     }
 }

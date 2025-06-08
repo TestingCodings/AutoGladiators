@@ -3,53 +3,63 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoGladiators.Client.Models;
 using AutoGladiators.Client.Core;
-using AutoGladiators.Client.Tables;
-
 
 namespace AutoGladiators.Client.Services
 {
     public class EncounterService
     {
         private readonly Dictionary<string, List<WildBotEncounter>> _regionEncounters;
+        private readonly Random _rng = new();
 
         public EncounterService()
         {
-            // Predefined encounters by region and rarity
             _regionEncounters = new Dictionary<string, List<WildBotEncounter>>
             {
                 ["ScrapFields"] = new List<WildBotEncounter>
                 {
-                    new WildBotEncounter("RustyCharger", Rarity.Common, 1, 5),
-                    new WildBotEncounter("ClawScout", Rarity.Uncommon, 3, 7),
-                    new WildBotEncounter("SparkWolf", Rarity.Rare, 5, 10)
+                    new("RustyCharger", Rarity.Common, 1, 5),
+                    new("ClawScout", Rarity.Uncommon, 3, 7),
+                    new("SparkWolf", Rarity.Rare, 5, 10)
                 },
                 ["VoltanRuins"] = new List<WildBotEncounter>
                 {
-                    new WildBotEncounter("VoltWasp", Rarity.Common, 4, 8),
-                    new WildBotEncounter("PlasmaOx", Rarity.Uncommon, 6, 10),
-                    new WildBotEncounter("QuantumHydra", Rarity.Legendary, 10, 15)
+                    new("VoltWasp", Rarity.Common, 4, 8),
+                    new("PlasmaOx", Rarity.Uncommon, 6, 10),
+                    new("QuantumHydra", Rarity.Legendary, 10, 15)
                 }
             };
         }
 
-        public GladiatorBot GenerateWildBot(string region, int playerLevel)
+        public bool CheckForEncounter(PlayerLocation location)
         {
-            if (!_regionEncounters.ContainsKey(region))
-                throw new ArgumentException("Invalid region");
+            // Basic encounter logic: Can be replaced with terrain, time, weather, etc.
+            return location.X % 5 == 0 && location.Y % 3 == 0;
+        }
 
-            var pool = _regionEncounters[region]
+        public GladiatorBot? GenerateWildBot(string region, int playerLevel)
+        {
+            if (!_regionEncounters.TryGetValue(region, out var encounters))
+                return null;
+
+            var eligible = encounters
                 .Where(e => playerLevel >= e.MinLevel && playerLevel <= e.MaxLevel)
                 .ToList();
 
-            if (!pool.Any()) return null;
+            if (!eligible.Any()) return null;
 
-            var weightedPool = pool.SelectMany(e => Enumerable.Repeat(e, GetWeight(e.Rarity))).ToList();
-            var chosen = weightedPool[new Random().Next(weightedPool.Count)];
+            var weightedPool = eligible.SelectMany(e => Enumerable.Repeat(e, GetWeight(e.Rarity))).ToList();
+            var chosen = weightedPool[_rng.Next(weightedPool.Count)];
 
             return BotFactory.CreateBot(chosen.BotId, GetBotLevel(playerLevel, chosen));
         }
 
-        private int GetWeight(Rarity rarity) => rarity switch
+        private int GetBotLevel(int playerLevel, WildBotEncounter e)
+        {
+            int randomOffset = _rng.Next(-1, 2); // -1, 0, or +1
+            return Math.Clamp(playerLevel + randomOffset, e.MinLevel, e.MaxLevel);
+        }
+
+        private static int GetWeight(Rarity rarity) => rarity switch
         {
             Rarity.Common => 10,
             Rarity.Uncommon => 5,
@@ -57,19 +67,16 @@ namespace AutoGladiators.Client.Services
             Rarity.Legendary => 1,
             _ => 1
         };
-
-        private int GetBotLevel(int playerLevel, WildBotEncounter e) =>
-            Math.Clamp(playerLevel + new Random().Next(-1, 2), e.MinLevel, e.MaxLevel);
     }
 
     public enum Rarity { Common, Uncommon, Rare, Legendary }
 
     public class WildBotEncounter
     {
-        public string BotId;
-        public Rarity Rarity;
-        public int MinLevel;
-        public int MaxLevel;
+        public string BotId { get; }
+        public Rarity Rarity { get; }
+        public int MinLevel { get; }
+        public int MaxLevel { get; }
 
         public WildBotEncounter(string botId, Rarity rarity, int minLevel, int maxLevel)
         {

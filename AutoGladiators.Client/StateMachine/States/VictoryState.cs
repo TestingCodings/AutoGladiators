@@ -1,5 +1,4 @@
 using AutoGladiators.Client.Core;
-using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
@@ -9,18 +8,14 @@ namespace AutoGladiators.Client.StateMachine.States
 
         public void Enter(GladiatorBot bot)
         {
-            bot.LevelUp();
-            Console.WriteLine($"[{bot.Name}] achieved VICTORY! XP: {bot.Experience}, Level: {bot.Level}");
+            // Grant rewards
         }
 
         public void Execute(GladiatorBot bot)
         {
-            Console.WriteLine($"[{bot.Name}] is celebrating victory...");
+            // Wait for transition
         }
 
-        public void Exit(GladiatorBot bot)
-        {
-            Console.WriteLine($"[{bot.Name}] ends victory sequence.");
-        }
+        public void Exit(GladiatorBot bot) { }
     }
 }
