@@ -30,6 +30,13 @@ namespace AutoGladiators.Client.Services
             };
         }
 
+        public bool TryTriggerEncounter(out GladiatorBot encounteredBot)
+        {
+            // Replace with actual logic
+            encounteredBot = BotFactory.GenerateWildBot(1, "Grassland");
+            return true;
+        }
+
         public bool CheckForEncounter(PlayerLocation location)
         {
             // Basic encounter logic: Can be replaced with terrain, time, weather, etc.

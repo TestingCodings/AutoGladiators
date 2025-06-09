@@ -1,26 +1,35 @@
-
-using AutoGladiators.Client.StateMachine.Interfaces;
+using AutoGladiators.Client.Core;
 using AutoGladiators.Client.Simulation;
+using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
     public class CapturingState : IGameState
     {
-        public void Enter(IGameStateContext context)
-        {
-            context.Log("Attempting to capture bot...");
-            var result = context.CaptureSimulator.Run(context.Self, context.Enemy);
-            context.Log(result.Summary);
+        public string Name => "Capturing";
 
-            if (result.Success)
-                context.TransitionTo("Victory");
-            else
-                context.TransitionTo("Defeat");
+        public void Enter(GladiatorBot context, GladiatorBot? opponent = null)
+        {
+            // Optional: Entry logic for Capturing
         }
 
-        public void Update(IGameStateContext context)
+        public SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            // Passive, no-op for now.
+            return new SimulationResult
+            {
+                Outcome = $"{
+                    context.Name
+                } is in Capturing state.",
+                Log = new List<string> { $"{
+                    context.Name
+                } performed Capturing." },
+                Winner = null
+            };
+        }
+
+        public void Exit(GladiatorBot context)
+        {
+            // Optional: Exit logic for Capturing
         }
     }
 }

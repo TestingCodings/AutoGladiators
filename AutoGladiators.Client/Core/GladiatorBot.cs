@@ -15,12 +15,26 @@ namespace AutoGladiators.Client.Core
         // Stats
         public int Level { get; set; }
         public int Experience { get; set; }
-        public int Health { get; set; }
-        public int MaxHealth { get; set; }
+        public int Defense { get; set; }
+        public int MaxHealth { get; set; } = 100;
+        public int CurrentHealth
+        {
+            get => MaxHealth - damageTaken;
+            set
+            {
+                if (value < 0) value = 0;
+                damageTaken = MaxHealth - value;
+            }
+        }
+        private int damageTaken; // Tracks how much damage has been taken from MaxHealth
+
+        // Optional: create a shorthand
+
         public int Energy { get; set; }
+
+        public int Strength { get; set; }
         public int MaxEnergy { get; set; }
         public int AttackPower { get; set; }
-        public int Defense { get; set; }
         public int Speed { get; set; }
         public int Luck { get; set; }
         public double CriticalHitChance { get; set; } // Percentage chance of a critical hit
@@ -30,7 +44,8 @@ namespace AutoGladiators.Client.Core
         // Status
         public bool IsBroken { get; set; }
 
-        public bool IsWild { get; set; } // Indicates if the bot is a wild creature or a trained gladiator
+        public bool HasOwner { get; set; } // Indicates if the bot is a wild creature or a trained gladiator
+
         public string StatusCondition { get; set; } // e.g., "Poisoned", "Stunned"
 
         // Ownership
@@ -61,10 +76,10 @@ namespace AutoGladiators.Client.Core
         public void ReceiveDamage(int amount)
         {
             int damageTaken = Math.Max(0, amount - Defense);
-            Health -= damageTaken;
-            if (Health <= 0)
+            CurrentHealth -= damageTaken;
+            if (CurrentHealth <= 0)
             {
-                Health = 0;
+                CurrentHealth = 0;
                 StatusCondition = "Disabled";
             }
         }
@@ -81,7 +96,7 @@ namespace AutoGladiators.Client.Core
             int damage = Math.Max(1, (baseAttack * 2 - baseDefense)); // Minimum 1 damage
 
             // 2. Elemental effectiveness
-            double elementMultiplier = ElementalSystem.GetEffectiveness(this.ElementalCore, target.ElementalCore);
+            double elementMultiplier = ElementalSystem.GetModifier(this.ElementalCore, target.ElementalCore);
             damage = (int)(damage * elementMultiplier);
 
             // 3. Critical hit check
@@ -89,15 +104,15 @@ namespace AutoGladiators.Client.Core
             if (isCrit) damage *= 2;
 
             // 4. Apply damage
-            target.Health -= damage;
-            if (target.Health < 0) target.Health = 0;
+            target.CurrentHealth -= damage;
+            if (target.CurrentHealth < 0) target.CurrentHealth = 0;
 
             // 5. Build combat message
             string result = $"{Name} attacks {target.Name} for {damage} damage.";
             if (isCrit) result += " Critical hit!";
             if (elementMultiplier > 1.0) result += " It's super effective!";
             if (elementMultiplier < 1.0) result += " It's not very effective...";
-            if (target.Health == 0) result += $" {target.Name} has been defeated!";
+            if (target.CurrentHealth == 0) result += $" {target.Name} has been defeated!";
 
             return result;
         }
@@ -113,19 +128,19 @@ namespace AutoGladiators.Client.Core
 
         public void Heal(int amount)
         {
-            Health = Math.Min(MaxHealth, Health + amount);
+            CurrentHealth = Math.Min(MaxHealth, CurrentHealth + amount);
         }
 
         public void Repair()
         {
             if (IsBroken)
             {
-                Health = MaxHealth / 2;
+                CurrentHealth = MaxHealth / 2;
                 IsBroken = false;
                 StatusCondition = null;
             }
         }
 
-        public bool IsAlive => Health > 0 && !IsBroken;
+        public bool IsAlive => CurrentHealth > 0 && !IsBroken;
     }
 }

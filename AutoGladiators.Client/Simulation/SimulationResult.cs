@@ -4,9 +4,9 @@ namespace AutoGladiators.Client.Simulation
 {
     public class SimulationResult
     {
-        public List<string> Log { get; private set; } = new();
-        public GladiatorBot? Winner { get; private set; }
-        public string Outcome { get; private set; } = string.Empty;
+        public List<string> Log { get; set; } = new();
+        public GladiatorBot? Winner { get; set; }
+        public string Outcome { get; set; } = string.Empty;
 
         /// <summary>
         /// Returns true if the simulation resulted in a meaningful outcome.

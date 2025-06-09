@@ -41,11 +41,11 @@ namespace AutoGladiators.Client.StateMachine
             if (CurrentState != BattleState.PlayerTurn) return;
 
             int damage = PlayerBot.Attack;
-            EnemyBot.Health -= damage;
+            EnemyBot.CurrentHealth -= damage;
 
             Log($"You attacked {EnemyBot.Name} for {damage} damage.");
 
-            if (EnemyBot.Health <= 0)
+            if (EnemyBot.CurrentHealth <= 0)
             {
                 Log("You won the battle!");
                 ChangeState(BattleState.Win);
@@ -63,11 +63,11 @@ namespace AutoGladiators.Client.StateMachine
             if (CurrentState != BattleState.EnemyTurn) return;
 
             int damage = EnemyBot.Attack;
-            PlayerBot.Health -= damage;
+            PlayerBot.CurrentHealth -= damage;
 
             Log($"{EnemyBot.Name} attacked you for {damage} damage.");
 
-            if (PlayerBot.Health <= 0)
+            if (PlayerBot.CurrentHealth <= 0)
             {
                 Log("You lost the battle...");
                 ChangeState(BattleState.Lose);

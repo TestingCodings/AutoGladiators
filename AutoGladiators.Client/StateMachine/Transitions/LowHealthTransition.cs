@@ -13,7 +13,7 @@ namespace AutoGladiators.Client.StateMachine.Transitions
 
         public override bool ShouldTransition(IGameStateContext context)
         {
-            return context.Self.Health < _threshold;
+            return context.Self.CurrentHealth < _threshold;
         }
 
         public override IGameState GetNextState()

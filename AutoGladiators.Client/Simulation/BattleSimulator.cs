@@ -16,7 +16,7 @@ namespace AutoGladiators.Client.Simulation
             return new SimulationResult
             {
                 Summary = $"{bot1.Name} vs {bot2.Name} - Winner: {winner}",
-                WinnerBot = winner
+                Winner = winner
             };
         }
     }

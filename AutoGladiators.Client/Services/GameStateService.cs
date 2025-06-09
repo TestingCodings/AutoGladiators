@@ -16,7 +16,7 @@ namespace AutoGladiators.Client.Services
 
         public void InitializeNewGame(string playerName)
         {
-            CurrentPlayer = new PlayerProfile { Name = playerName, Level = 1 };
+            CurrentPlayer = new PlayerProfile { playerName = playerName, Level = 1 };
             BotRoster.Clear();
             Inventory.Clear();
             CurrentLocation = new PlayerLocation { Region = "StarterZone", X = 0, Y = 0 };

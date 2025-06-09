@@ -20,7 +20,7 @@ namespace AutoGladiators.Client.Simulation
             return new SimulationResult
             {
                 Summary = $"{bot.Name} trained {skill}, gained {gain} points!",
-                WinnerBot = bot.Name
+                Winner = bot.Name
             };
         }
     }

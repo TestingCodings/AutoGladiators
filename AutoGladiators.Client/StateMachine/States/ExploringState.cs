@@ -1,21 +1,35 @@
-
-using AutoGladiators.Client.StateMachine.Interfaces;
-using AutoGladiators.Client.Services;
+using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Simulation;
+using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
     public class ExploringState : IGameState
     {
-        public void Enter(IGameStateContext context)
+        public string Name => "Exploring";
+
+        public void Enter(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            context.Log("Exploring the area...");
-            context.ExplorationService.Explore(context.Player);
-            context.TransitionTo("Idle");
+            // Optional: Entry logic for Exploring
         }
 
-        public void Update(IGameStateContext context)
+        public SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            // No continuous logic needed for exploring.
+            return new SimulationResult
+            {
+                Outcome = $"{
+                    context.Name
+                } is in Exploring state.",
+                Log = new List<string> { $"{
+                    context.Name
+                } performed Exploring." },
+                Winner = null
+            };
+        }
+
+        public void Exit(GladiatorBot context)
+        {
+            // Optional: Exit logic for Exploring
         }
     }
 }

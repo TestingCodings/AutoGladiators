@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AutoGladiators.Client.Core;
 using AutoGladiators.Client.StateMachine.States;
 using AutoGladiators.Client.StateMachine.Transitions;
+using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine
 {

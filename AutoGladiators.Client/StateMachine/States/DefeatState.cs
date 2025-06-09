@@ -1,19 +1,35 @@
-
-using AutoGladiators.Client.StateMachine.Interfaces;
+using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Simulation;
+using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
     public class DefeatState : IGameState
     {
-        public void Enter(IGameStateContext context)
+        public string Name => "Defeat";
+
+        public void Enter(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            context.Log("You lost the battle.");
-            // TODO: Add consequences (e.g., faint, respawn, money loss).
+            // Optional: Entry logic for Defeat
         }
 
-        public void Update(IGameStateContext context)
+        public SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            context.TransitionTo("Idle");
+            return new SimulationResult
+            {
+                Outcome = $"{
+                    context.Name
+                } is in Defeat state.",
+                Log = new List<string> { $"{
+                    context.Name
+                } performed Defeat." },
+                Winner = null
+            };
+        }
+
+        public void Exit(GladiatorBot context)
+        {
+            // Optional: Exit logic for Defeat
         }
     }
 }

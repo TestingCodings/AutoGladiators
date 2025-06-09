@@ -13,5 +13,14 @@ namespace AutoGladiators.Client.Models
             Items = new List<Item>();
             Bots = new List<GladiatorBot>();
         }
+        public void AddItem(Item item)
+        {
+            Items.Add(item);
+        }
+        public void Clear()
+        {
+            Items.Clear();
+            Bots.Clear();
+        }
     }
 }

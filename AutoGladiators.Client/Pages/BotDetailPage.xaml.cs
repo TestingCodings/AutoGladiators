@@ -9,7 +9,7 @@ namespace AutoGladiators.Client.Pages
     public partial class BotDetailPage : ContentPage
     {
         public GladiatorBot Bot { get; set; }
-        public string BotStats => $"Health: {Bot.Health}\nEnergy: {Bot.Energy}\nEndurance: {Bot.Endurance}\nLuck: {Bot.Luck}\nElement: {Bot.ElementalCore}\nCrit Chance: {Bot.CriticalHitChance}";
+        public string BotStats => $"Health: {Bot.CurrentHealth}\nEnergy: {Bot.Energy}\nEndurance: {Bot.Endurance}\nLuck: {Bot.Luck}\nElement: {Bot.ElementalCore}\nCrit Chance: {Bot.CriticalHitChance}";
 
         public BotDetailPage(GladiatorBot bot)
         {

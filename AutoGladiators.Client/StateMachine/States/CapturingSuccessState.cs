@@ -4,13 +4,13 @@ using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
-    public class IdleState : IGameState
+    public class CapturingSuccessState : IGameState
     {
-        public string Name => "Idle";
+        public string Name => "CapturingSuccess";
 
         public void Enter(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            // Optional: Entry logic for Idle
+            // Optional: Entry logic for CapturingSuccess
         }
 
         public SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null)
@@ -19,17 +19,17 @@ namespace AutoGladiators.Client.StateMachine.States
             {
                 Outcome = $"{
                     context.Name
-                } is in Idle state.",
+                } is in CapturingSuccess state.",
                 Log = new List<string> { $"{
                     context.Name
-                } performed Idle." },
+                } performed CapturingSuccess." },
                 Winner = null
             };
         }
 
         public void Exit(GladiatorBot context)
         {
-            // Optional: Exit logic for Idle
+            // Optional: Exit logic for CapturingSuccess
         }
     }
 }

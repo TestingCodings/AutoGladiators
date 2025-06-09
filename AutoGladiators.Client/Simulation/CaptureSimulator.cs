@@ -14,7 +14,7 @@ namespace AutoGladiators.Client.Simulation
             return new SimulationResult
             {
                 Summary = success ? $"Successfully captured {bot.Name}!" : $"{bot.Name} escaped!",
-                WinnerBot = success ? bot.Name : null
+                Winner = success ? bot.Name : null
             };
         }
     }

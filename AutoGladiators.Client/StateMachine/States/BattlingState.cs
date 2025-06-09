@@ -1,23 +1,35 @@
-
-using AutoGladiators.Client.StateMachine.Interfaces;
+using AutoGladiators.Client.Core;
 using AutoGladiators.Client.Simulation;
+using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
     public class BattlingState : IGameState
     {
-        public void Enter(IGameStateContext context)
-        {
-            context.Log("Battle initiated!");
-            var result = context.BattleSimulator.Run(context.Self, context.Enemy);
-            context.Log(result.Summary);
+        public string Name => "Battling";
 
-            context.TransitionTo(result.Winner == context.Self ? "Victory" : "Defeat");
+        public void Enter(GladiatorBot context, GladiatorBot? opponent = null)
+        {
+            // Optional: Entry logic for Battling
         }
 
-        public void Update(IGameStateContext context)
+        public SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            // Battle handled in Enter for now.
+            return new SimulationResult
+            {
+                Outcome = $"{
+                    context.Name
+                } is in Battling state.",
+                Log = new List<string> { $"{
+                    context.Name
+                } performed Battling." },
+                Winner = null
+            };
+        }
+
+        public void Exit(GladiatorBot context)
+        {
+            // Optional: Exit logic for Battling
         }
     }
 }

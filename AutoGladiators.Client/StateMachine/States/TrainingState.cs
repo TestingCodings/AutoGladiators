@@ -1,21 +1,35 @@
-
-using AutoGladiators.Client.StateMachine.Interfaces;
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Simulation;
+using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
     public class TrainingState : IGameState
     {
-        public void Enter(IGameStateContext context)
+        public string Name => "Training";
+
+        public void Enter(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            context.Log("Training session started.");
-            var result = context.TrainingSimulator.Run(context.Self);
-            context.Log(result.Summary);
+            // Optional: Entry logic for Training
         }
 
-        public void Update(IGameStateContext context)
+        public SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            context.TransitionTo("Idle");
+            return new SimulationResult
+            {
+                Outcome = $"{
+                    context.Name
+                } is in Training state.",
+                Log = new List<string> { $"{
+                    context.Name
+                } performed Training." },
+                Winner = null
+            };
+        }
+
+        public void Exit(GladiatorBot context)
+        {
+            // Optional: Exit logic for Training
         }
     }
 }

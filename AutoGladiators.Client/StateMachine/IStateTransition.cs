@@ -7,6 +7,12 @@ namespace AutoGladiators.Client.StateMachine
         bool ShouldTransition(IGameStateContext context);
         IGameState GetNextState();
     }
+    public interface IStateTransitionLegal : IStateTransition
+    {
+        bool CanTransition(IGameStateContext context);
+        string TransitionName { get; }
+        IGameState TargetState { get; }
+    }
 }
 
 // This interface defines the contract for state transitions in the game state machine.

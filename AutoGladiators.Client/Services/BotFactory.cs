@@ -11,7 +11,7 @@ namespace AutoGladiators.Client.Services
 
         private static readonly List<string> Elements = new()
         {
-            "Fire", "Water", "Electric", "Steel", "Grass"
+            "Fire", "Water", "Electric", "Steel", "Grass", "Ice", "Wind", "Earth", "Light", "Dark"
         };
 
         public static GladiatorBot GenerateWildBot(int playerLevel, string region)
@@ -24,15 +24,13 @@ namespace AutoGladiators.Client.Services
                 Name = $"WildBot_{Guid.NewGuid().ToString()[..5]}",
                 Level = level,
                 MaxHealth = 50 + level * 10,
-                Health = 50 + level * 10,
+                CurrentHealth = 50 + level * 10,
                 Energy = 100,
                 Endurance = _rand.NextDouble() * 10,
                 Luck = _rand.NextDouble() * 10,
                 ElementalCore = element,
                 CriticalHitChance = 0.1 + (_rand.NextDouble() * 0.15),
-                IsWild = true,
-                IsCaptured = false
-            };
+                HasOwner = false,            };
 
             return bot;
         }
@@ -44,14 +42,36 @@ namespace AutoGladiators.Client.Services
                 Name = bot.Name,
                 Level = bot.Level,
                 MaxHealth = bot.MaxHealth,
-                Health = bot.Health,
+                CurrentHealth = bot.CurrentHealth,
                 Energy = bot.Energy,
                 Endurance = bot.Endurance,
+                Attack = bot.Attack,
+                Defense = bot.Defense,
+                Speed = bot.Speed,
                 Luck = bot.Luck,
                 ElementalCore = bot.ElementalCore,
                 CriticalHitChance = bot.CriticalHitChance,
-                IsWild = bot.IsWild,
-                IsCaptured = bot.IsCaptured
+                HasOwner = bot.HasOwner,
+            };
+        }
+        public static GladiatorBot CreateBot(string botId, int level)
+        {
+            // This method can be expanded to create bots based on predefined templates or configurations
+            return new GladiatorBot
+            {
+                Name = botId,
+                Level = level,
+                MaxHealth = 50 + level * 10,
+                CurrentHealth = 50 + level * 10,
+                Energy = 100,
+                Endurance = _rand.NextDouble() * 10,
+                Luck = _rand.NextDouble() * 10,
+                ElementalCore = Elements[_rand.Next(Elements.Count)],
+                CriticalHitChance = 0.1 + (_rand.NextDouble() * 0.15),
+                HasOwner = false,
+                Attack = 10 + level,
+                Defense = 5 + level,
+                Speed = 5 + level,
             };
         }
     }

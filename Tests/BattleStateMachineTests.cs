@@ -11,8 +11,8 @@ namespace AutoGladiators.Tests.StateMachines
         [SetUp]
         public void Setup()
         {
-            var bot1 = new GladiatorBot { Name = "Alpha", Health = 100 };
-            var bot2 = new GladiatorBot { Name = "Beta", Health = 100 };
+            var bot1 = new GladiatorBot { Name = "Alpha", MaxHealth = 100 };
+            var bot2 = new GladiatorBot { Name = "Beta", MaxHealth = 100 };
             _stateMachine = new BattleStateMachine(bot1, bot2);
         }
 
@@ -25,10 +25,10 @@ namespace AutoGladiators.Tests.StateMachines
         [Test]
         public void Attack_ShouldReduceOpponentHealth()
         {
-            int initialHealth = _stateMachine.Enemy.Health;
+            int initialHealth = _stateMachine.Enemy.MaxHealth;
             _stateMachine.PerformPlayerAction("PowerStrike");
 
-            Assert.Less(_stateMachine.Enemy.Health, initialHealth);
+            Assert.Less(_stateMachine.Enemy.MaxHealth, initialHealth);
         }
     }
 }

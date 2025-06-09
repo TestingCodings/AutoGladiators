@@ -1,4 +1,6 @@
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Simulation;
+using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
@@ -6,16 +8,28 @@ namespace AutoGladiators.Client.StateMachine.States
     {
         public string Name => "Victory";
 
-        public void Enter(GladiatorBot bot)
+        public void Enter(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            // Grant rewards
+            // Optional: Entry logic for Victory
         }
 
-        public void Execute(GladiatorBot bot)
+        public SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            // Wait for transition
+            return new SimulationResult
+            {
+                Outcome = $"{
+                    context.Name
+                } is in Victory state.",
+                Log = new List<string> { $"{
+                    context.Name
+                } performed Victory." },
+                Winner = null
+            };
         }
 
-        public void Exit(GladiatorBot bot) { }
+        public void Exit(GladiatorBot context)
+        {
+            // Optional: Exit logic for Victory
+        }
     }
 }
