@@ -26,34 +26,15 @@ namespace AutoGladiators.Client.Services
                 MaxHealth = 50 + level * 10,
                 CurrentHealth = 50 + level * 10,
                 Energy = 100,
-                Endurance = _rand.NextDouble() * 10,
-                Luck = _rand.NextDouble() * 10,
-                ElementalCore = element,
-                CriticalHitChance = 0.1 + (_rand.NextDouble() * 0.15),
+                Endurance =  10,
+                Luck =  10,
+                ElementalCore = Elements[_rand.Next(Elements.Count)],
+                CriticalHitChance = 1,
                 HasOwner = false,            };
 
             return bot;
         }
 
-        public static GladiatorBot CloneBot(GladiatorBot bot)
-        {
-            return new GladiatorBot
-            {
-                Name = bot.Name,
-                Level = bot.Level,
-                MaxHealth = bot.MaxHealth,
-                CurrentHealth = bot.CurrentHealth,
-                Energy = bot.Energy,
-                Endurance = bot.Endurance,
-                Attack = bot.Attack,
-                Defense = bot.Defense,
-                Speed = bot.Speed,
-                Luck = bot.Luck,
-                ElementalCore = bot.ElementalCore,
-                CriticalHitChance = bot.CriticalHitChance,
-                HasOwner = bot.HasOwner,
-            };
-        }
         public static GladiatorBot CreateBot(string botId, int level)
         {
             // This method can be expanded to create bots based on predefined templates or configurations
@@ -63,15 +44,15 @@ namespace AutoGladiators.Client.Services
                 Level = level,
                 MaxHealth = 50 + level * 10,
                 CurrentHealth = 50 + level * 10,
-                Energy = 100,
-                Endurance = _rand.NextDouble() * 10,
-                Luck = _rand.NextDouble() * 10,
+                Energy = 100 + level * 5,
+                Endurance = 10 + level,
+                Luck = 10 + level,
                 ElementalCore = Elements[_rand.Next(Elements.Count)],
-                CriticalHitChance = 0.1 + (_rand.NextDouble() * 0.15),
+                CriticalHitChance = 1,
                 HasOwner = false,
-                Attack = 10 + level,
-                Defense = 5 + level,
-                Speed = 5 + level,
+                Attack = 10 * level,
+                Defense = 5 * level,
+                Speed = 5 * level,
             };
         }
     }

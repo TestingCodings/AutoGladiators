@@ -96,8 +96,8 @@ namespace AutoGladiators.Client.Core
             int damage = Math.Max(1, (baseAttack * 2 - baseDefense)); // Minimum 1 damage
 
             // 2. Elemental effectiveness
-            double elementMultiplier = ElementalSystem.GetModifier(this.ElementalCore, target.ElementalCore);
-            damage = (int)(damage * elementMultiplier);
+            //double elementMultiplier = ElementalSystem.GetModifier(this.ElementalCore, target.ElementalCore);
+            //damage = (int)(damage * elementMultiplier);
 
             // 3. Critical hit check
             bool isCrit = rng.NextDouble() < (this.CriticalHitChance / 100.0);

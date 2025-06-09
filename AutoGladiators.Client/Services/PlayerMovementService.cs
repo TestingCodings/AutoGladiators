@@ -45,7 +45,8 @@ namespace AutoGladiators.Client.Services
             OnPlayerMoved?.Invoke(_currentLocation);
 
             if (!isTeleport)
-                _encounterService?.TryTriggerEncounter(_currentLocation);
+                bool encounterTriggered;
+                _encounterService?.TryTriggerEncounter(out encounterTriggered, _currentLocation);
         }
 
         public void ResetToStartingLocation(PlayerLocation startingLocation)

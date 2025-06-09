@@ -43,6 +43,16 @@ namespace AutoGladiators.Client.Services
             return location.X % 5 == 0 && location.Y % 3 == 0;
         }
 
+        public bool encounterTriggered(PlayerLocation location)
+        {
+            // Check if the player is in a region with encounters
+            if (!_regionEncounters.ContainsKey(location.Region))
+                return false;
+
+            // Random chance to trigger an encounter
+            return _rng.Next(100) < 20; // 20% chance
+        }
+
         public GladiatorBot? GenerateWildBot(string region, int playerLevel)
         {
             if (!_regionEncounters.TryGetValue(region, out var encounters))

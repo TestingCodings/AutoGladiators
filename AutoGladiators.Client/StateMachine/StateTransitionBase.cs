@@ -4,15 +4,12 @@ namespace AutoGladiators.Client.StateMachine
 {
     public abstract class StateTransitionBase : IStateTransition
     {
-        protected readonly IGameState Target;
-
-        protected StateTransitionBase(IGameState target)
-        {
-            Target = target;
-        }
-
         public abstract bool ShouldTransition(IGameStateContext context);
+        public abstract bool CanTransition(IGameStateContext context);
+        public abstract string Name { get; }
+        public abstract IGameState TargetState { get; }
 
-        public IGameState GetNextState() => Target;
+        // Optional: Common functionality for all transitions can be added here.
+        // For example, logging or validation methods that can be reused across different transitions.
     }
 }

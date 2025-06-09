@@ -21,13 +21,13 @@ namespace AutoGladiators.Client.Pages
         private void StartBattle()
         {
             _battleStateMachine = new BattleStateMachine(_enemyBot, OnBattleEvent);
-            _battleStateMachine.Start();
+            _battleStateMachine.StartBattle();
         }
 
         private void OnBattleEvent(string message)
         {
             LogAction(message);
-            EnemyHealth.Text = $"HP: {_enemyBot.Health}";
+            EnemyHealth.Text = $"HP: {_enemyBot.MaxHealth}";
         }
         int enemyHealth = 100;
         string enemyName = "OmegaX";
@@ -36,7 +36,7 @@ namespace AutoGladiators.Client.Pages
         {
             InitializeComponent();
             _enemyBot = encounteredBot;
-            EnemyHealth.Text = $"HP: {_enemyBot.Health}";
+            EnemyHealth.Text = $"HP: {_enemyBot.MaxHealth}";
             enemyName = _enemyBot.Name;
 
             PlayIntroAnimation();
