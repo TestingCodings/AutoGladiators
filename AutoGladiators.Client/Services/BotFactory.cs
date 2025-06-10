@@ -14,7 +14,7 @@ namespace AutoGladiators.Client.Services
             "Fire", "Water", "Electric", "Steel", "Grass", "Ice", "Wind", "Earth", "Light", "Dark"
         };
 
-        public static GladiatorBot GenerateWildBot(int playerLevel, string region)
+        public static GladiatorBot GenerateWildBot(string region, int playerLevel)
         {
             var level = Math.Max(1, playerLevel + _rand.Next(-1, 2));
             var element = Elements[_rand.Next(Elements.Count)];
@@ -50,7 +50,7 @@ namespace AutoGladiators.Client.Services
                 ElementalCore = Elements[_rand.Next(Elements.Count)],
                 CriticalHitChance = 1,
                 HasOwner = false,
-                Attack = 10 * level,
+                AttackPower = 10 * level,
                 Defense = 5 * level,
                 Speed = 5 * level,
             };

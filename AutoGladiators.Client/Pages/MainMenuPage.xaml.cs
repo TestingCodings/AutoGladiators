@@ -28,5 +28,10 @@ namespace AutoGladiators.Client.Pages
         {
             await DisplayAlert("Coming Soon", "Settings will be available in a future update.", "OK");
         }
+
+        //private async void OnSimulatorClicked(object sender, EventArgs e)
+        //{
+           // await Navigation.PushAsync(new BattlePage(playerBot, enemyBot));
+        //}
     }
 }

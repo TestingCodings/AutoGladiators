@@ -1,5 +1,6 @@
 using Microsoft.Maui.Controls;
 using AutoGladiators.Client.Pages;
+using AutoGladiators.Client.Services;
 
 namespace AutoGladiators.Client
 {
@@ -7,7 +8,9 @@ namespace AutoGladiators.Client
     {
         public App()
         {
+
             InitializeComponent(); // must match the x:Class in App.xaml
+            DependencyService.Register<GameStateService>();
 
             // Set the root of the app to the Main Menu wrapped in a navigation stack
             MainPage = new NavigationPage(new MainMenuPage());

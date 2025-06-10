@@ -30,11 +30,11 @@ namespace AutoGladiators.Client.Services
             };
         }
 
-        public bool TryTriggerEncounter(out GladiatorBot encounteredBot)
+        public bool TryTriggerEncounter(PlayerLocation location, out GladiatorBot encounteredBot)
         {
-            // Replace with actual logic
-            encounteredBot = BotFactory.GenerateWildBot(1, "Grassland");
-            return true;
+            // Use region and player level from location to generate a wild bot
+            encounteredBot = GenerateWildBot(location.Region, location.PlayerLevel);
+            return encounteredBot != null;
         }
 
         public bool CheckForEncounter(PlayerLocation location)

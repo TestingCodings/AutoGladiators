@@ -23,7 +23,7 @@ namespace AutoGladiators.Client.Models
                 Responses = new Dictionary<string, string>(this.Responses)
             };
         }
-        public bool IsEqual(Dialogue other)
+        public bool IsEqual(Dialogue? other)
         {
             if (other == null) return false;
             return this.Speaker == other.Speaker &&

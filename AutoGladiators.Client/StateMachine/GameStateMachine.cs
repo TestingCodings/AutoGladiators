@@ -31,9 +31,14 @@ namespace AutoGladiators.Client.StateMachine
         {
             _currentState?.Execute(bot);
 
+            // Assuming GladiatorBot implements IGameStateContext, cast it; otherwise, adapt as needed.
+            var context = bot as IGameStateContext;
+            if (context == null)
+                throw new InvalidCastException("GladiatorBot must implement IGameStateContext.");
+
             foreach (var kvp in _transitions)
             {
-                if (kvp.Key.Item1 == _currentState.Name && kvp.Value.CanTransition(bot))
+                if (kvp.Key.Item1 == _currentState.Name && kvp.Value.CanTransition(context))
                 {
                     _currentState?.Exit(bot);
                     _currentState = GameStateFactory.CreateState(kvp.Key.Item2);

@@ -110,8 +110,8 @@ namespace AutoGladiators.Client.Core
             // 5. Build combat message
             string result = $"{Name} attacks {target.Name} for {damage} damage.";
             if (isCrit) result += " Critical hit!";
-            if (elementMultiplier > 1.0) result += " It's super effective!";
-            if (elementMultiplier < 1.0) result += " It's not very effective...";
+            //if (elementMultiplier > 1.0) result += " It's super effective!";
+            //if (elementMultiplier < 1.0) result += " It's not very effective...";
             if (target.CurrentHealth == 0) result += $" {target.Name} has been defeated!";
 
             return result;
@@ -143,4 +143,17 @@ namespace AutoGladiators.Client.Core
 
         public bool IsAlive => CurrentHealth > 0 && !IsBroken;
     }
+    public class PlayerBot : GladiatorBot
+    {
+        public string PlayerId { get; set; } // ID of the player who owns this bot
+        public DateTime LastBattleTime { get; set; } // Timestamp of the last battle this bot participated in
+
+        // Additional player-specific properties can be added here
+    }
+    public class EnemyBot : GladiatorBot
+    {
+
+        // Additional enemy-specific properties can be added here
+    }
+
 }

@@ -30,7 +30,13 @@ namespace AutoGladiators.Client.Pages
             if (e.CurrentSelection.FirstOrDefault() is BotSummary selectedBot)
             {
                 await DisplayAlert("Bot Selected", $"{selectedBot.Name} - {selectedBot.ElementalCore}", "OK");
-                await Navigation.PushAsync(new BotDetailPage(selectedBot));
+                var gladiatorBot = new AutoGladiators.Client.Core.GladiatorBot
+                {
+                    Name = selectedBot.Name,
+                    ElementalCore = selectedBot.ElementalCore,
+                    Description = selectedBot.Description
+                };
+                await Navigation.PushAsync(new BotDetailPage(gladiatorBot));
                 BotList.SelectedItem = null;
             }
         }

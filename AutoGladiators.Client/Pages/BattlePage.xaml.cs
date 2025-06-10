@@ -8,53 +8,72 @@ namespace AutoGladiators.Client.Pages
     public partial class BattlePage : ContentPage
     {
         private GladiatorBot _enemyBot;
-        private BattleStateMachine _battleStateMachine;
-
+        private GladiatorBot _playerBot;
 
         
-        private void PlayIntroAnimation()
-        {
-            // Stub: Replace with your actual animation logic
-            LogAction($"A wild {_enemyBot.Name} appears!");
-        }
+        private BattleStateMachine _battleStateMachine;
+        private string _enemyName;
 
-        private void StartBattle()
-        {
-            _battleStateMachine = new BattleStateMachine(_enemyBot, OnBattleEvent);
-            _battleStateMachine.StartBattle();
-        }
-
-        private void OnBattleEvent(string message)
-        {
-            LogAction(message);
-            EnemyHealth.Text = $"HP: {_enemyBot.MaxHealth}";
-        }
-        int enemyHealth = 100;
-        string enemyName = "OmegaX";
-
-        public BattlePage(GladiatorBot encounteredBot)
+        public BattlePage(GladiatorBot playerBot, GladiatorBot encounteredBot)
         {
             InitializeComponent();
+
+            _playerBot = playerBot;
             _enemyBot = encounteredBot;
-            EnemyHealth.Text = $"HP: {_enemyBot.MaxHealth}";
-            enemyName = _enemyBot.Name;
+
+            PlayerNameLabel.Text = _playerBot.Name;
+            EnemyNameLabel.Text = _enemyBot.Name;
+
+            UpdateHealthDisplays();
 
             PlayIntroAnimation();
             StartBattle();
         }
 
 
-        private void LogAction(string message)
+        private void PlayIntroAnimation()
         {
-            BattleLog.Text += $"{message}\n";
+            LogAction($"A wild {_enemyBot.Name} appears!");
+        }
+
+        private async void UpdateHealthDisplays()
+        {
+            PlayerHealth.Text = $"HP: {_playerBot.CurrentHealth}/{_playerBot.MaxHealth}";
+            EnemyHealth.Text = $"HP: {_enemyBot.CurrentHealth}/{_enemyBot.MaxHealth}";
+
+            double playerProgress = Math.Max(0, (double)_playerBot.CurrentHealth / _playerBot.MaxHealth);
+            double enemyProgress = Math.Max(0, (double)_enemyBot.CurrentHealth / _enemyBot.MaxHealth);
+
+            await PlayerHealthBar.ProgressTo(playerProgress, 250, Easing.CubicInOut);
+            await EnemyHealthBar.ProgressTo(enemyProgress, 250, Easing.CubicInOut);
+        }
+
+
+        private void StartBattle()
+        {
+            _battleStateMachine = new BattleStateMachine(_playerBot, _enemyBot, OnBattleEvent);
+            _battleStateMachine.StartBattle(_playerBot, _enemyBot);
+        }
+
+        private void OnBattleEvent(string message)
+        {
+            LogAction(message);
+            UpdateHealthDisplays();
+            if (_enemyBot.CurrentHealth <= 0)
+            {
+                LogAction($"{_enemyBot.Name} has been defeated!");
+                // Optionally, navigate to a victory page or end the battle
+            }
+
         }
 
         private void OnPowerStrike(object sender, EventArgs e)
         {
             int damage = new Random().Next(10, 20);
-            enemyHealth -= damage;
-            EnemyHealth.Text = $"HP: {enemyHealth}";
-            LogAction($"You used Power Strike! {enemyName} took {damage} damage.");
+            _enemyBot.ReceiveDamage(damage);
+            UpdateHealthDisplays();
+
+            LogAction($"You used Power Strike! {_enemyName} took {damage} damage.");
         }
 
         private void OnEvade(object sender, EventArgs e)
@@ -73,9 +92,18 @@ namespace AutoGladiators.Client.Pages
             bool success = new Random().NextDouble() > 0.6;
 
             if (success)
-                LogAction($"Capture successful! {enemyName} has been added to your roster.");
+                LogAction($"Capture successful! {_enemyName} has been added to your roster.");
             else
-                LogAction($"Capture failed. {enemyName} broke free.");
+                LogAction($"Capture failed. {_enemyName} broke free.");
+        }
+
+
+
+        private void LogAction(string message)
+        {
+            BattleLog.Text += $"{message}\n";
         }
     }
 }
+// This code defines a BattlePage in a mobile game where players can engage in battles with enemy bots.
+// The page initializes with an enemy bot, displays its health, and allows players to perform actions like attacking, evading, repairing, or attempting to capture the bot.

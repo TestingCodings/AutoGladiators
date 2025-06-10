@@ -9,6 +9,22 @@ namespace AutoGladiators.Client.Simulation
         public string Outcome { get; set; } = string.Empty;
 
         /// <summary>
+        /// Initializes a new instance of the SimulationResult class with the specified winner and outcome.
+        /// </summary>
+        public SimulationResult(GladiatorBot? winner, string outcome)
+        {
+            Winner = winner;
+            Outcome = outcome;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the SimulationResult class with default values.
+        /// </summary>
+        public SimulationResult()
+        {
+        }
+
+        /// <summary>
         /// Returns true if the simulation resulted in a meaningful outcome.
         /// </summary>
         public bool Success => !string.IsNullOrWhiteSpace(Outcome);

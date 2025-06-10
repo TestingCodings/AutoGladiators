@@ -11,11 +11,13 @@ namespace AutoGladiators.Client.Simulation
             int roll = new Random().Next(0, 100);
             bool success = roll < captureChance;
 
-            return new SimulationResult
-            {
-                Summary = success ? $"Successfully captured {bot.Name}!" : $"{bot.Name} escaped!",
-                Winner = success ? bot.Name : null
-            };
+            return new SimulationResult(
+                success
+                    ? $"{bot.Name} successfully captured!"
+                    : $"{bot.Name} failed to capture.",
+                new List<string> { $"Capture attempt: {roll} (Chance: {captureChance})" },
+                success ? bot : null
+            );
         }
     }
 }

@@ -1,9 +1,6 @@
-
 using AutoGladiators.Client.Models;
-using AutoGladiators.Client.Services;
 using System.Collections.Generic;
 using AutoGladiators.Client.Core;
-
 
 namespace AutoGladiators.Client.Services
 {
@@ -25,8 +22,8 @@ namespace AutoGladiators.Client.Services
         public void LoadGame(GameData data)
         {
             CurrentPlayer = data.PlayerProfile;
-            BotRoster = new List<GladiatorBot>(data.Bots);
-            Inventory = data.Inventory;
+            BotRoster = new List<GladiatorBot>(data.OwnedBots);
+            Inventory.Items = new List<Item>(data.Inventory);
             CurrentLocation = data.PlayerLocation;
         }
 
@@ -35,8 +32,8 @@ namespace AutoGladiators.Client.Services
             return new GameData
             {
                 PlayerProfile = CurrentPlayer,
-                Bots = new List<GladiatorBot>(BotRoster),
-                Inventory = Inventory,
+                OwnedBots = new List<GladiatorBot>(BotRoster),
+                Inventory = Inventory.Items,
                 PlayerLocation = CurrentLocation
             };
         }

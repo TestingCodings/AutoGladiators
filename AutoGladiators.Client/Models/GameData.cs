@@ -11,5 +11,6 @@ namespace AutoGladiators.Client.Models
         public List<Item> Inventory { get; set; } = new List<Item>();
         public List<string> CompletedQuests { get; set; } = new List<string>();
         public Dictionary<string, bool> EncounteredBots { get; set; } = new Dictionary<string, bool>();
+        // BotRoster has been replaced by OwnedBots and EncounteredBots.
     }
 }

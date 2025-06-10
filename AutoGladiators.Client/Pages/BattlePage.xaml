@@ -12,20 +12,25 @@
     </ContentPage.BindingContext>
 
     <ScrollView>
-        <StackLayout Padding="20" Spacing="15">
+        <StackLayout Padding="10" Spacing="12">
 
-            <!-- Opponent Bot Display -->
-            <Frame BackgroundColor="#2d2d2d" CornerRadius="10" Padding="15">
-                <StackLayout>
-                    <Label Text="{Binding EnemyBot.Name}" FontSize="20" TextColor="Red"/>
-                    <Label Text="{Binding EnemyBotHealthDisplay}" FontSize="14" TextColor="LightGray"/>
-                    <Label Text="{Binding EnemyBot.Status}" FontSize="14" TextColor="Gray"/>
-                </StackLayout>
-            </Frame>
+            <!-- Enemy Bot Display -->
+            <Label x:Name="EnemyNameLabel" Text="Enemy Bot" FontAttributes="Bold" FontSize="18" />
+            <ProgressBar x:Name="EnemyHealthBar" Progress="1" HeightRequest="10" BackgroundColor="Gray" />
+            <Label x:Name="EnemyHealth" Text="HP: 100/100" FontSize="14" />
+
+            <!-- Spacer -->
+            <BoxView HeightRequest="20"/>
+
+            <!-- Player Bot Display -->
+            <Label x:Name="PlayerNameLabel" Text="Your Bot" FontAttributes="Bold" FontSize="18" />
+            <ProgressBar x:Name="PlayerHealthBar" Progress="1" HeightRequest="10" BackgroundColor="Gray" />
+            <Label x:Name="PlayerHealth" Text="HP: 100/100" FontSize="14" />
 
             <!-- Battle Log -->
-            <ScrollView HeightRequest="180">
-                <Label Text="{Binding BattleLog}" TextColor="White"/>
+            <Label Text="Battle Log:" FontAttributes="Bold" />
+            <ScrollView HeightRequest="150">
+                <Label x:Name="BattleLog" Text="" />
             </ScrollView>
 
             <!-- Action Buttons -->

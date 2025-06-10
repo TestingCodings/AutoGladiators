@@ -1,6 +1,7 @@
 using Microsoft.Maui.Controls;
 using System;
 using System.Collections.Generic;
+using AutoGladiators.Client.Core;
 
 namespace AutoGladiators.Client.Pages
 {
@@ -36,7 +37,10 @@ namespace AutoGladiators.Client.Pages
                 switch (location.Name)
                 {
                     case "Scrap Canyon":
-                        await Navigation.PushAsync(new BattlePage());
+                        // TODO: Replace 'playerBot' and 'enemyBot' with actual GladiatorBot instances
+                        GladiatorBot playerBot = null;/* get or create player GladiatorBot */
+                        GladiatorBot enemyBot = null; // TODO: get or create enemy GladiatorBot
+                        await Navigation.PushAsync(new BattlePage(playerBot, enemyBot));
                         break;
                     case "Techspire City":
                         await Navigation.PushAsync(new NPCDialoguePage());

@@ -8,11 +8,6 @@ namespace AutoGladiators.Client.Models
         public List<Item> Items { get; set; }
         public List<GladiatorBot> Bots { get; set; }
 
-        public Inventory()
-        {
-            Items = new List<Item>();
-            Bots = new List<GladiatorBot>();
-        }
         public void AddItem(Item item)
         {
             Items.Add(item);
@@ -22,5 +17,8 @@ namespace AutoGladiators.Client.Models
             Items.Clear();
             Bots.Clear();
         }
+
     }
+
+    
 }
