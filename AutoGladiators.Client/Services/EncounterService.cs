@@ -32,8 +32,8 @@ namespace AutoGladiators.Client.Services
 
         public bool TryTriggerEncounter(PlayerLocation location, out GladiatorBot encounteredBot)
         {
-            // Use region and player level from location to generate a wild bot
-            encounteredBot = GenerateWildBot(location.Region, location.PlayerLevel);
+            int playerLevel = GameStateService.Instance.CurrentPlayer.Level;
+            encounteredBot = GenerateWildBot(location.Region, playerLevel);
             return encounteredBot != null;
         }
 
@@ -104,3 +104,5 @@ namespace AutoGladiators.Client.Services
         }
     }
 }
+// This code defines an EncounterService that manages wild bot encounters in different regions.
+// It includes methods to check for encounters, generate wild bots based on player level and region, and handle encounter logic.

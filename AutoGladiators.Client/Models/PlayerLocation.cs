@@ -5,6 +5,7 @@ namespace AutoGladiators.Client.Models
     public class PlayerLocation : IEquatable<PlayerLocation>
     {
         public string Region { get; set; }
+        
         public int X { get; set; }
         public int Y { get; set; }
 

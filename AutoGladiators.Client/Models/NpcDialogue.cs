@@ -1,21 +1,21 @@
 
 namespace AutoGladiators.Client.Models
 {
-    public class Dialogue
+    public class NpcDialogue
     {
         public string Speaker { get; set; }
         public string Text { get; set; }
         public List<string> Options { get; set; }
         public Dictionary<string, string> Responses { get; set; } // Option -> Response text
 
-        public Dialogue()
+        public NpcDialogue()
         {
             Options = new List<string>();
             Responses = new Dictionary<string, string>();
         }
-        public Dialogue Clone()
+        public NpcDialogue Clone()
         {
-            return new Dialogue
+            return new NpcDialogue
             {
                 Speaker = this.Speaker,
                 Text = this.Text,
@@ -23,7 +23,7 @@ namespace AutoGladiators.Client.Models
                 Responses = new Dictionary<string, string>(this.Responses)
             };
         }
-        public bool IsEqual(Dialogue? other)
+        public bool IsEqual(NpcDialogue? other)
         {
             if (other == null) return false;
             return this.Speaker == other.Speaker &&
@@ -33,7 +33,7 @@ namespace AutoGladiators.Client.Models
         }
         public override bool Equals(object obj)
         {
-            if (obj is Dialogue other)
+            if (obj is NpcDialogue other)
             {
                 return IsEqual(other);
             }
@@ -43,26 +43,26 @@ namespace AutoGladiators.Client.Models
         {
             return HashCode.Combine(Speaker, Text, Options, Responses);
         }
-        public static bool operator ==(Dialogue left, Dialogue right)
+        public static bool operator ==(NpcDialogue left, NpcDialogue right)
         {
             if (left is null) return right is null;
             return left.Equals(right);
         }
-        public static bool operator !=(Dialogue left, Dialogue right)
+        public static bool operator !=(NpcDialogue left, NpcDialogue right)
         {
             return !(left == right);
         }
-        public static Dialogue operator +(Dialogue dialogue, (string option, string response) choice)
+        public static NpcDialogue operator +(NpcDialogue NpcDialogue, (string option, string response) choice)
         {
-            dialogue.Options.Add(choice.option);
-            dialogue.Responses[choice.option] = choice.response;
-            return dialogue;
+            NpcDialogue.Options.Add(choice.option);
+            NpcDialogue.Responses[choice.option] = choice.response;
+            return NpcDialogue;
         }
-        public static Dialogue operator -(Dialogue dialogue, string option)
+        public static NpcDialogue operator -(NpcDialogue NpcDialogue, string option)
         {
-            dialogue.Options.Remove(option);
-            dialogue.Responses.Remove(option);
-            return dialogue;
+            NpcDialogue.Options.Remove(option);
+            NpcDialogue.Responses.Remove(option);
+            return NpcDialogue;
         }
     }
 }

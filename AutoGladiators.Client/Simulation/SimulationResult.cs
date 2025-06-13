@@ -7,7 +7,7 @@ namespace AutoGladiators.Client.Simulation
         public List<string> Log { get; set; } = new();
         public GladiatorBot? Winner { get; set; }
         public string Outcome { get; set; } = string.Empty;
-
+        public GladiatorBot? CapturedBot { get; set; } = null;
         /// <summary>
         /// Initializes a new instance of the SimulationResult class with the specified winner and outcome.
         /// </summary>
@@ -16,6 +16,7 @@ namespace AutoGladiators.Client.Simulation
             Winner = winner;
             Outcome = outcome;
         }
+
 
         /// <summary>
         /// Initializes a new instance of the SimulationResult class with default values.

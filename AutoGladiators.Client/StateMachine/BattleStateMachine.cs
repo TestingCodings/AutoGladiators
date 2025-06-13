@@ -6,14 +6,23 @@ namespace AutoGladiators.Client.StateMachine
 {
     public class BattleStateMachine
     {
-        // Add a constructor that takes 3 arguments (adjust types/names as needed)
-        public BattleStateMachine(GladiatorBot playerBot, GladiatorBot enemyBot, Random rng = null)
+        private readonly Random _rng = new();
+
+        public BattleState CurrentState { get; private set; } = BattleState.Start;
+        public GladiatorBot PlayerBot { get; private set; }
+        public GladiatorBot EnemyBot { get; private set; }
+
+        public event Action<string> OnBattleLogUpdated;
+        public event Action<BattleState> OnStateChanged;
+        public event Action OnBattleEnded;
+
+        public BattleStateMachine(GladiatorBot playerBot, GladiatorBot enemyBot, Action<string> onBattleEvent)
         {
             PlayerBot = playerBot;
             EnemyBot = enemyBot;
-            if (rng != null)
-                _rng = rng;
+            OnBattleLogUpdated += onBattleEvent;
         }
+
         public enum BattleState
         {
             Start,
@@ -24,22 +33,8 @@ namespace AutoGladiators.Client.StateMachine
             CaptureAttempt
         }
 
-        public BattleState CurrentState { get; private set; } = BattleState.Start;
-
-        public GladiatorBot PlayerBot { get; private set; }
-        public GladiatorBot EnemyBot { get; private set; }
-
-        public event Action<string> OnBattleLogUpdated;
-        public event Action<BattleState> OnStateChanged;
-        public event Action OnBattleEnded;
-
-        private readonly Random _rng = new();
-
-        public void StartBattle(GladiatorBot playerBot, GladiatorBot enemyBot)
+        public void StartBattle()
         {
-            PlayerBot = playerBot;
-            EnemyBot = enemyBot;
-
             Log($"A wild {EnemyBot.Name} appeared!");
             ChangeState(BattleState.PlayerTurn);
         }
@@ -50,7 +45,6 @@ namespace AutoGladiators.Client.StateMachine
 
             int damage = int.Parse(PlayerBot.Attack(EnemyBot));
             EnemyBot.CurrentHealth -= damage;
-
             Log($"You attacked {EnemyBot.Name} for {damage} damage.");
 
             if (EnemyBot.CurrentHealth <= 0)
@@ -72,7 +66,6 @@ namespace AutoGladiators.Client.StateMachine
 
             int damage = int.Parse(EnemyBot.Attack(PlayerBot));
             PlayerBot.CurrentHealth -= damage;
-
             Log($"{EnemyBot.Name} attacked you for {damage} damage.");
 
             if (PlayerBot.CurrentHealth <= 0)
@@ -87,12 +80,12 @@ namespace AutoGladiators.Client.StateMachine
             }
         }
 
+
         public void AttemptCapture()
         {
             if (CurrentState != BattleState.PlayerTurn) return;
 
             ChangeState(BattleState.CaptureAttempt);
-
             bool success = _rng.NextDouble() < 0.5;
 
             if (success)
@@ -126,6 +119,7 @@ namespace AutoGladiators.Client.StateMachine
         }
     }
 }
+
 // This code defines a simple state machine for handling battles in the Auto Gladiators game.
 // It manages the battle states, player and enemy actions, and captures attempts.
 // The BattleStateMachine class allows for starting battles, handling player and enemy turns, and capturing enemy bots.

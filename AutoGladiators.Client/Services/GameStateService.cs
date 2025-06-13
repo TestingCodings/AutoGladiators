@@ -38,6 +38,8 @@ namespace AutoGladiators.Client.Services
             };
         }
 
+        public static GameStateService Instance { get; private set; } = new GameStateService();
+ 
         public void AddBotToRoster(GladiatorBot bot)
         {
             BotRoster.Add(bot);

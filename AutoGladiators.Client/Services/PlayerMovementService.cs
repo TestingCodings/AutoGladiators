@@ -46,7 +46,7 @@ namespace AutoGladiators.Client.Services
 
             if (!isTeleport)
             {
-                bool encounterTriggered;
+                AutoGladiators.Client.Core.GladiatorBot encounterTriggered;
                 _encounterService?.TryTriggerEncounter(_currentLocation, out encounterTriggered);
             }
         }

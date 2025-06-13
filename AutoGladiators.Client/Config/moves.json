@@ -1,0 +1,14 @@
+{
+    "Tackle": {
+        "Power": 10,
+        "EnergyCost": 5,
+        "Element": "Neutral",
+        "AnimationId": "tackle_anim"
+    },
+    "Overload": {
+        "Power": 20,
+        "EnergyCost": 10,
+        "Element": "Electric",
+        "AnimationId": "overload_anim"
+    }
+}

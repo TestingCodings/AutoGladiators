@@ -8,6 +8,9 @@ namespace AutoGladiators.Client.Services
     public static class BotFactory
     {
         private static readonly Random _rand = new();
+        private static Dictionary<string, BotTemplate> _botTemplates = new();
+
+
 
         private static readonly List<string> Elements = new()
         {
@@ -26,11 +29,12 @@ namespace AutoGladiators.Client.Services
                 MaxHealth = 50 + level * 10,
                 CurrentHealth = 50 + level * 10,
                 Energy = 100,
-                Endurance =  10,
-                Luck =  10,
+                Endurance = 10,
+                Luck = 10,
                 ElementalCore = Elements[_rand.Next(Elements.Count)],
                 CriticalHitChance = 1,
-                HasOwner = false,            };
+                HasOwner = false,
+            };
 
             return bot;
         }
@@ -55,5 +59,35 @@ namespace AutoGladiators.Client.Services
                 Speed = 5 * level,
             };
         }
+
+        public static void LoadBotTemplates(List<BotTemplate> templates)
+        {
+            _botTemplates = templates.ToDictionary(t => t.Id, t => t);
+        }
+
+        public static GladiatorBot CreateBotFromTemplate(string templateId, int level)
+        {
+            if (!_botTemplates.TryGetValue(templateId, out var template))
+                throw new Exception($"BotTemplate '{templateId}' not found.");
+
+            return new GladiatorBot
+            {
+                Name = template.Name,
+                ElementalCore = template.Element,
+                Level = level,
+                MaxHealth = template.BaseHealth + level * 10,
+                CurrentHealth = template.BaseHealth + level * 10,
+                AttackPower = template.BaseAttack + level,
+                Defense = template.BaseDefense + level,
+                Speed = template.BaseSpeed + level,
+                Luck = template.BaseLuck + level,
+                CriticalHitChance = template.CritChance,
+                Energy = 100,
+                MaxEnergy = 100,
+                Moveset = new List<string>(template.MoveIds),
+                HasOwner = false
+            };
+        }
+
     }
 }

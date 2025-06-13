@@ -14,12 +14,12 @@ namespace AutoGladiators.Client.Simulation
                 case "attack": bot.AttackPower += gain; break;
                 case "defense": bot.Defense += gain; break;
                 case "speed": bot.Speed += gain; break;
-                default: return new SimulationResult(summary: $"Unknown skill: {skill}");
+                default: return new SimulationResult(bot, $"Unknown skill: {skill}");
             }
 
             return new SimulationResult(
-                $"{bot.Name} trained {skill}, gained {gain} points!",
-                bot.Name
+                bot,
+                $"{bot.Name} trained {skill}, gained {gain} points!"
             );
         }
     }

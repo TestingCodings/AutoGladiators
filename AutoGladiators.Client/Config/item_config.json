@@ -1,0 +1,26 @@
+{
+    "NanoRepairKit": {
+        "Name": "Nano Repair Kit",
+        "Description": "Restores 50 HP to a bot.",
+        "Effect": "Heal",
+        "Value": 50
+    },
+    "EnergyCell": {
+        "Name": "Energy Cell",
+        "Description": "Restores 30 energy to a bot.",
+        "Effect": "RestoreEnergy",
+        "Value": 30
+    },
+    "ScrapMetal": {
+        "Name": "Scrap Metal",
+        "Description": "A common resource used for repairs and upgrades.",
+        "Effect": "Resource",
+        "Value": 10
+    },
+    "ControlChip": {
+        "Name": "Control Chip",
+        "Description": "A rare component that enhances bot control.",
+        "Effect": "EnhanceControl",
+        "Value": 100
+    }
+}

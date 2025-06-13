@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SQLite;
+using AutoGladiators.Client.Models;
 
 namespace AutoGladiators.Client.Core
 {
@@ -11,6 +12,9 @@ namespace AutoGladiators.Client.Core
         public int Id { get; set; }
         public string Name { get; set; }
         public string ElementalCore { get; set; } // Fire, Water, Electric, etc.
+
+        public string Description { get; set; } = "A mysterious bot with unknown capabilities.";
+
 
         // Stats
         public int Level { get; set; }

@@ -52,9 +52,8 @@ namespace AutoGladiators.Client.Pages
         private void StartBattle()
         {
             _battleStateMachine = new BattleStateMachine(_playerBot, _enemyBot, OnBattleEvent);
-            _battleStateMachine.StartBattle(_playerBot, _enemyBot);
+            _battleStateMachine.StartBattle();
         }
-
         private void OnBattleEvent(string message)
         {
             LogAction(message);
