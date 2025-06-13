@@ -1,6 +1,6 @@
-using System;
 using AutoGladiators.Client.Core;
 using AutoGladiators.Client.Simulation;
+using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
@@ -8,32 +8,28 @@ namespace AutoGladiators.Client.StateMachine.States
     {
         public string Name => "Battling";
 
-        public void Enter(GladiatorBot bot)
+        public void Enter(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            if (bot == null) return;
-
-            Console.WriteLine($"\n=== {bot.Name} enters the battlefield ===");
-
-            // TEMP: Create a placeholder opponent
-            var opponent = new GladiatorBot("DummyBot", bot.Behavior, 100, 50);
-
-            var result = BattleSimulator.SimulateBattle(bot, opponent);
-            bot.LastBattleResult = result;
-
-            Console.WriteLine($"\n🏆 Result: {result.Outcome} — Winner: {result.Winner}\n");
-
-            foreach (var line in result.Log)
-                Console.WriteLine($"• {line}");
+            // Optional: Entry logic for Battling
         }
 
-        public void Execute(GladiatorBot bot)
+        public SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            // Placeholder for real-time battle updates, AI decisions, etc.
+            return new SimulationResult
+            {
+                Outcome = $"{
+                    context.Name
+                } is in Battling state.",
+                Log = new List<string> { $"{
+                    context.Name
+                } performed Battling." },
+                Winner = null
+            };
         }
 
-        public void Exit(GladiatorBot bot)
+        public void Exit(GladiatorBot context)
         {
-            Console.WriteLine($"{bot.Name} leaves the battlefield.");
+            // Optional: Exit logic for Battling
         }
     }
 }

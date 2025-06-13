@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AutoGladiators.Client.Pages.InventoryPage"
+             Title="Inventory"
+             BackgroundColor="#101010">
+
+    <StackLayout Padding="15" Spacing="20">
+        <Label Text="Your Items" FontSize="24" TextColor="White" HorizontalOptions="Center" />
+
+        <CollectionView x:Name="ItemList" SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame BackgroundColor="#1f1f1f" CornerRadius="10" Padding="15" Margin="5">
+                        <StackLayout Orientation="Vertical">
+                            <Label Text="{Binding Name}" FontSize="18" TextColor="Gold"/>
+                            <Label Text="{Binding Description}" FontSize="14" TextColor="LightGray"/>
+                            <Label Text="{Binding QuantityText}" FontSize="12" TextColor="Gray"/>
+                        </StackLayout>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </StackLayout>
+</ContentPage>

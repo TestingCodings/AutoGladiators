@@ -11,10 +11,11 @@ namespace AutoGladiators.Client.StateMachine
             {
                 "Idle" => new IdleState(),
                 "Training" => new TrainingState(),
-                "Racing" => new RacingState(),
+                "Exploring" => new ExploringState(),
+                "Capturing" => new CapturingState(),
                 "Battling" => new BattlingState(),
                 "Victory" => new VictoryState(),
-                "Defeat" => new DefeatState(),
+                "Defeat" => new DefeatState(),  
                 _ => new IdleState(),
             };
         }

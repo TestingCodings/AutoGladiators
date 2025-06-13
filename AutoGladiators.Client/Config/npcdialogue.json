@@ -1,0 +1,18 @@
+{
+    "TechspireShopkeeper": {
+        "Lines": [
+            "Welcome to Techspire! Need repairs or upgrades?",
+            "I\u2019ve got some rare cores in stock today."
+        ],
+        "Options": [
+            {
+                "Text": "Buy Items",
+                "Action": "OpenShop"
+            },
+            {
+                "Text": "Repair Bot",
+                "Action": "RepairService"
+            }
+        ]
+    }
+}

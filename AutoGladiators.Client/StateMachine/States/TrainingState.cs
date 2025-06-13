@@ -1,4 +1,5 @@
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Simulation;
 using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine.States
@@ -7,20 +8,28 @@ namespace AutoGladiators.Client.StateMachine.States
     {
         public string Name => "Training";
 
-        public void Enter(GladiatorBot bot)
+        public void Enter(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            Console.WriteLine($"[{bot.Name}] begins training...");
+            // Optional: Entry logic for Training
         }
 
-        public void Execute(GladiatorBot bot)
+        public SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            bot.Train(); // Increase stats or XP
-            Console.WriteLine($"[{bot.Name}] trained. New stats: STR={bot.Strength}, SPD={bot.Speed}, INT={bot.Intelligence}");
+            return new SimulationResult
+            {
+                Outcome = $"{
+                    context.Name
+                } is in Training state.",
+                Log = new List<string> { $"{
+                    context.Name
+                } performed Training." },
+                Winner = null
+            };
         }
 
-        public void Exit(GladiatorBot bot)
+        public void Exit(GladiatorBot context)
         {
-            Console.WriteLine($"[{bot.Name}] finishes training.");
+            // Optional: Exit logic for Training
         }
     }
 }

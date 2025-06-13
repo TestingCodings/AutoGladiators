@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
+
 namespace AutoGladiators.Client.Config
 {
     public class LevelConfig

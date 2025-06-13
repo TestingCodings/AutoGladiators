@@ -1,28 +1,35 @@
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Simulation;
 using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
-
     public class DefeatState : IGameState
     {
         public string Name => "Defeat";
 
-        public void Enter(GladiatorBot bot)
+        public void Enter(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            Console.WriteLine($"[{bot.Name}] has been DEFEATED.");
-            bot.RecordDefeat();
+            // Optional: Entry logic for Defeat
         }
 
-        public void Execute(GladiatorBot bot)
+        public SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            Console.WriteLine($"[{bot.Name}] is recovering...");
-            bot.Health = Math.Max(bot.Health - 10, 0); // simulate cost
+            return new SimulationResult
+            {
+                Outcome = $"{
+                    context.Name
+                } is in Defeat state.",
+                Log = new List<string> { $"{
+                    context.Name
+                } performed Defeat." },
+                Winner = null
+            };
         }
 
-        public void Exit(GladiatorBot bot)
+        public void Exit(GladiatorBot context)
         {
-            Console.WriteLine($"[{bot.Name}] exits defeat and prepares to restart.");
+            // Optional: Exit logic for Defeat
         }
     }
 }

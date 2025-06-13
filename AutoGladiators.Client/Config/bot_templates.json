@@ -1,0 +1,47 @@
+{
+    "RustyCharger": {
+        "Name": "RustyCharger",
+        "ElementalCore": "Steel",
+        "Description": "A worn-out charger bot scavenging for parts.",
+        "BaseStats": {
+            "MaxHealth": 80,
+            "AttackPower": 10,
+            "Defense": 8,
+            "Speed": 4
+        },
+        "Moveset": [
+            "Tackle",
+            "Overload"
+        ]
+    },
+    "SwiftStriker": {
+        "Name": "SwiftStriker",
+        "ElementalCore": "Electric",
+        "Description": "A nimble bot known for its quick strikes.",
+        "BaseStats": {
+            "MaxHealth": 70,
+            "AttackPower": 12,
+            "Defense": 6,
+            "Speed": 10
+        },
+        "Moveset": [
+            "Quick Attack",
+            "Dodge"
+        ]
+    },
+    "IronCrusher": {
+        "Name": "IronCrusher",
+        "ElementalCore": "Metal",
+        "Description": "A heavy-duty bot with a powerful hammer.",
+        "BaseStats": {
+            "MaxHealth": 100,
+            "AttackPower": 15,
+            "Defense": 12,
+            "Speed": 3
+        },
+        "Moveset": [
+            "Shield Bash",
+            "Counter"
+        ]
+    }
+}

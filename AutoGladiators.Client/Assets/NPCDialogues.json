@@ -1,0 +1,52 @@
+[
+  {
+    "NPCName": "Technician Zara",
+    "DialogueLines": [
+      "Welcome to the scrapyard!",
+      "I found a rare bot the other day...",
+      "Come back with a Control Chip and I’ll let you have it."
+    ],
+    "TriggerCondition": "HasItem:ControlChip",
+    "Reward": "NewBot:MechaDillo"
+  }
+]
+{
+  "NPCName": "Engineer Max",
+  "DialogueLines": [
+    "Need repairs? I can help with that.",
+    "I can upgrade your bots if you bring me some scrap metal.",
+    "Remember, a well-maintained bot is a happy bot!"
+  ],
+  "TriggerCondition": "HasItem:ScrapMetal",
+  "Reward": "Upgrade:SpeedBoost"
+}
+{
+  "NPCName": "Trader Lila",
+  "DialogueLines": [
+    "Looking for parts? I have the best deals in town.",
+    "Bring me some rare components and I’ll give you a discount.",
+    "Trade is the lifeblood of our community!"
+  ],
+  "TriggerCondition": "HasItem:RareComponent",
+  "Reward": "Discount:Parts"
+}
+{
+  "NPCName": "Scout Finn",
+  "DialogueLines": [
+    "I’ve seen some strange bots in the wasteland.",
+    "If you bring me a unique bot, I’ll share my findings.",
+    "Exploration is key to survival out here!"
+  ],
+  "TriggerCondition": "HasBot:UniqueBot",
+  "Reward": "Information:WastelandSecrets"
+}
+{
+  "NPCName": "Medic Ava",
+  "DialogueLines": [
+    "Your bots look a bit worn out.",
+    "I can heal them if you bring me some healing supplies.",
+    "A healthy bot is a strong bot!"
+  ],
+  "TriggerCondition": "HasItem:HealingSupplies",
+  "Reward": "HealBots"
+}

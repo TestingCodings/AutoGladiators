@@ -1,0 +1,42 @@
+{
+    "RustyCharger": {
+        "AIType": "Aggressive",
+        "FleeChance": 0.05,
+        "PreferredMoves": [
+            "Tackle",
+            "Overload"
+        ]
+    },
+    "SwiftStriker": {
+        "AIType": "Cautious",
+        "FleeChance": 0.1,
+        "PreferredMoves": [
+            "Quick Attack",
+            "Dodge"
+        ]
+    },
+    "IronCrusher": {
+        "AIType": "Defensive",
+        "FleeChance": 0.15,
+        "PreferredMoves": [
+            "Shield Bash",
+            "Counter"
+        ]
+    },
+    "PhantomBlade": {
+        "AIType": "Sneaky",
+        "FleeChance": 0.2,
+        "PreferredMoves": [
+            "Stealth Strike",
+            "Backstab"
+        ]
+    },
+    "BlazingFury": {
+        "AIType": "Aggressive",
+        "FleeChance": 0.05,
+        "PreferredMoves": [
+            "Fireball",
+            "Flame Slash"
+        ]
+    }
+}

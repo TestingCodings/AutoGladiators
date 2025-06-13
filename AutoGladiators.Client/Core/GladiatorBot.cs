@@ -1,193 +1,163 @@
 using System;
 using System.Collections.Generic;
-using AutoGladiators.Client.StateMachine;
-using AutoGladiators.Client.StateMachine.States;
-using AutoGladiators.Client.Core.Behaviors;
+using SQLite;
+using AutoGladiators.Client.Models;
 
 namespace AutoGladiators.Client.Core
 {
     public class GladiatorBot
     {
-        // Identity
+        // Identity and Persistence
+        [PrimaryKey, AutoIncrement]
+        public int Id { get; set; }
         public string Name { get; set; }
+        public string ElementalCore { get; set; } // Fire, Water, Electric, etc.
 
-        // Vital stats
-        public int Health { get; set; }
-        public int Energy { get; set; }
-        public int MaxHealth { get; private set; }
-        public int MaxEnergy { get; private set; }
+        public string Description { get; set; } = "A mysterious bot with unknown capabilities.";
 
-        // Traits and progression
-        public double Speed { get; set; }
-        public double Agility { get; set; }
-        public double Strength { get; set; }
-        public double Intelligence { get; set; }
+
+        // Stats
         public int Level { get; set; }
         public int Experience { get; set; }
-        public double LastDamageTaken { get; set; }
-
-        // Modifiers and dynamic battle environment
-        public List<string> Modifiers { get; private set; } = new();
-
-        // State and AI
-        public GladiatorAction LastAction { get; private set; } = GladiatorAction.None;
-        public bool IsCharging { get; private set; } = false;
-        public bool IsDefending { get; private set; } = false;
-        public IBehaviorProfile Behavior { get; set; }
-        public GameStateMachine StateMachine { get; set; }
-
-        // Historical outcomes
-        public object LastRaceResult { get; set; }
-        public object LastBattleResult { get; set; }
-
-        public GladiatorBot(string name, IBehaviorProfile behavior, int maxHealth, int startEnergy, List<string>? modifiers = null)
+        public int Defense { get; set; }
+        public int MaxHealth { get; set; } = 100;
+        public int CurrentHealth
         {
-            Name = name;
-            Behavior = behavior;
-            MaxHealth = maxHealth;
-            MaxEnergy = startEnergy;
-            Health = maxHealth;
-            Energy = startEnergy;
-
-            if (modifiers != null)
-                Modifiers.AddRange(modifiers);
-
-            ApplyModifiers();
-
-            var initialState = new IdleState();
-            StateMachine = new GameStateMachine(initialState);
-            StateMachine.Initialize(this);
-
-        }
-
-        private void ApplyModifiers()
-        {
-            foreach (var mod in Modifiers)
+            get => MaxHealth - damageTaken;
+            set
             {
-                switch (mod)
-                {
-                    case "HealthBoost":
-                        Health += 20;
-                        MaxHealth += 20;
-                        break;
-                    case "EnergyBoost":
-                        Energy += 20;
-                        MaxEnergy += 20;
-                        break;
-                    case "EnergyDrain":
-                        Energy -= 10;
-                        break;
-                    case "EvadeBoost":
-                        Console.WriteLine($"{Name} gains higher evade ability.");
-                        break;
-                    case "LavaHazard":
-                        Health -= 5;
-                        break;
-                    case "SlowRegeneration":
-                        Console.WriteLine($"{Name} regenerates slower.");
-                        break;
-                    case "Stealth":
-                        Console.WriteLine($"{Name} gains stealth advantage.");
-                        break;
-                    case "ZeroGravity":
-                        Energy += 5;
-                        break;
-                }
+                if (value < 0) value = 0;
+                damageTaken = MaxHealth - value;
             }
-
-            Health = Math.Min(Health, MaxHealth);
-            Energy = Math.Clamp(Energy, 0, MaxEnergy);
         }
+        private int damageTaken; // Tracks how much damage has been taken from MaxHealth
 
-        public void TakeTurn(GladiatorBot opponent)
+        // Optional: create a shorthand
+
+        public int Energy { get; set; }
+
+        public int Strength { get; set; }
+        public int MaxEnergy { get; set; }
+        public int AttackPower { get; set; }
+        public int Speed { get; set; }
+        public int Luck { get; set; }
+        public double CriticalHitChance { get; set; } // Percentage chance of a critical hit
+
+        public int Endurance { get; set; } // Represents how long the bot can fight before tiring
+
+        // Status
+        public bool IsBroken { get; set; }
+
+        public bool HasOwner { get; set; } // Indicates if the bot is a wild creature or a trained gladiator
+
+        public string StatusCondition { get; set; } // e.g., "Poisoned", "Stunned"
+
+        // Ownership
+        public string OwnerId { get; set; } // Optional: assign to a player
+
+        // Skills / Moves (could be tied to a separate Skill class)
+        public List<string> Moveset { get; set; } = new();
+
+        // Progression logic
+        public void GainExperience(int xp)
         {
-            Behavior.ExecuteStrategy(this, opponent);
-        }
-
-        public void Attack(GladiatorBot target)
-        {
-            LastAction = GladiatorAction.Attack;
-            IsCharging = false;
-            IsDefending = false;
-            target.ReceiveDamage(10);
-        }
-
-        public void PowerStrike(GladiatorBot target)
-        {
-            LastAction = GladiatorAction.PowerStrike;
-            IsCharging = false;
-            IsDefending = false;
-
-            if (Energy >= 20)
+            Experience += xp;
+            if (Experience >= GetXpThreshold(Level))
             {
-                target.ReceiveDamage(25);
-                Energy -= 20;
+                Level++;
+                Experience = 0;
+                MaxHealth += 10;
+                MaxEnergy += 5;
+                AttackPower += 2;
+                Defense += 1;
+                Speed += 1;
             }
         }
 
-        public void Defend()
-        {
-            LastAction = GladiatorAction.Defend;
-            IsDefending = true;
-            IsCharging = false;
-        }
+        public int GetXpThreshold(int level) => 100 + (level * 20);
 
-        public void Evade() => LastAction = GladiatorAction.Evade;
-
-        public void Parry() => LastAction = GladiatorAction.Parry;
-
-        public void CounterAttack(GladiatorBot target)
-        {
-            LastAction = GladiatorAction.CounterAttack;
-            target.ReceiveDamage(15);
-        }
-
-        public void Charge()
-        {
-            LastAction = GladiatorAction.Charge;
-            IsCharging = true;
-            Energy += 15;
-        }
-
+        // Battle utilities
         public void ReceiveDamage(int amount)
         {
-            if (IsDefending)
-                amount /= 2;
-
-            Health -= amount;
-            LastDamageTaken = amount;
+            int damageTaken = Math.Max(0, amount - Defense);
+            CurrentHealth -= damageTaken;
+            if (CurrentHealth <= 0)
+            {
+                CurrentHealth = 0;
+                StatusCondition = "Disabled";
+            }
         }
 
-        public void Train()
+        public string Attack(GladiatorBot target)
         {
-            // TODO: Training logic based on current behavior
-        }
+            if (target == null) return $"{Name} attacks wildly at nothing...";
 
-        public void LevelUp()
+            Random rng = new Random();
+
+            // 1. Base damage formula
+            int baseAttack = this.Strength;
+            int baseDefense = target.Defense;
+            int damage = Math.Max(1, (baseAttack * 2 - baseDefense)); // Minimum 1 damage
+
+            // 2. Elemental effectiveness
+            //double elementMultiplier = ElementalSystem.GetModifier(this.ElementalCore, target.ElementalCore);
+            //damage = (int)(damage * elementMultiplier);
+
+            // 3. Critical hit check
+            bool isCrit = rng.NextDouble() < (this.CriticalHitChance / 100.0);
+            if (isCrit) damage *= 2;
+
+            // 4. Apply damage
+            target.CurrentHealth -= damage;
+            if (target.CurrentHealth < 0) target.CurrentHealth = 0;
+
+            // 5. Build combat message
+            string result = $"{Name} attacks {target.Name} for {damage} damage.";
+            if (isCrit) result += " Critical hit!";
+            //if (elementMultiplier > 1.0) result += " It's super effective!";
+            //if (elementMultiplier < 1.0) result += " It's not very effective...";
+            if (target.CurrentHealth == 0) result += $" {target.Name} has been defeated!";
+
+            return result;
+        }
+        public void UseEnergy(int amount)
         {
-            Level++;
-            Experience = 0;
-            MaxHealth += 10;
-            MaxEnergy += 5;
+            Energy = Math.Max(0, Energy - amount);
+            if (Energy <= 0)
+            {
+                IsBroken = true;
+                StatusCondition = "Exhausted";
+            }
         }
 
-        public void ResetTempStats()
+        public void Heal(int amount)
         {
-            // TODO: Reset temporary buffs like IsCharging or turn-limited effects
+            CurrentHealth = Math.Min(MaxHealth, CurrentHealth + amount);
         }
 
-        public void ResetBattleState()
+        public void Repair()
         {
-            IsCharging = false;
-            IsDefending = false;
-            LastAction = GladiatorAction.None;
+            if (IsBroken)
+            {
+                CurrentHealth = MaxHealth / 2;
+                IsBroken = false;
+                StatusCondition = null;
+            }
         }
 
-        public void RecordDefeat()
-        {
-            // TODO: Log defeat stats or penalties
-        }
-
-        public bool IsAlive => Health > 0;
+        public bool IsAlive => CurrentHealth > 0 && !IsBroken;
     }
+    public class PlayerBot : GladiatorBot
+    {
+        public string PlayerId { get; set; } // ID of the player who owns this bot
+        public DateTime LastBattleTime { get; set; } // Timestamp of the last battle this bot participated in
+
+        // Additional player-specific properties can be added here
+    }
+    public class EnemyBot : GladiatorBot
+    {
+
+        // Additional enemy-specific properties can be added here
+    }
+
 }

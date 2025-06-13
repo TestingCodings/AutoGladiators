@@ -1,5 +1,5 @@
-
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Simulation;
 using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine.States
@@ -8,21 +8,28 @@ namespace AutoGladiators.Client.StateMachine.States
     {
         public string Name => "Idle";
 
-        public void Enter(GladiatorBot bot)
+        public void Enter(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            bot.ResetTempStats();
-            Console.WriteLine($"[{bot.Name}] has entered Idle state.");
+            // Optional: Entry logic for Idle
         }
 
-        public void Execute(GladiatorBot bot)
+        public SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            Console.WriteLine($"[{bot.Name}] is waiting...");
-            // Could check for decision to train, race, or battle
+            return new SimulationResult
+            {
+                Outcome = $"{
+                    context.Name
+                } is in Idle state.",
+                Log = new List<string> { $"{
+                    context.Name
+                } performed Idle." },
+                Winner = null
+            };
         }
 
-        public void Exit(GladiatorBot bot)
+        public void Exit(GladiatorBot context)
         {
-            Console.WriteLine($"[{bot.Name}] is exiting Idle state.");
+            // Optional: Exit logic for Idle
         }
     }
 }

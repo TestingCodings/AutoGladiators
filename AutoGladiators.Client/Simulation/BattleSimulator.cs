@@ -1,86 +1,101 @@
-using System.Collections.Generic;
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Simulation;
+using System.Text;
 
 namespace AutoGladiators.Client.Simulation
 {
-    public class BattleSimulator
+    public static class BattleSimulator
     {
-        public static BattleResult SimulateBattle(GladiatorBot bot1, GladiatorBot bot2)
+        public static SimulationResult SimulateBattle(GladiatorBot bot1, GladiatorBot bot2)
         {
-            var round = 1;
-            var result = new BattleResult();
+            var battleLog = new StringBuilder();
+            battleLog.AppendLine($"Battle Start: {bot1.Name} vs {bot2.Name}");
 
-            result.BotStats[bot1.Name] = new Dictionary<string, int>
+            int round = 1;
+
+            // Determine the initial attacker based on speed
+            GladiatorBot attacker = bot1.Speed >= bot2.Speed ? bot1 : bot2;
+            GladiatorBot defender = attacker == bot1 ? bot2 : bot1;
+
+            while (bot1.IsAlive && bot2.IsAlive && round <= 50)
             {
-                { "TurnsDefended", 0 },
-                { "TurnsCharged", 0 },
-                { "TotalDamageDealt", 0 },
-            };
+                string action = attacker.Attack(defender);
+                if (string.IsNullOrEmpty(action))
+                {
+                    action = "No action performed.";
+                }
+                battleLog.AppendLine($"Round {round}: {action}");
 
-            result.BotStats[bot2.Name] = new Dictionary<string, int>
-            {
-                { "TurnsDefended", 0 },
-                { "TurnsCharged", 0 },
-                { "TotalDamageDealt", 0 },
-            };
-
-            while (bot1.IsAlive && bot2.IsAlive && round <= 20)
-            {
-                result.Log.Add($"--- Round {round} ---");
-
-                var prevBot2Health = bot2.Health;
-                var prevBot1Health = bot1.Health;
-
-                bot1.TakeTurn(bot2);
-                bot2.TakeTurn(bot1);
-
-                result.BotStats[bot1.Name]["TotalDamageDealt"] += (prevBot2Health - bot2.Health);
-                result.BotStats[bot2.Name]["TotalDamageDealt"] += (prevBot1Health - bot1.Health);
-
-                if (bot1.LastAction == GladiatorAction.Defend)
-                    result.BotStats[bot1.Name]["TurnsDefended"]++;
-                if (bot2.LastAction == GladiatorAction.Defend)
-                    result.BotStats[bot2.Name]["TurnsDefended"]++;
-
-                if (bot1.LastAction == GladiatorAction.Charge)
-                    result.BotStats[bot1.Name]["TurnsCharged"]++;
-                if (bot2.LastAction == GladiatorAction.Charge)
-                    result.BotStats[bot2.Name]["TurnsCharged"]++;
-
-                result.Log.Add($"{bot1.Name}: HP {bot1.Health}, Energy {bot1.Energy}, Last: {bot1.LastAction}");
-                result.Log.Add($"{bot2.Name}: HP {bot2.Health}, Energy {bot2.Energy}, Last: {bot2.LastAction}");
-
+                // Swap roles
+                (attacker, defender) = (defender, attacker);
                 round++;
             }
 
-            result.TotalRounds = round - 1;
-            result.FinalHealth[bot1.Name] = bot1.Health;
-            result.FinalHealth[bot2.Name] = bot2.Health;
-            result.LastActions[bot1.Name] = bot1.LastAction;
-            result.LastActions[bot2.Name] = bot2.LastAction;
+            var result = new SimulationResult();
+            result.AddLog(battleLog.ToString());
 
-            if (!bot1.IsAlive && !bot2.IsAlive)
+            if (bot1.IsAlive && !bot2.IsAlive)
             {
-                result.Winner = "None";
-                result.Outcome = "Draw";
+                result.SetWinner(bot1);
             }
-            else if (!bot1.IsAlive)
+            else if (bot2.IsAlive && !bot1.IsAlive)
             {
-                result.Winner = bot2.Name;
-                result.Outcome = "Loss";
+                result.SetWinner(bot2);
             }
-            else if (!bot2.IsAlive)
+            else if (!bot1.IsAlive && !bot2.IsAlive)
             {
-                result.Winner = bot1.Name;
-                result.Outcome = "Win";
+                result.SetOutcome("Both gladiators have fallen. No winner.");
             }
             else
             {
-                result.Winner = "None";
-                result.Outcome = "Timeout";
+                result.SetOutcome("Battle reached round limit. It's a draw!");
             }
 
             return result;
         }
+                public static SimulationResult Evade(GladiatorBot bot1, GladiatorBot bot2)
+        {
+            var result = new SimulationResult();
+
+            result.AddLog($"{bot1.Name} attempts to evade!");
+            bool success = new Random().NextDouble() < 0.5;
+
+            if (success)
+            {
+                result.AddLog($"{bot1.Name} successfully evaded the attack!");
+                result.SetOutcome($"{bot1.Name} dodged the fight.");
+            }
+            else
+            {
+                result.AddLog($"{bot1.Name} failed to evade and took a counter hit.");
+                bot1.CurrentHealth -= 5;
+                result.SetOutcome($"{bot1.Name} got hit while evading.");
+            }
+
+            return result;
+        }
+
+        public static SimulationResult PowerStrike(GladiatorBot bot1, GladiatorBot bot2)
+        {
+            var result = new SimulationResult();
+            result.AddLog($"{bot1.Name} charges a Power Strike!");
+
+            int baseDamage = 20;
+            bot2.CurrentHealth -= baseDamage;
+
+            result.AddLog($"{bot1.Name} hits {bot2.Name} for {baseDamage} damage!");
+
+            if (!bot2.IsAlive)
+            {
+                result.SetWinner(bot1);
+            }
+            else
+            {
+                result.SetOutcome($"{bot2.Name} is still standing!");
+            }
+
+            return result;
+        }
+
     }
 }

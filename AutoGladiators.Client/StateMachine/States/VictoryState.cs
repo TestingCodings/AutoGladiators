@@ -1,4 +1,5 @@
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Simulation;
 using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine.States
@@ -7,20 +8,28 @@ namespace AutoGladiators.Client.StateMachine.States
     {
         public string Name => "Victory";
 
-        public void Enter(GladiatorBot bot)
+        public void Enter(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            bot.LevelUp();
-            Console.WriteLine($"[{bot.Name}] achieved VICTORY! XP: {bot.Experience}, Level: {bot.Level}");
+            // Optional: Entry logic for Victory
         }
 
-        public void Execute(GladiatorBot bot)
+        public SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null)
         {
-            Console.WriteLine($"[{bot.Name}] is celebrating victory...");
+            return new SimulationResult
+            {
+                Outcome = $"{
+                    context.Name
+                } is in Victory state.",
+                Log = new List<string> { $"{
+                    context.Name
+                } performed Victory." },
+                Winner = null
+            };
         }
 
-        public void Exit(GladiatorBot bot)
+        public void Exit(GladiatorBot context)
         {
-            Console.WriteLine($"[{bot.Name}] ends victory sequence.");
+            // Optional: Exit logic for Victory
         }
     }
 }

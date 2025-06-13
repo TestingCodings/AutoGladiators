@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AutoGladiators.Client.Pages.BattlePage"
+             xmlns:vm="clr-namespace:AutoGladiators.Client.ViewModels"
+             x:DataType="vm:BattleViewModel"
+             Title="Battle"
+             BackgroundColor="#121212">
+
+    <ContentPage.BindingContext>
+        <vm:BattleViewModel />
+    </ContentPage.BindingContext>
+
+    <ScrollView>
+        <StackLayout Padding="10" Spacing="12">
+
+            <!-- Enemy Bot Display -->
+            <Label x:Name="EnemyNameLabel" Text="Enemy Bot" FontAttributes="Bold" FontSize="18" />
+            <ProgressBar x:Name="EnemyHealthBar" Progress="1" HeightRequest="10" BackgroundColor="Gray" />
+            <Label x:Name="EnemyHealth" Text="HP: 100/100" FontSize="14" />
+
+            <!-- Spacer -->
+            <BoxView HeightRequest="20"/>
+
+            <!-- Player Bot Display -->
+            <Label x:Name="PlayerNameLabel" Text="Your Bot" FontAttributes="Bold" FontSize="18" />
+            <ProgressBar x:Name="PlayerHealthBar" Progress="1" HeightRequest="10" BackgroundColor="Gray" />
+            <Label x:Name="PlayerHealth" Text="HP: 100/100" FontSize="14" />
+
+            <!-- Battle Log -->
+            <Label Text="Battle Log:" FontAttributes="Bold" />
+            <ScrollView HeightRequest="150">
+                <Label x:Name="BattleLog" Text="" />
+            </ScrollView>
+
+            <!-- Action Buttons -->
+            <Grid ColumnSpacing="10" RowSpacing="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Row="0" Grid.Column="0" Text="Power Strike" Command="{Binding PowerStrikeCommand}"/>
+                <Button Grid.Row="0" Grid.Column="1" Text="Evade" Command="{Binding EvadeCommand}"/>
+                <Button Grid.Row="1" Grid.Column="0" Text="Repair" Command="{Binding RepairCommand}"/>
+                <Button Grid.Row="1" Grid.Column="1" Text="Control Chip" Command="{Binding CaptureCommand}"/>
+            </Grid>
+        </StackLayout>
+    </ScrollView>
+</ContentPage>
+
