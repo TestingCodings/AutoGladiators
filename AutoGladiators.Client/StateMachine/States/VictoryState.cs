@@ -1,35 +1,53 @@
-using AutoGladiators.Client.Core;
-using AutoGladiators.Client.Simulation;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using AutoGladiators.Client.StateMachine;
+using AutoGladiators.Client.Services;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
-    public class VictoryState : IGameState
+    public sealed class VictoryState : IGameState
     {
-        public string Name => "Victory";
+        public GameStateId Id => GameStateId.Victory;
 
-        public void Enter(GladiatorBot context, GladiatorBot? opponent = null)
+        public Task EnterAsync(GameStateContext ctx, StateArgs? args = null, CancellationToken ct = default)
         {
-            // Optional: Entry logic for Victory
-        }
+            Console.WriteLine("Battle concluded. Victory!");
 
-        public SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null)
-        {
-            return new SimulationResult
+            // If battle rewards were passed in from BattlingState:
+            // Replace 'object' with your actual rewards type, e.g. (int xp, int gold)
+            var rewards = args?.Payload as (int xp, int gold)?;
+            if (rewards != null)
             {
-                Outcome = $"{
-                    context.Name
-                } is in Victory state.",
-                Log = new List<string> { $"{
-                    context.Name
-                } performed Victory." },
-                Winner = null
-            };
+                // Apply rewards to player profile
+                ctx.Game.ApplyBattleRewards(rewards.Value.xp, rewards.Value.gold);
+            }
+
+            // TODO: Handle XP gain, loot drops, achievements, etc.
+            // ctx.Game.AwardExperience(...);
+            // ctx.Game.AddLoot(...);
+
+            ctx.Ui?.ShowVictoryScreen(rewards);
+
+            return Task.CompletedTask;
         }
 
-        public void Exit(GladiatorBot context)
+        public Task<StateTransition?> ExecuteAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            // Optional: Exit logic for Victory
+            // You could wait for a UI "continue" button here instead of auto-transitioning
+            // For now, we auto-transition back to Exploring
+            Console.WriteLine("Returning to adventure...");
+            return Task.FromResult<StateTransition?>(new StateTransition(
+                GameStateId.Exploring,
+                new StateArgs { Reason = "VictoryReturn" }
+            ));
+        }
+
+        public Task ExitAsync(GameStateContext ctx, CancellationToken ct = default)
+        {
+            Console.WriteLine("Post-battle tasks completed.");
+            ctx.Ui?.HideVictoryScreen();
+            return Task.CompletedTask;
         }
     }
 }

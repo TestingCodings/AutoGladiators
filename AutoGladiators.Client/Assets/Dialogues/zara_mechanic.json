@@ -1,0 +1,34 @@
+{
+  "NPCName": "Mechanic Zara",
+  "DialogueNodes": [
+    {
+      "Id": "start",
+      "Text": "Welcome to the scrapyard! Need your bot patched up?",
+      "Options": [
+        { "Text": "Yes, please.", "NextNodeId": "heal", "ActionKey": "HealBot" },
+        { "Text": "Who are you?", "NextNodeId": "about" },
+        { "Text": "Never mind.", "NextNodeId": "end" }
+      ]
+    },
+    {
+      "Id": "about",
+      "Text": "I'm Zara, the best damn mechanic on this side of the scrapyard.",
+      "Options": [
+        { "Text": "Cool. Can you heal my bot?", "NextNodeId": "heal", "ActionKey": "HealBot" },
+        { "Text": "Bye.", "NextNodeId": "end" }
+      ]
+    },
+    {
+      "Id": "heal",
+      "Text": "There you go. All fixed!",
+      "Options": [
+        { "Text": "Thanks!", "NextNodeId": "end" }
+      ]
+    },
+    {
+      "Id": "end",
+      "Text": "See you around.",
+      "Options": []
+    }
+  ]
+}

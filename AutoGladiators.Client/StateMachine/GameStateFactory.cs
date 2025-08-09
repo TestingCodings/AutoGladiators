@@ -15,7 +15,10 @@ namespace AutoGladiators.Client.StateMachine
                 "Capturing" => new CapturingState(),
                 "Battling" => new BattlingState(),
                 "Victory" => new VictoryState(),
-                "Defeat" => new DefeatState(),  
+                "Defeat" => new DefeatState(),
+                "Dialogue" => new DialogueState(),
+                "Fusion" => new FusionState(),
+                "Inventory" => new InventoryState(),
                 _ => new IdleState(),
             };
         }

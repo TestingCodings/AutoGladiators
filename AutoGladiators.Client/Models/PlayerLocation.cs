@@ -4,7 +4,7 @@ namespace AutoGladiators.Client.Models
 {
     public class PlayerLocation : IEquatable<PlayerLocation>
     {
-        public string Region { get; set; }
+        public string Region { get; set; } = string.Empty;
         
         public int X { get; set; }
         public int Y { get; set; }
@@ -26,6 +26,7 @@ namespace AutoGladiators.Client.Models
 
         public bool Equals(PlayerLocation other)
         {
+            // When calling Equals, ensure 'other' is not null
             if (other == null) return false;
             return this.Region == other.Region && this.X == other.X && this.Y == other.Y;
         }

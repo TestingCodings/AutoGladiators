@@ -1,33 +1,8 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="AutoGladiators.Client.Pages.MainMenuPage"
-             Title="AutoGladiators"
-             BackgroundColor="Black">
-
-    <StackLayout Padding="30" Spacing="20" VerticalOptions="CenterAndExpand">
-
-        <Label Text="AUTOGLADIATORS" 
-               FontSize="36"
-               FontAttributes="Bold"
-               TextColor="White"
-               HorizontalOptions="Center" />
-
-        <Button Text="Begin Adventure"
-                FontSize="20"
-                Clicked="OnAdventureClicked" />
-
-        <Button Text="Bot Roster"
-                FontSize="20"
-                Clicked="OnBotRosterClicked" />
-
-        <Button Text="Inventory"
-                FontSize="20"
-                Clicked="OnInventoryClicked" />
-
-        <Button Text="Settings"
-                FontSize="20"
-                Clicked="OnSettingsClicked" />
-
-    </StackLayout>
-</ContentPage>
+<VerticalStackLayout>
+    <Label Text="AutoGladiators" FontSize="22" HorizontalOptions="Center"/>
+    <Button Text="Start New Game" Clicked="OnStartNewGameClicked"/>
+    <Button Text="Continue" Clicked="OnContinueClicked"/>
+    <Button Text="Load Game" Clicked="OnLoadGameClicked"/>
+    <Button Text="Settings" Clicked="OnSettingsClicked"/>
+    <Button Text="Exit" Clicked="OnExitClicked"/>
+</VerticalStackLayout>

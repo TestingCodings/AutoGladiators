@@ -1,34 +1,61 @@
-using AutoGladiators.Client.Core;
-using AutoGladiators.Client.Simulation;
+using System.Threading;
+using System.Threading.Tasks;
+using AutoGladiators.Client.Services;
+using AutoGladiators.Client.Logic;
 
 namespace AutoGladiators.Client.StateMachine
 {
+    public enum GameStateId
+    {
+        Idle,
+        Exploring,
+        Dialogue,
+        Battling,
+        Inventory,
+        Victory,
+        Defeat,
+        Fusion,
+        Training,
+        Capturing,
+        CaptureSuccess,
+        CaptureFailed,
+        // Add more states as needed
+    }
+
+    // Optional: pass data into states in a type-safe way
+    public record StateArgs
+    {
+        public object? Payload { get; init; }     // e.g., Encounter info, NPC id, etc.
+        public string? Reason { get; init; }      // e.g., "RandomEncounter", "UserOpenedBag"
+    }
+
+    // NOTE: StateTransition is defined in StateMachine/StateTransition.cs (single source of truth)
+
     public interface IGameState
     {
-        string Name { get; }
+        GameStateId Id { get; }
+        Task EnterAsync(GameStateContext ctx, StateArgs? args = null, CancellationToken ct = default);
+        Task<StateTransition?> ExecuteAsync(GameStateContext ctx, CancellationToken ct = default);
+        Task ExitAsync(GameStateContext ctx, CancellationToken ct = default);
+    }
 
-        /// <summary>
-        /// Called when entering the state.
-        /// </summary>
-        /// <param name="context">The bot entering the state.</param>
-        /// <param name="opponent">Optional opponent for context-specific states (e.g., battle).</param>
-        void Enter(GladiatorBot context, GladiatorBot? opponent = null);
+    // Everything states need access to (services, managers, UI signals)
+    public sealed class GameStateContext
+    {
+        public GameStateService Game { get; }
+        public BattleManager Battle { get; }
+        public IMessageBus? Bus { get; }  // nullable so you can pass null for now
+        public IUiBridge? Ui { get; }     // nullable so you can pass null for now
 
-        /// <summary>
-        /// Performs the main logic of the state.
-        /// </summary>
-        /// <param name="context">The bot executing the state.</param>
-        /// <param name="opponent">Optional opponent.</param>
-        /// <returns>Simulation result, if applicable (e.g. battles, training outcomes).</returns>
-        SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null);
+        // The machine will set this so legacy code can request transitions
+        public System.Func<GameStateId, StateArgs?, CancellationToken, Task>? RequestTransitionAsync { get; set; }
 
-        /// <summary>
-        /// Called when exiting the state.
-        /// </summary>
-        /// <param name="context">The bot exiting the state.</param>
-        void Exit(GladiatorBot context);
+        public GameStateContext(GameStateService game, BattleManager battle, IMessageBus? bus = null, IUiBridge? ui = null)
+        {
+            Game = game;
+            Battle = battle;
+            Bus = bus;
+            Ui = ui;
+        }
     }
 }
-// This interface defines the contract for game states in the Auto Gladiators client.
-// Each state must implement methods for entering, executing, and exiting the state.
-// The Execute method can return a SimulationResult for states that involve simulations, like battles or training.  

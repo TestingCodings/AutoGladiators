@@ -1,63 +1,71 @@
 using System;
 using System.Collections.Generic;
-using AutoGladiators.Client.Core;
+using System.Threading;
+using System.Threading.Tasks;
 using AutoGladiators.Client.StateMachine.States;
-using AutoGladiators.Client.StateMachine.Transitions;
-using AutoGladiators.Client.StateMachine;
 
 namespace AutoGladiators.Client.StateMachine
 {
-    public class GameStateMachine
+    /// <summary>
+    /// Minimal async state machine: current state runs ExecuteAsync and, when it returns a StateTransition,
+    /// the machine performs Exit->Enter and continues.
+    /// </summary>
+    public sealed class GameStateMachine
     {
-        private readonly Dictionary<(string, string), IStateTransition> _transitions = new();
-        private IGameState _currentState;
+        private readonly IDictionary<GameStateId, IGameState> _states;
+        private readonly GameStateContext _ctx;
+        private IGameState? _current;
 
-        public GameStateMachine(IGameState initialState)
+        public GameStateId? CurrentStateId => _current?.Id;
+        public string CurrentStateName => _current?.Id.ToString() ?? "None";
+
+        public GameStateMachine(IDictionary<GameStateId, IGameState> states, GameStateContext context)
         {
-            _currentState = initialState;
+            _states = states ?? throw new ArgumentNullException(nameof(states));
+            _ctx = context ?? throw new ArgumentNullException(nameof(context));
+
+            // Wire a callback so legacy code (ctx.TransitionTo(...)) can request transitions
+            _ctx.RequestTransitionAsync = (nextId, args, ct) => TransitionToAsync(nextId, args, ct);
         }
 
-        public void Initialize(GladiatorBot bot)
+        public async Task InitializeAsync(GameStateId initial, StateArgs? args = null, CancellationToken ct = default)
         {
-            _currentState?.Enter(bot);
+            if (!_states.TryGetValue(initial, out var state))
+                throw new KeyNotFoundException($"State {initial} not registered.");
+
+            _current = state;
+            await _current.EnterAsync(_ctx, args, ct);
         }
 
-        public void AddTransition(string from, string to, IStateTransition transition)
+        public async Task TickAsync(CancellationToken ct = default)
         {
-            _transitions[(from, to)] = transition;
+            if (_current is null) return;
+
+            var trans = await _current.ExecuteAsync(_ctx, ct);
+            if (trans is null) return;
+
+            await TransitionToAsync(trans.Next, trans.Args, ct);
         }
 
-        public void Update(GladiatorBot bot)
+        public async Task TransitionToAsync(GameStateId next, StateArgs? args = null, CancellationToken ct = default)
         {
-            _currentState?.Execute(bot);
+            if (!_states.TryGetValue(next, out var target))
+                throw new KeyNotFoundException($"State {next} not registered.");
 
-            // Assuming GladiatorBot implements IGameStateContext, cast it; otherwise, adapt as needed.
-            var context = bot as IGameStateContext;
-            if (context == null)
-                throw new InvalidCastException("GladiatorBot must implement IGameStateContext.");
+            if (_current is not null)
+                await _current.ExitAsync(_ctx, ct);
 
-            foreach (var kvp in _transitions)
-            {
-                if (kvp.Key.Item1 == _currentState.Name && kvp.Value.CanTransition(context))
-                {
-                    _currentState?.Exit(bot);
-                    _currentState = GameStateFactory.CreateState(kvp.Key.Item2);
-                    _currentState.Enter(bot);
-                    break;
-                }
-            }
+            _current = target;
+            await _current.EnterAsync(_ctx, args, ct);
         }
 
-        public void ForceTransition(string to, GladiatorBot bot)
+        // Convenience for UI/actions that insist on strings (legacy)
+        public Task ForceTransitionAsync(string to, StateArgs? args = null, CancellationToken ct = default)
         {
-            _currentState?.Exit(bot);
-            _currentState = GameStateFactory.CreateState(to);
-            _currentState.Enter(bot);
-        }
+            if (!Enum.TryParse<GameStateId>(to, ignoreCase: true, out var id))
+                throw new ArgumentException($"Unknown state name: {to}", nameof(to));
 
-        public string CurrentStateName => _currentState?.Name ?? "None";
+            return TransitionToAsync(id, args, ct);
+        }
     }
 }
-
-// This code defines a GameStateMachine that manages the state transitions of a GladiatorBot in a game.
-// It allows adding transitions between states, updating the current state based on conditions, and forcing transitions.

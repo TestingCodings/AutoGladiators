@@ -1,35 +1,59 @@
-using AutoGladiators.Client.Core;
-using AutoGladiators.Client.Simulation;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using AutoGladiators.Client.StateMachine;
+using AutoGladiators.Client.Services;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
-    public class IdleState : IGameState
+    public sealed class IdleState : IGameState
     {
-        public string Name => "Idle";
+        public GameStateId Id => GameStateId.Idle; // ensure your enum includes Idle
 
-        public void Enter(GladiatorBot context, GladiatorBot? opponent = null)
+        public Task EnterAsync(GameStateContext ctx, StateArgs? args = null, CancellationToken ct = default)
         {
-            // Optional: Entry logic for Idle
+            ctx.Ui?.ShowIdleScreen();
+            ctx.Ui?.SetStatus("Idle…");
+            return Task.CompletedTask;
         }
 
-        public SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null)
+        public Task<StateTransition?> ExecuteAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            return new SimulationResult
+            // Drive transitions based on simple flags/buttons your UI/VM can set
+
+            if (ctx.Ui?.RequestedStart == true)
             {
-                Outcome = $"{
-                    context.Name
-                } is in Idle state.",
-                Log = new List<string> { $"{
-                    context.Name
-                } performed Idle." },
-                Winner = null
-            };
+                return Task.FromResult<StateTransition?>(new StateTransition(
+                    GameStateId.Exploring,
+                    new StateArgs { Reason = "StartFromIdle" }
+                ));
+            }
+
+            if (ctx.Ui?.RequestedOpenInventory == true)
+            {
+                return Task.FromResult<StateTransition?>(new StateTransition(
+                    GameStateId.Inventory,
+                    new StateArgs { Reason = "OpenInventoryFromIdle" }
+                ));
+            }
+
+            if (ctx.Ui?.RequestedDialogueNpcId is string npcId && !string.IsNullOrWhiteSpace(npcId))
+            {
+                return Task.FromResult<StateTransition?>(new StateTransition(
+                    GameStateId.Dialogue,
+                    new StateArgs { Reason = "DialogueFromIdle", Payload = npcId }
+                ));
+            }
+
+            // Otherwise, remain idle
+            return Task.FromResult<StateTransition?>(null);
         }
 
-        public void Exit(GladiatorBot context)
+        public Task ExitAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            // Optional: Exit logic for Idle
+            ctx.Ui?.HideIdleScreen();
+            return Task.CompletedTask;
         }
     }
 }
+

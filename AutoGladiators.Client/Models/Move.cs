@@ -1,4 +1,5 @@
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Enums;
 using System;
 
 namespace AutoGladiators.Client.Models
@@ -18,14 +19,24 @@ namespace AutoGladiators.Client.Models
         public string Name { get; set; }
         public string Description { get; set; }
         public MoveType Type { get; set; }
-        public int Power { get; set; } // e.g. base damage
+        // e.g. base damage
         public int EnergyCost { get; set; }
-        public double Accuracy { get; set; } = 1.0; // 1.0 = 100% hit chance
+        public double Accuracy { get; set; } = 100.0; // 100.0 = 100% hit chance, allows more decimal places
+        public StatusEffectType? InflictsStatus { get; set; } = null;
+        public double StatusChance { get; set; } = 0.0; // e.g. 25.0 for 25%
+        public int Priority { get; set; } = 0; // For quick attack style moves
         public string Element { get; set; } // Fire, Water, Electric...
+
+        public MoveCategory Category { get; set; } // Physical, Special, or Support
 
         public string StatusEffect { get; set; } // Optional: Poisoned, Stunned, etc.
         public int EffectChance { get; set; } // 0–100
         public bool IsMultiTurn { get; set; } = false;
+
+        public int Power { get; set; }
+        public ElementalType ElementalType { get; set; }
+
+
 
         public string Use(GladiatorBot attacker, GladiatorBot defender)
         {

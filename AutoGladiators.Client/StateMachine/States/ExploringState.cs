@@ -1,35 +1,75 @@
-using AutoGladiators.Client.Core;
-using AutoGladiators.Client.Simulation;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using AutoGladiators.Client.Models;
+using AutoGladiators.Client.Services;
 using AutoGladiators.Client.StateMachine;
+using AutoGladiators.Client.Core;
+
 
 namespace AutoGladiators.Client.StateMachine.States
 {
-    public class ExploringState : IGameState
+    public sealed class ExploringState : IGameState
     {
-        public string Name => "Exploring";
+        public GameStateId Id => GameStateId.Exploring;
 
-        public void Enter(GladiatorBot context, GladiatorBot? opponent = null)
+        public Task EnterAsync(GameStateContext ctx, StateArgs? args = null, CancellationToken ct = default)
         {
-            // Optional: Entry logic for Exploring
+            var locationId = ctx.Game.GetPlayerLocationId();
+            var location = MapService.Get(locationId);
+
+            Console.WriteLine($"{ctx.Game.PlayerProfile?.Name ?? "Player"} begins exploring {location.Name}...");
+            ctx.Ui?.ShowOverworld();
+            ctx.Ui?.SetStatus($"Exploring {location.Name}…");
+
+            return Task.CompletedTask;
         }
 
-        public SimulationResult? Execute(GladiatorBot context, GladiatorBot? opponent = null)
+        public Task<StateTransition?> ExecuteAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            return new SimulationResult
+            var locationId = ctx.Game.GetPlayerLocationId();
+            var location = MapService.Get(locationId);
+
+            // 1) Wild encounter
+            if (EncounterGenerator.TryGenerateWildEncounter(location, out var wildBot))
             {
-                Outcome = $"{
-                    context.Name
-                } is in Exploring state.",
-                Log = new List<string> { $"{
-                    context.Name
-                } performed Exploring." },
-                Winner = null
-            };
+                Console.WriteLine($"Encountered wild {wildBot.Name}!");
+
+                var playerBot = ctx.Game.GetCurrentBot();
+                if (playerBot is not null)
+                {
+                    // Store encounter in GameStateService
+                    ctx.Game.CurrentEncounter = wildBot;
+
+                    return Task.FromResult<StateTransition?>(new StateTransition(
+                        GameStateId.Battling,
+                        new StateArgs { Reason = "RandomEncounter" }
+                    ));
+                }
+
+                Console.WriteLine("No active bot found; skipping battle.");
+            }
+
+            // 2) NPC dialogue
+            if (!string.IsNullOrEmpty(location.NPCId))
+            {
+                Console.WriteLine($"You meet NPC {location.NPCId}.");
+                return Task.FromResult<StateTransition?>(new StateTransition(
+                    GameStateId.Dialogue,
+                    new StateArgs { Reason = "NpcDialogue", Payload = location.NPCId }
+                ));
+            }
+
+            Console.WriteLine($"{ctx.Game.PlayerProfile?.Name ?? "Player"} explores but nothing happens.");
+            return Task.FromResult<StateTransition?>(null);
         }
 
-        public void Exit(GladiatorBot context)
+        public Task ExitAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            // Optional: Exit logic for Exploring
+            var locationId = ctx.Game.GetPlayerLocationId();
+            Console.WriteLine($"{ctx.Game.PlayerProfile?.Name ?? "Player"} finishes exploring {locationId}.");
+            ctx.Ui?.HideOverworld();
+            return Task.CompletedTask;
         }
     }
 }

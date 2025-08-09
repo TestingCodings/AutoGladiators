@@ -8,11 +8,6 @@ namespace AutoGladiators.Client.Integration
 {
     public static class SimulationHooks
     {
-        public static void PreviewBattle(GladiatorBot player, GladiatorBot enemy)
-        {
-            var result = BattleSimulator.SimulateBattle(player, enemy);
-            Debug.WriteLine(result.Summary);
-        }
 
         public static void PreviewTraining(GladiatorBot bot, string skill)
         {
