@@ -1,0 +1,34 @@
+{
+  "NPCName": "Engineer Max",
+  "DialogueNodes": [
+    {
+      "Id": "start",
+      "Text": "How's it going? Need some chips fot catching bots?",
+      "Options": [
+        { "Text": "Yes, please.", "NextNodeId": "buy", "ActionKey": "TriggerPurchase" },
+        { "Text": "Who are you?", "NextNodeId": "about" },
+        { "Text": "Never mind.", "NextNodeId": "end" }
+      ]
+    },
+    {
+      "Id": "about",
+      "Text": "I'm Max, I make chips for catching bots. I can also upgrade your bots if you bring me some scrap metal.",
+      "Options": [
+        { "Text": "Okay, I'll take some", "NextNodeId": "buy", "ActionKey": "TriggerPurchase" },
+        { "Text": "Bye.", "NextNodeId": "end" }
+      ]
+    },
+    {
+      "Id": "buy",
+      "Text": "There you go. Happy Scrapping!",
+      "Options": [
+        { "Text": "Thanks!", "NextNodeId": "end" }
+      ]
+    },
+    {
+      "Id": "end",
+      "Text": "See you around.",
+      "Options": []
+    }
+  ]
+}

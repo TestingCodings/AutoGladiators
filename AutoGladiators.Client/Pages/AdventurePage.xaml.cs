@@ -43,7 +43,9 @@ namespace AutoGladiators.Client.Pages
                         await Navigation.PushAsync(new BattlePage(playerBot, enemyBot));
                         break;
                     case "Techspire City":
-                        await Navigation.PushAsync(new NPCDialoguePage());
+                        // When navigating to NPCDialoguePage, pass the required npcId argument:
+                        string npcId = "1"; // TODO: Get the actual NPC ID based on the selected location or other logic
+                        await Navigation.PushAsync(new NPCDialoguePage(npcId));
                         break;
                     default:
                         await DisplayAlert("Coming Soon", $"{location.Name} is under development.", "OK");

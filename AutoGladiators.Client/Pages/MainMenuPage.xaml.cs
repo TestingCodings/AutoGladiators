@@ -1,37 +1,42 @@
+using System;
 using Microsoft.Maui.Controls;
+using AutoGladiators.Client.StateMachine;
+using AutoGladiators.Client.Core;
 
 namespace AutoGladiators.Client.Pages
 {
-    public partial class MainMenuPage : ContentPage
+    public sealed class MainMenuPage : ContentPage
     {
         public MainMenuPage()
         {
-            InitializeComponent();
-        }
+            Title = "AutoGladiators";
 
-        private async void OnAdventureClicked(object sender, EventArgs e)
-        {
-            await Navigation.PushAsync(new AdventurePage());
-        }
+            var newGame = new Button { Text = "New Game" };
+            newGame.Clicked += async (_, __) => await Navigation.PushAsync(new CreateCharacterPage());
 
-        private async void OnBotRosterClicked(object sender, EventArgs e)
-        {
-            await Navigation.PushAsync(new BotRosterPage());
-        }
+            var continueBtn = new Button { Text = "Continue" };
+            continueBtn.Clicked += async (_, __) =>
+            {
+                // Just ask the state machine to go exploring; if save/loading is needed, do it first.
+                await GameLoop.GoToAsync(GameStateId.Exploring, new StateArgs { Reason = "Continue" });
+                await DisplayAlert("Continue", "Resuming adventure…", "OK");
+            };
 
-        private async void OnInventoryClicked(object sender, EventArgs e)
-        {
-            await Navigation.PushAsync(new InventoryPage());
-        }
+            var debugBtn = new Button { Text = "Debug Menu" };
+            debugBtn.Clicked += async (_, __) => await Navigation.PushAsync(new DebugMenuPage());
 
-        private async void OnSettingsClicked(object sender, EventArgs e)
-        {
-            await DisplayAlert("Coming Soon", "Settings will be available in a future update.", "OK");
+            Content = new VerticalStackLayout
+            {
+                Padding = 24,
+                Spacing = 16,
+                Children =
+                {
+                    new Label { Text = "AUTOGLADIATORS", FontSize = 24, FontAttributes = FontAttributes.Bold, HorizontalTextAlignment = TextAlignment.Center },
+                    newGame,
+                    continueBtn,
+                    debugBtn
+                }
+            };
         }
-
-        //private async void OnSimulatorClicked(object sender, EventArgs e)
-        //{
-           // await Navigation.PushAsync(new BattlePage(playerBot, enemyBot));
-        //}
     }
 }

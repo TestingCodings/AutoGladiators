@@ -1,0 +1,38 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AutoGladiators.Client.Pages.DebugMenuPage"
+             Title="Debug Tools"
+             BackgroundColor="#121212">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <Label Text="⚙️ Developer Debug Menu" FontSize="24" TextColor="White" />
+
+            <!-- Section: Inject Bots -->
+            <Button Text="Add Random Test Bot"
+                    Clicked="OnAddBotClicked" />
+
+            <!-- Section: Inventory -->
+            <Button Text="Give 5 Control Chips"
+                    Clicked="OnGiveChipsClicked" />
+
+            <!-- Section: Test Battle -->
+            <Button Text="Trigger Wild Battle (ScrapFields)"
+                    Clicked="OnTestBattleClicked" />
+
+            <!-- Section: Flags -->
+            <Button Text="Set IntroQuest Flag"
+                    Clicked="OnSetFlagClicked" />
+            <Button Text="Show All Quest Flags"
+                    Clicked="OnShowFlagsClicked" />
+
+            <!-- Section: Location Warp -->
+            <Label Text="Warp to Region:" TextColor="LightGray"/>
+            <Entry x:Name="LocationEntry" Placeholder="e.g. scrapyard" TextColor="Black" />
+            <Button Text="Warp"
+                    Clicked="OnWarpClicked" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

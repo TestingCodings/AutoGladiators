@@ -5,9 +5,10 @@ using System.Text.Json;
 using System.Reflection;
 using AutoGladiators.Client.Models;
 using AutoGladiators.Client.Core;
-using AutoGladiators.Client.Config;
 
-namespace AutoGladiators.Client.Services
+
+
+namespace AutoGladiators.Client.Config
 {
     public static class ConfigLoader
     {
@@ -28,8 +29,8 @@ namespace AutoGladiators.Client.Services
         public static List<Item> LoadItems()
             => LoadConfig<List<Item>>("items.json");
 
-        public static List<NpcDialogue> LoadNpcDialogues()
-            => LoadConfig<List<NpcDialogue>>("npc_dialogue.json");
+        public static List<NPCDialogue> LoadNPCDialogues()
+            => LoadConfig<List<NPCDialogue>>("npc_dialogue.json");
 
         public static T LoadConfig<T>(string fileName)
         {

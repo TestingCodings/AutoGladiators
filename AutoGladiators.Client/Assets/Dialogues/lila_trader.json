@@ -1,0 +1,34 @@
+{
+  "NPCName": "Trader Lila",
+  "DialogueNodes": [
+    {
+      "Id": "start",
+      "Text": "Looking for parts? I have the best deals in town.",
+      "Options": [
+        { "Text": "Yes, please.", "NextNodeId": "trade", "ActionKey": "TriggerTrade" },
+        { "Text": "Who are you?", "NextNodeId": "about" },
+        { "Text": "Never mind.", "NextNodeId": "end" }
+      ]
+    },
+    {
+      "Id": "about",
+      "Text": "I'm Lila, your go-to trader for all things mechanical. Bring me some rare components and I’ll give you a discount.",
+      "Options": [
+        { "Text": "Okay, I'll bring some.", "NextNodeId": "trade", "ActionKey": "TriggerTrade" },
+        { "Text": "Bye.", "NextNodeId": "end" }
+      ]
+    },
+    {
+      "Id": "trade",
+      "Text": "Trade is the lifeblood of our community! Here’s your discount.",
+      "Options": [
+        { "Text": "Thanks!", "NextNodeId": "end" }
+      ]
+    },
+    {
+      "Id": "end",
+      "Text": "See you around.",
+      "Options": []
+    }
+  ]
+}

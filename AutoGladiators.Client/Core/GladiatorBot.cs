@@ -10,9 +10,8 @@ namespace AutoGladiators.Client.Core
         // Identity and Persistence
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string ElementalCore { get; set; } // Fire, Water, Electric, etc.
-
+        public string Name { get; set; } = string.Empty;
+        public string ElementalCore { get; set; } = string.Empty; // Fire, Water, Electric, etc.
         public string Description { get; set; } = "A mysterious bot with unknown capabilities.";
 
 
@@ -48,15 +47,42 @@ namespace AutoGladiators.Client.Core
         // Status
         public bool IsBroken { get; set; }
 
+        public bool IsFainted { get; set; }
         public bool HasOwner { get; set; } // Indicates if the bot is a wild creature or a trained gladiator
 
-        public string StatusCondition { get; set; } // e.g., "Poisoned", "Stunned"
+        public string StatusCondition { get; set; } = string.Empty; // e.g., "Poisoned", "Stunned"
 
         // Ownership
-        public string OwnerId { get; set; } // Optional: assign to a player
+        public string OwnerId { get; set; } = string.Empty; // Optional: assign to a player
 
         // Skills / Moves (could be tied to a separate Skill class)
         public List<string> Moveset { get; set; } = new();
+
+        public List<string> LearnableMoves { get; set; } = new();
+
+        // Add missing battle stages
+        public int AttackStage { get; set; }
+        public int DefenseStage { get; set; }
+        public int SpecialAttackStage { get; set; }
+        public int SpecialDefenseStage { get; set; }
+        public int SpeedStage { get; set; }
+
+        // Add missing status effect fields
+        public StatusEffectType? CurrentStatus { get; set; }
+        public int StatusTurnsRemaining { get; set; }
+
+        // Add HP property for compatibility
+        public int HP
+        {
+            get => CurrentHealth;
+            set => CurrentHealth = value;
+        }
+
+        public int Health
+        {
+            get => CurrentHealth;
+            set => CurrentHealth = value;
+        }
 
         // Progression logic
         public void GainExperience(int xp)
@@ -141,15 +167,47 @@ namespace AutoGladiators.Client.Core
             {
                 CurrentHealth = MaxHealth / 2;
                 IsBroken = false;
-                StatusCondition = null;
+                StatusCondition = string.Empty;
             }
         }
 
         public bool IsAlive => CurrentHealth > 0 && !IsBroken;
+        public void ResetStages()
+        {
+            AttackStage = 0;
+            DefenseStage = 0;
+            SpecialAttackStage = 0;
+            SpecialDefenseStage = 0;
+            SpeedStage = 0;
+        }
+
+        public void ApplyStatus(StatusEffectType status, int duration)
+        {
+            CurrentStatus = status;
+            StatusTurnsRemaining = duration;
+        }
+
+        public void TickStatus()
+        {
+            if (CurrentStatus != null)
+            {
+                StatusTurnsRemaining--;
+                if (StatusTurnsRemaining <= 0)
+                    CurrentStatus = null;
+            }
+        }
+
+        public int GetEffectiveStat(int baseValue, int stage)
+        {
+            float[] stageMultipliers = { 0.25f, 0.29f, 0.33f, 0.4f, 0.5f, 0.66f, 1f, 1.5f, 2f, 2.5f, 3f, 3.5f, 4f }; // 0–12 mapped to -6 to +6
+            int index = stage + 6;
+            index = index < 0 ? 0 : (index > 12 ? 12 : index);
+            return (int)(baseValue * stageMultipliers[index]);
+        }
     }
     public class PlayerBot : GladiatorBot
     {
-        public string PlayerId { get; set; } // ID of the player who owns this bot
+        public string PlayerId { get; set; } = string.Empty; // ID of the player who owns this bot
         public DateTime LastBattleTime { get; set; } // Timestamp of the last battle this bot participated in
 
         // Additional player-specific properties can be added here
