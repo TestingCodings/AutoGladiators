@@ -19,6 +19,7 @@ namespace AutoGladiators.Client.StateMachine
         Capturing,
         CaptureSuccess,
         CaptureFailed,
+        GameOver, // <-- Add this line
         // Add more states as needed
     }
 

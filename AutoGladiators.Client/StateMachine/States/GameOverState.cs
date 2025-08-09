@@ -1,33 +1,31 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AutoGladiators.Client.Models;
-using AutoGladiators.Client.Services;
 using AutoGladiators.Client.StateMachine;
-using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Services;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
-    public sealed class ExploringState : IGameState
+    public sealed class GameOverState : IGameState
     {
-        public GameStateId Id => GameStateId.Exploring;
+        public GameStateId Id => GameStateId.GameOver;
 
         public Task EnterAsync(GameStateContext ctx, StateArgs? args = null, CancellationToken ct = default)
         {
-            ctx.Ui?.ShowOverworld();
-            ctx.Ui?.SetStatus("Exploring…");
+            // Keep it minimal for now; avoid calling services that may not exist/are partial.
+            ctx.Ui?.SetStatus("Game Over. Returning to adventure…");
             return Task.CompletedTask;
         }
 
         public Task<StateTransition?> ExecuteAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            // No encounter generation yet – remain exploring
-            return Task.FromResult<StateTransition?>(null);
+            // Immediately bounce back to Exploring; wire save/load later.
+            return Task.FromResult<StateTransition?>(
+                new StateTransition(GameStateId.Exploring, new StateArgs { Reason = "GameOverReturn" })
+            );
         }
 
         public Task ExitAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            ctx.Ui?.HideOverworld();
             return Task.CompletedTask;
         }
     }

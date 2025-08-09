@@ -12,47 +12,30 @@ namespace AutoGladiators.Client.StateMachine.States
 
         public Task EnterAsync(GameStateContext ctx, StateArgs? args = null, CancellationToken ct = default)
         {
-            Console.WriteLine("Defeat… recovering.");
-
-            // Optional: details about the defeat passed from BattlingState
-            var defeatSummary = args?.Payload; // replace with a concrete type if you have one
-
-            // Apply defeat consequences if your service exposes them
-            // e.g., currency penalty, durability loss, move player to safe spot, etc.
-            // Implement these in GameStateService as needed:
-            //   ctx.Game.ApplyDefeatPenalty(defeatSummary);
-            //   ctx.Game.MovePlayerToNearestSafePoint();
-            //   ctx.Game.RecoverTeamToMinimumHP();
-
-            ctx.Ui?.ShowDefeatScreen?.Invoke(defeatSummary);
-            ctx.Game.SetFlag("LastBattleOutcome", "Loss");
-
+            var payload = args?.Payload; // stats/log/etc if you have them
+            ctx.Ui?.ShowDefeatScreen(payload);
+            ctx.Ui?.SetStatus("You were defeated…");
             return Task.CompletedTask;
         }
 
         public Task<StateTransition?> ExecuteAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            // If your UI has a "Continue" button, wait for it; otherwise auto-advance
-            if (ctx.Ui?.DefeatAcknowledged == true)
+            if (string.Equals(ctx.Game.GetFlag("DefeatAck"), "true", StringComparison.OrdinalIgnoreCase))
             {
+                ctx.Game.SetFlag("DefeatAck", "false");
                 return Task.FromResult<StateTransition?>(new StateTransition(
-                    GameStateId.Exploring,
-                    new StateArgs { Reason = "DefeatReturn" }
-                ));
+                    GameStateId.GameOver, new StateArgs { Reason = "DefeatAck" }));
             }
-
-            // Auto-transition (comment out if you prefer explicit confirmation)
-            return Task.FromResult<StateTransition?>(new StateTransition(
-                GameStateId.Exploring,
-                new StateArgs { Reason = "DefeatReturnAuto" }
-            ));
+            return Task.FromResult<StateTransition?>(null);
         }
 
         public Task ExitAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            ctx.Ui?.HideDefeatScreen?.Invoke();
-            Console.WriteLine("Leaving Defeat state.");
+            ctx.Ui?.HideDefeatScreen();
             return Task.CompletedTask;
         }
     }
 }
+
+
+

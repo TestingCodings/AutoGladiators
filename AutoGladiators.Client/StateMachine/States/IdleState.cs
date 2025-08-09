@@ -8,52 +8,26 @@ namespace AutoGladiators.Client.StateMachine.States
 {
     public sealed class IdleState : IGameState
     {
-        public GameStateId Id => GameStateId.Idle; // ensure your enum includes Idle
+        public GameStateId Id => GameStateId.Idle;
 
         public Task EnterAsync(GameStateContext ctx, StateArgs? args = null, CancellationToken ct = default)
         {
-            ctx.Ui?.ShowIdleScreen();
+            // Use Overworld as the idle screen in this build.
+            ctx.Ui?.ShowOverworld();
             ctx.Ui?.SetStatus("Idle…");
             return Task.CompletedTask;
         }
 
         public Task<StateTransition?> ExecuteAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            // Drive transitions based on simple flags/buttons your UI/VM can set
-
-            if (ctx.Ui?.RequestedStart == true)
-            {
-                return Task.FromResult<StateTransition?>(new StateTransition(
-                    GameStateId.Exploring,
-                    new StateArgs { Reason = "StartFromIdle" }
-                ));
-            }
-
-            if (ctx.Ui?.RequestedOpenInventory == true)
-            {
-                return Task.FromResult<StateTransition?>(new StateTransition(
-                    GameStateId.Inventory,
-                    new StateArgs { Reason = "OpenInventoryFromIdle" }
-                ));
-            }
-
-            if (ctx.Ui?.RequestedDialogueNpcId is string npcId && !string.IsNullOrWhiteSpace(npcId))
-            {
-                return Task.FromResult<StateTransition?>(new StateTransition(
-                    GameStateId.Dialogue,
-                    new StateArgs { Reason = "DialogueFromIdle", Payload = npcId }
-                ));
-            }
-
-            // Otherwise, remain idle
+            // No UI flags available yet; stay idle until something external triggers a transition.
             return Task.FromResult<StateTransition?>(null);
         }
 
         public Task ExitAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            ctx.Ui?.HideIdleScreen();
+            ctx.Ui?.HideOverworld();
             return Task.CompletedTask;
         }
     }
 }
-

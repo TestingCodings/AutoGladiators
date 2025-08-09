@@ -16,9 +16,9 @@ namespace AutoGladiators.Client.StateMachine.States
         string? CatalystItemId = null
     );
 
-    // Result payload returned when fusion completes
+    // Result payload returned when fusion completes (keep for future use)
     public sealed record FusionResult(
-        GladiatorBot NewBot,
+        object? NewBot, // use object for now to avoid depending on GladiatorBot constructor/shape
         string[] Log
     );
 
@@ -33,101 +33,52 @@ namespace AutoGladiators.Client.StateMachine.States
 
         public Task EnterAsync(GameStateContext ctx, StateArgs? args = null, CancellationToken ct = default)
         {
-            Console.WriteLine("Fusion process initiated.");
-
-            // Pull a pre-defined request if one was provided
             _request = args?.Payload as FusionRequest?;
-
-            // Show UI with roster so the user can pick (even if we already have a request, show summary)
-            ctx.Ui?.ShowFusionScreen?.Invoke(ctx.Game.BotRoster);
-            ctx.Ui?.SetStatus?.Invoke("Select two bots to fuse…");
+            ctx.Ui?.SetStatus("Fusion lab: select two bots to fuse…");
             return Task.CompletedTask;
         }
 
         public async Task<StateTransition?> ExecuteAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            if (_completed) return new StateTransition(
-                GameStateId.Exploring,
-                new StateArgs { Reason = "FusionComplete", Payload = _result }
-            );
-
-            // Allow cancel
-            if (ctx.Ui?.FusionCancelled == true)
+            if (_completed)
             {
-                Console.WriteLine("Fusion cancelled by user.");
-                return new StateTransition(GameStateId.Exploring, new StateArgs { Reason = "FusionCancelled" });
-            }
-
-            // If no request provided, wait for user to pick two bots
-            if (_request is null)
-            {
-                // The UI bridge should expose a way to retrieve the user's selection:
-                // e.g., returns (Guid a, Guid b, bool consumeParents, string? catalystId)
-                var sel = ctx.Ui?.GetFusionSelection?.Invoke();
-                if (sel is null) return null; // still waiting for user
-
-                _request = new FusionRequest(
-                    sel.Value.BotIdA,
-                    sel.Value.BotIdB,
-                    sel.Value.ConsumeParents,
-                    sel.Value.CatalystItemId
+                return new StateTransition(
+                    GameStateId.Exploring,
+                    new StateArgs { Reason = "FusionComplete", Payload = _result }
                 );
             }
 
-            // We have a request—validate it
+            if (_request is null)
+            {
+                // No UI picker wired yet; stay here until a request is provided externally.
+                return null;
+            }
+
             if (!_started)
             {
                 _started = true;
 
-                // You can implement these in GameStateService; for now they’re conceptual hooks
-                var validation = ctx.Game.ValidateFusion(_request.Value);
-                if (!validation.IsValid)
-                {
-                    ctx.Ui?.ShowToast?.Invoke(validation.Message ?? "Fusion not allowed.");
-                    // Optionally remain in FusionState to let the user reselect:
-                    _started = false;
-                    _request = null;
-                    return null;
-                }
+                // Simulate a short operation; replace with real service calls later.
+                ctx.Ui?.SetStatus("Fusing…");
+                await Task.Delay(250, ct);
 
-                // Deduct any cost up front (items/currency), optional
-                ctx.Game.DeductFusionCost(_request.Value);
+                _result = new FusionResult(
+                    NewBot: null, // TODO: create the new GladiatorBot when your fusion logic is ready
+                    Log: new[] { "Fusion complete." }
+                );
 
-                // Perform the fusion (make it async if your logic touches disk/DB, RNG, sprite gen, etc.)
-                var res = await ctx.Game.PerformFusionAsync(_request.Value, ct);
-
-                // Apply changes to roster/inventory according to your rules
-                ctx.Game.ApplyFusionResult(_request.Value, res);
-
-                _result = res;
+                ctx.Ui?.ShowToast("Fusion complete.");
+                ctx.Ui?.SetStatus("Fusion complete.");
                 _completed = true;
-
-                // Show results
-                ctx.Ui?.ShowFusionResult?.Invoke(res.NewBot, res.Log);
-                ctx.Ui?.SetStatus?.Invoke($"Fusion complete: {res.NewBot.Name}");
             }
 
-            // Transition next tick (or wait for a “Continue” UI flag if you prefer)
-            return new StateTransition(
-                GameStateId.Exploring,
-                new StateArgs { Reason = "FusionComplete", Payload = _result }
-            );
+            // Next tick we’ll transition (handled at the top of this method).
+            return null;
         }
 
         public Task ExitAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            Console.WriteLine("Exiting Fusion State.");
-            ctx.Ui?.HideFusionScreen?.Invoke();
             return Task.CompletedTask;
         }
     }
-
-    // ---- Suggested GameStateService hooks (implement as needed) ----
-    // public partial class GameStateService
-    // {
-    //     public (bool IsValid, string? Message) ValidateFusion(FusionRequest request) { ... }
-    //     public void DeductFusionCost(FusionRequest request) { ... }
-    //     public Task<FusionResult> PerformFusionAsync(FusionRequest request, CancellationToken ct) { ... }
-    //     public void ApplyFusionResult(FusionRequest request, FusionResult result) { ... }
-    // }
 }
