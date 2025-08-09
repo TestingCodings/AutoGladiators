@@ -3,16 +3,14 @@
              xmlns:viewmodels="clr-namespace:AutoGladiators.Client.ViewModels"
              xmlns:converters="clr-namespace:AutoGladiators.Client.Converters"
              x:Class="AutoGladiators.Client.Pages.BattlePage"
+             x:Name="BattlePageRoot"
              Title="Turn-Based Battle">
 
-    <ContentPage.BindingContext>
-        <viewmodels:BattleViewModel />
-    </ContentPage.BindingContext>
 
     <ContentPage.Resources>
-    <ResourceDictionary>
-        <converters:HpProgressConverter x:Key="HpProgressConverter"/>
-    </ResourceDictionary>
+        <ResourceDictionary>
+            <converters:HpProgressConverter x:Key="HpProgressConverter"/>
+        </ResourceDictionary>
     </ContentPage.Resources>
 
     <VerticalStackLayout Padding="20" Spacing="10">
@@ -35,16 +33,17 @@
 
         <!-- Player Info -->
         <Label Text="{Binding PlayerBot.Name}" FontSize="20" FontAttributes="Bold"/>
-        <ProgressBar Progress="{Binding PlayerBot.HP, Converter={StaticResource HpProgressConverter}, ConverterParameter={Binding PlayerBot.MaxHP}}" />
+        <ProgressBar Progress="{Binding EnemyHpFraction}" />
+        <ProgressBar Progress="{Binding PlayerHpFraction}" />
         <Label Text="{Binding PlayerBot.HP, StringFormat='HP: {0}'}" />
 
         <!-- Move Buttons -->
         <CollectionView ItemsSource="{Binding PlayerMoves}" SelectionMode="None">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Button Text="{Binding Name}"
-                            Command="{Binding BindingContext.UseMoveCommand, Source={x:Reference Name=BattlePageRoot}}"
-                            CommandParameter="{Binding .}" />
+                <Button Text="{Binding Name}"
+                        Command="{Binding BindingContext.UseMoveCommand, Source={x:Reference BattlePageRoot}}"
+                        CommandParameter="{Binding .}" />
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

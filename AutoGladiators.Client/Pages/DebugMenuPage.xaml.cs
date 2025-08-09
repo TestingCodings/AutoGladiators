@@ -4,6 +4,7 @@ using AutoGladiators.Client.Core;
 using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.StateMachine.States;
 
+
 namespace AutoGladiators.Client.Pages
 {
     public partial class DebugMenuPage : ContentPage

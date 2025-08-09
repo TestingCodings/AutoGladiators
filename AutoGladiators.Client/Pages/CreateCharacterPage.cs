@@ -1,6 +1,7 @@
 using AutoGladiators.Client.Core;
 using AutoGladiators.Client.Models;
 using AutoGladiators.Client.StateMachine;
+using AutoGladiators.Client.Services;
 using Microsoft.Maui.Controls;
 
 namespace AutoGladiators.Client.Pages
@@ -23,16 +24,12 @@ namespace AutoGladiators.Client.Pages
                     return;
                 }
 
-                var game = GameStateService.Instance.Game;
+                var game = GameStateService.Instance;
 
-                // Create profile
-                game.PlayerProfile = new PlayerProfile
-                {
-                    Name = playerName,
-                    Gold = 100
-                };
+                // Use InitializeNewGame to set up the player profile and inventory
+                game.InitializeNewGame(playerName);
 
-                // Starter bot
+                // Optionally, add a starter bot
                 var starterBot = new GladiatorBot
                 {
                     Name = $"{playerName}'s Bot",
@@ -45,10 +42,10 @@ namespace AutoGladiators.Client.Pages
                 game.BotRoster.Add(starterBot);
 
                 // Save profile (if you have a save service, hook it here)
-                // SaveService.Save(game.PlayerProfile, game.BotRoster);
+                // SaveService.Save(game.CurrentPlayer, game.BotRoster);
 
                 // Jump into ExploringState
-                await GameStateService.Instance.GoToAsync(GameStateId.Exploring);
+                await GameRuntime.Instance.GoToAsync(GameStateId.Exploring);
 
                 // Remove this page from back stack so player can't "go back" to creation
                 Navigation.RemovePage(this);
@@ -67,3 +64,4 @@ namespace AutoGladiators.Client.Pages
         }
     }
 }
+            

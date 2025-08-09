@@ -53,7 +53,7 @@ namespace AutoGladiators.Client.Core
                 { GameStateId.Defeat,     new DefeatState() },
                 { GameStateId.Fusion,     new FusionState() },
                 { GameStateId.Training,   new TrainingState() },
-                // { GameStateId.GameOver, new GameOverState() },
+                { GameStateId.GameOver, new GameOverState() },
             };
 
             Machine = new GameStateMachine(states, Ctx);

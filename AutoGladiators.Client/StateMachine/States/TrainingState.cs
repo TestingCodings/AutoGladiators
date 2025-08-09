@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.Services;
 using AutoGladiators.Client.Models;
 
@@ -44,22 +43,25 @@ namespace AutoGladiators.Client.StateMachine.States
 
         public async Task<StateTransition?> ExecuteAsync(GameStateContext ctx, CancellationToken ct = default)
         {
+            // Treat external cancellation (e.g., UI cancel wired to token) as training cancel
+            if (ct.IsCancellationRequested)
+            {
+                ctx.Ui?.ShowToast("Training cancelled.");
+                return new StateTransition(GameStateId.Exploring, new StateArgs { Reason = "TrainingCancelled" });
+            }
+
             if (_completed)
             {
+                // Leave training once we’ve produced a result
                 return new StateTransition(
                     GameStateId.Exploring,
                     new StateArgs { Reason = "TrainingComplete", Payload = _result }
                 );
             }
 
-            if (ctx.Ui?.TrainingCancelled == true)
-            {
-                ctx.Ui?.ShowToast("Training cancelled.");
-                return new StateTransition(GameStateId.Exploring, new StateArgs { Reason = "TrainingCancelled" });
-            }
-
             if (_request is null)
             {
+                // No request yet; remain in this state
                 return null;
             }
 
@@ -67,7 +69,12 @@ namespace AutoGladiators.Client.StateMachine.States
             {
                 _started = true;
 
-                // Simulate training result
+                // (Optional) show a trivial progress pulse if desired
+                ctx.Ui?.ShowTrainingProgress(0, 1);
+
+                // Simulate “doing” the training
+                await Task.Delay(TimeSpan.FromMilliseconds(250), ct);
+
                 _result = new TrainingResult(
                     _request.Value.TargetBotId,
                     _request.Value.Mode,
@@ -77,35 +84,20 @@ namespace AutoGladiators.Client.StateMachine.States
                 );
 
                 ctx.Ui?.SetStatus("Training complete.");
+                ctx.Ui?.ShowTrainingProgress(1, 1);
+
                 _completed = true;
             }
 
-            // Transition next tick (or wait for a “Continue” button via a UI flag)
-            if (ctx.Ui?.TrainingContinueRequested == true)
-            {
-                // Continue training event
-                ctx.Ui.TrainingContinueRequested?.Invoke(this, EventArgs.Empty);
-                return new StateTransition(GameStateId.Exploring, new StateArgs { Reason = "TrainingContinue", Payload = _result });
-            }
-
+            // Wait one tick; next ExecuteAsync will perform the transition above
             return null;
         }
 
         public Task ExitAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            // Hide training screen and progress
-            ctx.Ui?.HideTrainingScreen?.Invoke();
-            ctx.Ui?.HideTrainingProgress?.Invoke();
+            ctx.Ui?.HideTrainingProgress();
+            ctx.Ui?.HideTrainingScreen();
             return Task.CompletedTask;
         }
     }
-
-    // ---- Suggested GameStateService hooks (implement as needed) ----
-    // public partial class GameStateService
-    // {
-    //     public (bool IsValid, string? Message) ValidateTraining(TrainingRequest req) { ... }
-    //     public void PayTrainingCost(TrainingRequest req) { ... }
-    //     public Task<TrainingResult> PerformTrainingAsync(TrainingRequest req, CancellationToken ct) { ... }
-    //     public void ApplyTrainingResult(TrainingResult res) { ... }
-    // }
 }

@@ -1,81 +1,125 @@
-using AutoGladiators.Client.Models;
-using AutoGladiators.Client.Core;
+using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Models;
+using AutoGladiators.Client.StateMachine.States; // CapturingResult used by CapturingState
 
 namespace AutoGladiators.Client.Services
 {
     public partial class GameStateService
     {
+        // Optional notifier you can hook from a VM
         public Action<string, bool>? SetQuestFlag { get; set; }
 
-        // Optional: called in the VM after healing; no-op if you don’t persist bots here
-        public void SaveBot(GladiatorBot bot) { /* no-op or persist */ }
-        
-        public PlayerProfile CurrentPlayer { get; private set; }
+        // Singleton
+        public static GameStateService Instance { get; private set; } = new GameStateService();
+        private GameStateService() { }
+
+        // Core state
+        public PlayerProfile? CurrentPlayer { get; private set; }
         public List<GladiatorBot> BotRoster { get; private set; } = new();
         public Inventory Inventory { get; private set; } = new();
         public PlayerLocation PlayerLocation { get; set; } = new PlayerLocation();
 
+        // Encounter tracked by Exploring → Battling/Capturing
         public GladiatorBot? CurrentEncounter { get; set; }
 
+        // Dialogue convenience
+        public string? CurrentNpcId { get; private set; }
+        public void SetCurrentNpcId(string? npcId)
+        {
+            CurrentNpcId = npcId;
+            SetFlag("CurrentNpcId", npcId ?? string.Empty);
+        }
 
-        public static GameStateService Instance { get; private set; } = new GameStateService();
+        // Simple key/value “session flags” used by states (DialogueState, InventoryState, etc.)
+        private readonly Dictionary<string, string> _flags = new(StringComparer.OrdinalIgnoreCase);
 
-        public string CurrentScene => CurrentPlayer?.CurrentLocation;
-        public Dictionary<string, bool> StoryFlags => CurrentPlayer?.StoryFlags;
+        // Convenience properties
+        public string CurrentScene => CurrentPlayer?.CurrentLocation?.Region ?? "Unknown";
 
-        private GameStateService() { }
+        // DO NOT use ??= with a null-conditional here; it causes CS0131.
+        // Initialize story flags safely and return a non-null dictionary.
+        private Dictionary<string, bool>? _storyFlagsFallback;
+        public Dictionary<string, bool> StoryFlags
+        {
+            get
+            {
+                if (CurrentPlayer != null)
+                {
+                    CurrentPlayer.StoryFlags ??= new Dictionary<string, bool>();
+                    return CurrentPlayer.StoryFlags;
+                }
+                return _storyFlagsFallback ??= new Dictionary<string, bool>();
+            }
+        }
 
+        // ------------------------------
+        // Lifecycle / Save-Load
+        // ------------------------------
         public void InitializeNewGame(string playerName)
         {
             CurrentPlayer = new PlayerProfile
             {
                 playerName = playerName,
                 Level = 1,
-                StoryFlags = new Dictionary<string, bool>() // Initial empty flags
+                Experience = 0,
+                Gold = 0,
+                StoryFlags = new Dictionary<string, bool>()
             };
             BotRoster.Clear();
             Inventory.Clear();
             PlayerLocation = new PlayerLocation { Region = "StarterZone", X = 0, Y = 0 };
+            _flags.Clear();
+            CurrentEncounter = null;
+            CurrentNpcId = null;
         }
 
         public void LoadGame(GameData data)
         {
             CurrentPlayer = data.PlayerProfile;
             BotRoster = new List<GladiatorBot>(data.OwnedBots);
-            // Ensure correct type for Inventory.Items
+            // Explicitly use Models.Item to avoid collisions with any Services.Item
             Inventory.Items = new List<AutoGladiators.Client.Models.Item>(data.Inventory);
             PlayerLocation = data.PlayerLocation;
+            _flags.Clear();
+            CurrentEncounter = null;
+            CurrentNpcId = null;
         }
 
         public GameData SaveGame()
         {
             return new GameData
             {
-                PlayerProfile = CurrentPlayer,
+                PlayerProfile = CurrentPlayer!,
                 OwnedBots = new List<GladiatorBot>(BotRoster),
-                // Ensure correct type for Inventory
+                // Explicitly use Models.Item to avoid namespace collision
                 Inventory = new List<AutoGladiators.Client.Models.Item>(Inventory.Items),
                 PlayerLocation = PlayerLocation
             };
         }
 
-        // --- Bot Handling ---
-        public GladiatorBot GetCurrentBot()
+        public void ResetGame() => InitializeNewGame("New Player");
+
+        // ------------------------------
+        // Bots
+        // ------------------------------
+        public GladiatorBot? GetCurrentBot()
         {
             return BotRoster.Count > 0 ? BotRoster[0] : null;
         }
 
         public void AddBotToRoster(GladiatorBot bot)
         {
-            BotRoster.Add(bot);
+            if (bot != null) BotRoster.Add(bot);
         }
 
         public void AddBotToRoster(string botId, int level)
         {
             var bot = BotFactory.CreateBot(botId, level);
-            if (bot != null)
-                BotRoster.Add(bot);
+            if (bot != null) BotRoster.Add(bot);
         }
 
         public void RemoveBotFromRoster(GladiatorBot bot)
@@ -85,101 +129,162 @@ namespace AutoGladiators.Client.Services
 
         public void UpdateBotInRoster(GladiatorBot bot)
         {
-            var index = BotRoster.FindIndex(b => b.Id == bot.Id);
-            if (index >= 0)
-                BotRoster[index] = bot;
+            var index = BotRoster.FindIndex(b => Equals(b.Id, bot.Id));
+            if (index >= 0) BotRoster[index] = bot;
         }
 
-        // --- Inventory Handling ---
-        public void AddItem(Item item)
+        public void SaveBot(GladiatorBot bot)
         {
-            Inventory.Items.Add(item);
+            // no-op stub (persist if you want)
         }
 
-        public void RemoveItem(Item item)
+        // ------------------------------
+        // Inventory
+        // ------------------------------
+        public void AddItem(AutoGladiators.Client.Models.Item item) => Inventory.Items.Add(item);
+        public void RemoveItem(AutoGladiators.Client.Models.Item item) => Inventory.Items.Remove(item);
+        public void ClearInventory() => Inventory.Items.Clear();
+
+        public bool CanUseItem(string itemId, Guid playerBotId, bool inBattle, out string? reason)
         {
-            Inventory.Items.Remove(item);
+            // Super-permissive stub; tighten rules later
+            reason = null;
+            return true;
         }
 
-        public void ClearInventory()
+        public void ConsumeItem(string itemId, int count)
         {
-            Inventory.Items.Clear();
+            // Match by Name only (your Item doesn’t expose Id)
+            for (int i = 0; i < count; i++)
+            {
+                var idx = Inventory.Items.FindIndex(it =>
+                    string.Equals(it.Name, itemId, StringComparison.OrdinalIgnoreCase));
+
+                if (idx >= 0) Inventory.Items.RemoveAt(idx);
+                else break;
+            }
         }
 
-        // --- Location & Progress ---
-        public void UpdateLocation(PlayerLocation location)
+
+        // ------------------------------
+        // Encounters (Exploring/Battle/Capture)
+        // ------------------------------
+        public GladiatorBot? GetEncounteredBot() => CurrentEncounter;
+
+        public void MarkEncounterResolved(int botId)
         {
-            PlayerLocation = location;
+            if (CurrentEncounter != null && Equals(CurrentEncounter.Id, botId))
+                CurrentEncounter = null;
         }
+
+        // Capture attempt used by CapturingState
+        public Task<CapturingResult?> AttemptCaptureAsync(
+            string itemId,
+            Guid targetBotId,
+            double? forcedChance = null,
+            CancellationToken ct = default)
+        {
+            // Extremely simple stub: 50% base, or use forcedChance if provided
+            var chance = forcedChance ?? 0.5;
+            var success = new Random().NextDouble() < chance;
+
+            GladiatorBot? captured = null;
+
+            // If your GladiatorBot.Id is an int, we derive a stable-ish int from the Guid.
+            int targetBotIntId = unchecked(targetBotId.GetHashCode());
+
+            var target = BotRoster.Find(b => Equals(b.Id, targetBotIntId)) ?? CurrentEncounter;
+            if (success)
+            {
+                captured = target ?? new GladiatorBot
+                {
+                    Id = targetBotIntId,
+                    Name = "Captured Bot",
+                    Level = 1
+                };
+            }
+
+            // Use positional args to avoid named-arg mismatch (CS1739) if record param names differ
+            var res = new CapturingResult(
+                success,
+                captured,
+                success ? new[] { $"Used {itemId}. Capture succeeded." }
+                        : new[] { $"Used {itemId}. Capture failed." },
+                itemId,
+                targetBotId
+            );
+
+            return Task.FromResult<CapturingResult?>(res);
+        }
+
+        // ------------------------------
+        // Location & Player
+        // ------------------------------
+        public void UpdateLocation(PlayerLocation location) => PlayerLocation = location;
 
         public void SetPlayerLevel(int level)
         {
-            if (CurrentPlayer != null)
-                CurrentPlayer.Level = level;
+            if (CurrentPlayer != null) CurrentPlayer.Level = level;
         }
 
         public void SetPlayerName(string name)
         {
-            if (CurrentPlayer != null)
-                CurrentPlayer.playerName = name;
-        }
-
-        public void SetLastBattleStats(GladiatorBot player, GladiatorBot enemy, bool playerWon)
-        {
-            // Save stats for review/post-battle
-        }
-
-        public void ApplyBattleRewards(int xp, int gold)
-        {
-            // Add XP and gold to player profile
-            // If GainExperience does not exist, replace with direct XP property update:
-            // CurrentPlayer.Experience += xp;
-            CurrentPlayer.GainExperience(xp);
-            CurrentPlayer.Gold += gold;
-
-            // Optionally, update UI or notify listeners
-            SetQuestFlag?.Invoke("BattleRewardsApplied", true);
-        }
-        public void ResetGame()
-        {
-            CurrentPlayer = new PlayerProfile { playerName = "New Player", Level = 1 };
-            BotRoster.Clear();
-            Inventory.Clear();
-            PlayerLocation = new PlayerLocation { Region = "StarterZone", X = 0, Y = 0 };
-        }
-
-        // --- Story & Progression Flags ---
-        public bool HasFlag(string key)
-        {
-            return CurrentPlayer != null && CurrentPlayer.StoryFlags.TryGetValue(key, out var value) && value;
-        }
-
-        public void SetFlag(string key, bool value)
-        {
-            if (CurrentPlayer == null)
-                return;
-
-            if (CurrentPlayer.StoryFlags.ContainsKey(key))
-                CurrentPlayer.StoryFlags[key] = value;
-            else
-                CurrentPlayer.StoryFlags.Add(key, value);
+            if (CurrentPlayer != null) CurrentPlayer.playerName = name;
         }
 
         public string GetPlayerLocationId()
         {
-            // Return the player's current location ID as string
             return CurrentPlayer?.CurrentLocation?.Region ?? "Unknown";
         }
 
+        // ------------------------------
+        // Battle results / rewards
+        // ------------------------------
+        public void SetLastBattleStats(GladiatorBot player, GladiatorBot enemy, bool playerWon)
+        {
+            // Stub: persist if you want
+        }
+
+        public void ApplyBattleRewards(int xp, int gold)
+        {
+            if (CurrentPlayer != null)
+            {
+                CurrentPlayer.Experience += xp;
+                CurrentPlayer.Gold += gold;
+            }
+            SetQuestFlag?.Invoke("BattleRewardsApplied", true);
+        }
+
+        // ------------------------------
+        // Story flags (bool) and session flags (string)
+        // ------------------------------
+        public bool HasFlag(string key)
+        {
+            return CurrentPlayer != null
+                   && (CurrentPlayer.StoryFlags ??= new Dictionary<string, bool>())
+                          .TryGetValue(key, out var value)
+                   && value;
+        }
+
+        public void SetFlag(string key, bool value)
+        {
+            if (CurrentPlayer == null) return;
+            CurrentPlayer.StoryFlags ??= new Dictionary<string, bool>();
+            CurrentPlayer.StoryFlags[key] = value;
+        }
+
+        // Session flags (string) — used by revised states (DialogueState, InventoryState, etc.)
+        public string? GetFlag(string key)
+        {
+            return _flags.TryGetValue(key, out var v) ? v : null;
+        }
+
+        public void SetFlag(string key, string value)
+        {
+            _flags[key] = value;
+        }
+
+        // Optional separate quest flag bucket (already present)
         public Dictionary<string, bool> QuestFlags { get; set; } = new();
-
-        // --- TODO Hooks ---
-        // TODO: Integrate with DialogueService and EncounterService for tracking NPC interactions.
-        // TODO: Implement Save/Load to file or persistent storage (e.g., SQLite or JSON).
-        // TODO: Add achievement tracking system.
-        // TODO: Add support for active quests or tasks.
-        // TODO: Hook into event log / message queue system for triggering UI notifications.
-        // TODO: Add support for battle history, last seen bots, and usage analytics.
-
     }
 }
