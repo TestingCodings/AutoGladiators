@@ -5,6 +5,8 @@ using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.Services;
 using AutoGladiators.Client.Models;
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
@@ -27,6 +29,8 @@ namespace AutoGladiators.Client.StateMachine.States
 
     public sealed class CapturingState : IGameState
     {
+        private static readonly IAppLogger Log = AppLog.For<CapturingState>();
+
         public GameStateId Id => GameStateId.Capturing;
 
         private CapturingRequest? _request;
@@ -120,3 +124,4 @@ namespace AutoGladiators.Client.StateMachine.States
         }
     }
 }
+

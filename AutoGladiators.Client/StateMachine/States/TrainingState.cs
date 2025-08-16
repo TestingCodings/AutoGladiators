@@ -3,6 +3,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoGladiators.Client.Services;
 using AutoGladiators.Client.Models;
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
@@ -26,6 +28,8 @@ namespace AutoGladiators.Client.StateMachine.States
 
     public sealed class TrainingState : IGameState
     {
+        private static readonly IAppLogger Log = AppLog.For<TrainingState>();
+
         public GameStateId Id => GameStateId.Training;
 
         private TrainingRequest? _request;
@@ -101,3 +105,4 @@ namespace AutoGladiators.Client.StateMachine.States
         }
     }
 }
+

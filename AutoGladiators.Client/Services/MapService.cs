@@ -1,9 +1,13 @@
 using AutoGladiators.Client.Models;
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.Services
 {
     public static class MapService
     {
+        private static readonly IAppLogger Log = AppLog.For<MapService>();
+
         public static Dictionary<string, MapLocation> AllLocations = new()
         {
             ["home_base"] = new MapLocation
@@ -43,3 +47,4 @@ namespace AutoGladiators.Client.Services
         public static MapLocation Get(string id) => AllLocations.GetValueOrDefault(id);
     }
 }
+

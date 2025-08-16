@@ -5,6 +5,8 @@ using AutoGladiators.Client.Models;
 using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.Services;
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
@@ -24,6 +26,8 @@ namespace AutoGladiators.Client.StateMachine.States
 
     public sealed class FusionState : IGameState
     {
+        private static readonly IAppLogger Log = AppLog.For<FusionState>();
+
         public GameStateId Id => GameStateId.Fusion;
 
         private FusionRequest? _request;
@@ -82,3 +86,4 @@ namespace AutoGladiators.Client.StateMachine.States
         }
     }
 }
+

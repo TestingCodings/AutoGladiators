@@ -2,11 +2,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.Services;
+    using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
+
 
 namespace AutoGladiators.Client.StateMachine.States
 {
     public sealed class GameOverState : IGameState
     {
+        private static readonly IAppLogger Log = AppLog.For<GameOverState>();
+
         public GameStateId Id => GameStateId.GameOver;
 
         public Task EnterAsync(GameStateContext ctx, StateArgs? args = null, CancellationToken ct = default)
@@ -30,3 +35,4 @@ namespace AutoGladiators.Client.StateMachine.States
         }
     }
 }
+

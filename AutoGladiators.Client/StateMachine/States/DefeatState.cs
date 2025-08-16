@@ -3,11 +3,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.Services;
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
+
+
 
 namespace AutoGladiators.Client.StateMachine.States
 {
     public sealed class DefeatState : IGameState
     {
+        private static readonly IAppLogger Log = AppLog.For<DefeatState>();
+
         public GameStateId Id => GameStateId.Defeat;
 
         public Task EnterAsync(GameStateContext ctx, StateArgs? args = null, CancellationToken ct = default)
@@ -36,6 +42,7 @@ namespace AutoGladiators.Client.StateMachine.States
         }
     }
 }
+
 
 
 

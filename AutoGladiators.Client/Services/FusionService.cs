@@ -1,10 +1,14 @@
 using System;
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.Services
 {
     public class FusionService
     {
+        private static readonly IAppLogger Log = AppLog.For<FusionService>();
+
         public static FusionResult TryFuseBots(GladiatorBot bot1, GladiatorBot bot2)
         {
             if (bot1 == null || bot2 == null)
@@ -30,6 +34,8 @@ namespace AutoGladiators.Client.Services
 
         public class FusionResult
         {
+        private static readonly IAppLogger Log = AppLog.For<FusionService>();
+
             public bool Success { get; }
             public string Message { get; }
             public GladiatorBot? FusedBot { get; }
@@ -52,3 +58,4 @@ namespace AutoGladiators.Client.Services
         }
     }
 }
+

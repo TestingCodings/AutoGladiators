@@ -1,4 +1,5 @@
-
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Timers;
 using AutoGladiators.Client.Models;
@@ -7,6 +8,8 @@ namespace AutoGladiators.Client.Services
 {
     public class PlayerMovementService : IDisposable
     {
+        private static readonly IAppLogger Log = AppLog.For<PlayerMovementService>();
+
         private PlayerLocation _currentLocation;
         private System.Timers.Timer _movementTimer;
         private EncounterService _encounterService;

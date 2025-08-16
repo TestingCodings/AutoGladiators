@@ -1,4 +1,5 @@
-
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 using AutoGladiators.Client.Models;
 using System.IO;
 using System.Text.Json;
@@ -7,6 +8,8 @@ namespace AutoGladiators.Client.Services
 {
     public class SaveLoadService
     {
+        private static readonly IAppLogger Log = AppLog.For<SaveLoadService>();
+
         private const string SaveFileName = "autosave.json";
 
         public void Save(GameData data)

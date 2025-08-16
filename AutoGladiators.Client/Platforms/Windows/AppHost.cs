@@ -1,6 +1,7 @@
 #if WINDOWS
 using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
+using AutoGladiators.Client;
 
 namespace AutoGladiators_MAUI;
 

@@ -1,11 +1,14 @@
 using System.Collections.Generic;
 using AutoGladiators.Client.Core;
 using AutoGladiators.Client.Models;
-
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.Services {
     public class InventoryService
     {
+        private static readonly IAppLogger Log = AppLog.For<InventoryService>();
+
         public static InventoryService Instance { get; } = new();
 
         private PlayerProfile _profile => GameStateService.Instance.CurrentPlayer;
@@ -50,6 +53,8 @@ namespace AutoGladiators.Client.Services {
 
     public class ItemDisplay(AutoGladiators.Client.Models.Item item, int quantity)
     {
+        private static readonly IAppLogger Log = AppLog.For<InventoryService>();
+
         public string Name => Item.Name;
         public string Description => Item.Description;
         public int Quantity { get; set; } = quantity;
@@ -57,4 +62,5 @@ namespace AutoGladiators.Client.Services {
         public AutoGladiators.Client.Models.Item Item { get; } = item;
     }
 }
+
 

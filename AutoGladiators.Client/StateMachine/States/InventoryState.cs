@@ -4,11 +4,15 @@ using System.Threading.Tasks;
 using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.Services;
 using AutoGladiators.Client.Models;
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
     public sealed class InventoryState : IGameState
     {
+        private static readonly IAppLogger Log = AppLog.For<InventoryState>();
+
         public GameStateId Id => GameStateId.Inventory;
 
         private bool _cameFromBattle;
@@ -56,4 +60,5 @@ namespace AutoGladiators.Client.StateMachine.States
         }
     }
 }
+
 

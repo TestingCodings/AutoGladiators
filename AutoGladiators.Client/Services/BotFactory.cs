@@ -2,11 +2,16 @@ using System;
 using System.Collections.Generic;
 using AutoGladiators.Client.Models;
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
+
 
 namespace AutoGladiators.Client.Services
 {
     public static class BotFactory
     {
+        private static readonly IAppLogger Log = AppLog.For<BotFactory>();
+
         private static readonly Random _rand = new();
         private static Dictionary<string, BotTemplate> _botTemplates = new();
 
@@ -91,3 +96,4 @@ namespace AutoGladiators.Client.Services
 
     }
 }
+

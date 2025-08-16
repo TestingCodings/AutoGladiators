@@ -5,11 +5,15 @@ using System.Threading.Tasks;
 using AutoGladiators.Client.Core;
 using AutoGladiators.Client.Models;
 using AutoGladiators.Client.StateMachine.States; // CapturingResult used by CapturingState
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.Services
 {
     public partial class GameStateService
     {
+        private static readonly IAppLogger Log = AppLog.For<GameStateService>();
+
         // Optional notifier you can hook from a VM
         public Action<string, bool>? SetQuestFlag { get; set; }
 
@@ -288,3 +292,4 @@ namespace AutoGladiators.Client.Services
         public Dictionary<string, bool> QuestFlags { get; set; } = new();
     }
 }
+

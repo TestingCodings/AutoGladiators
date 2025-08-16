@@ -1,11 +1,16 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
+
 
 namespace AutoGladiators.Client.StateMachine.States
 {
     public sealed class DialogueState : IGameState
     {
+        private static readonly IAppLogger Log = AppLog.For<DialogueState>();
+
         public GameStateId Id => GameStateId.Dialogue;
         private string? _npcId;
 

@@ -2,6 +2,8 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoGladiators.Client.Models; // use your canonical DialogueNode/DialogueOption models
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.Services
 {
@@ -11,12 +13,16 @@ namespace AutoGladiators.Client.Services
     /// </summary>
     public sealed class DialogueData
     {
+        private static readonly IAppLogger Log = AppLog.For<DialogueData>();
+
         public string NPCName { get; init; } = string.Empty;
         public List<DialogueNode> DialogueNodes { get; init; } = new();
     }
 
     public static class NPCDialogueLoader
     {
+        private static readonly IAppLogger Log = AppLog.For<DialogueData>();
+
         private static readonly JsonSerializerOptions _json = new()
         {
             PropertyNameCaseInsensitive = true,
@@ -117,3 +123,4 @@ namespace AutoGladiators.Client.Services
             => LoadDialogueAsync($"Assets/Dialogues/{npcId}.json", ct);
     }
 }
+

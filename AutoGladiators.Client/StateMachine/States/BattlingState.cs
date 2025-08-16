@@ -4,11 +4,16 @@ using System.Threading.Tasks;
 using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.Services;
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
+
 
 namespace AutoGladiators.Client.StateMachine.States
 {
     public sealed class BattlingState : IGameState
     {
+        private static readonly IAppLogger Log = AppLog.For<BattlingState>();
+
         public GameStateId Id => GameStateId.Battling;
 
         private readonly GameStateService _game = GameStateService.Instance;
@@ -25,7 +30,7 @@ namespace AutoGladiators.Client.StateMachine.States
 
             // Get bots from service (CurrentEncounter is already in your GameStateService)
             _player = _game.GetCurrentBot();
-            _enemy  = _game.CurrentEncounter;
+            _enemy = _game.CurrentEncounter;
 
             if (_player is null || _enemy is null)
             {
@@ -43,14 +48,14 @@ namespace AutoGladiators.Client.StateMachine.States
 
             // For now, decide an outcome immediately (stub logic)
             var playerPower = (_player.Level * 10) + _player.AttackPower;
-            var enemyPower  = (_enemy.Level  * 10) + _enemy.AttackPower;
+            var enemyPower = (_enemy.Level * 10) + _enemy.AttackPower;
 
             var playerWon = playerPower >= enemyPower;
 
             if (playerWon)
             {
                 // Simple rewards based on enemy level
-                int xp   = Math.Max(5, _enemy.Level * 10);
+                int xp = Math.Max(5, _enemy.Level * 10);
                 int gold = Math.Max(2, _enemy.Level * 5);
 
                 _game.ApplyBattleRewards(xp, gold);
@@ -98,3 +103,4 @@ namespace AutoGladiators.Client.StateMachine.States
         }
     }
 }
+
