@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoGladiators.Client.Models;
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.Services
 {
     public class EncounterService
     {
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<EncounterService>();
+
         private readonly Dictionary<string, List<WildBotEncounter>> _regionEncounters;
         private readonly Random _rng = new();
 
@@ -90,6 +94,8 @@ namespace AutoGladiators.Client.Services
 
     public class WildBotEncounter
     {
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<EncounterService>();
+
         public string BotId { get; }
         public Rarity Rarity { get; }
         public int MinLevel { get; }

@@ -2,12 +2,15 @@ using System;
 using System.Collections.Generic;
 using AutoGladiators.Client.Models;
 using AutoGladiators.Client.Core;
-
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.Services
 {
     public class ItemService
     {
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<ItemService>();
+
         public static ItemService Instance { get; } = new();
 
         private readonly Dictionary<string, Item> _itemDatabase;
@@ -36,6 +39,8 @@ namespace AutoGladiators.Client.Services
 
     public class Item
     {
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<ItemService>();
+
         public string Id { get; }
         public string Name { get; }
         public string Description { get; }
@@ -52,3 +57,4 @@ namespace AutoGladiators.Client.Services
         public void ApplyTo(GladiatorBot bot) => Effect?.Invoke(bot);
     }
 }
+

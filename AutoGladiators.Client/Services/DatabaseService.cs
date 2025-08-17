@@ -4,11 +4,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoGladiators.Client.Models;
 using System.IO;
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.Services
 {
     public static class DatabaseService
     {
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For("DatabaseService");
         static SQLiteAsyncConnection db;
 
         public static async Task InitAsync()
@@ -39,3 +42,4 @@ namespace AutoGladiators.Client.Services
         }
     }
 }
+

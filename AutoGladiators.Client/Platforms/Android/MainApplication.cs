@@ -1,6 +1,7 @@
 using Android.App;
 using Android.Runtime;
 using Microsoft.Maui;
+using AutoGladiators.Client;
 
 namespace AutoGladiators_MAUI;
 

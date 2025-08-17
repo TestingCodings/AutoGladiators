@@ -1,10 +1,13 @@
 using System.Text.Json;
 using AutoGladiators.Client.Models;
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.Services
 {
     public static class NPCDialogueService
     {
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For("NPCDialogueService");
         private static string BasePath => Path.Combine(FileSystem.Current.AppDataDirectory, "Dialogues");
 
         public static async Task<NPCDialogue> LoadDialogueAsync(string npcId)
@@ -28,3 +31,4 @@ namespace AutoGladiators.Client.Services
         }
     }
 }
+

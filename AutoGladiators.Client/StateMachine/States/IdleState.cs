@@ -3,11 +3,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoGladiators.Client.StateMachine;
 using AutoGladiators.Client.Services;
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.StateMachine.States
 {
     public sealed class IdleState : IGameState
     {
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<IdleState>();
+
         public GameStateId Id => GameStateId.Idle;
 
         public Task EnterAsync(GameStateContext ctx, StateArgs? args = null, CancellationToken ct = default)

@@ -1,28 +1,41 @@
+using AutoGladiators.Client.Services.Logging;
+using CommunityToolkit.Maui;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
-using CommunityToolkit.Maui;
-using AutoGladiators.Client; 
 
-namespace AutoGladiators_MAUI;
-
-public static class MauiProgram
+namespace AutoGladiators.Client
 {
-    public static MauiApp CreateMauiApp()
+    public static class MauiProgram
     {
-        var builder = MauiApp.CreateBuilder();
-        builder
-            .UseMauiApp<App>()
-            .UseMauiCommunityToolkit()
-            .ConfigureFonts(fonts =>
-            {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-            });
+        public static MauiApp CreateMauiApp()
+        {
+            var builder = MauiApp.CreateBuilder();
 
-        return builder.Build();
+            builder
+                .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
+                .ConfigureFonts(fonts =>
+                {
+                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                });
+
+#if DEBUG
+            // builder.Logging.AddConsole(); // Remove or comment out this line; not supported on MAUI/Android by default
+#endif
+
+            // Register DI services here as needed
+            // builder.Services.AddSingleton<GameStateService>();
+
+            var app = builder.Build();
+
+            // Wire AppLog to platform logger factory
+            var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
+            AppLog.Initialize(loggerFactory);
+
+            return app;
+        }
     }
 }
-// This code sets up a .NET MAUI application with the CommunityToolkit.Maui library.
-// It configures the application to use specific fonts and initializes the main application class.
-// The `CreateMauiApp` method is the entry point for the application, where the builder is configured and the app is built.
-

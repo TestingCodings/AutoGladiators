@@ -1,11 +1,16 @@
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 using AutoGladiators.Client.Models;
 using AutoGladiators.Client.Services;
 using System;
 using System.Timers; 
-namespace AutoGladiators.Client.Logic 
+
+namespace AutoGladiators.Client.Logic
 {
     public class MovementHandler
     {
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<MovementHandler>();
+
         private EncounterService _encounterService;
         private PlayerLocation _currentLocation;
         private System.Timers.Timer _movementTimer;

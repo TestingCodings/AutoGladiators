@@ -1,10 +1,14 @@
 using AutoGladiators.Client.Models;
 using AutoGladiators.Client.Core;
+using AutoGladiators.Client.Services.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.Services
 {
     public static class EncounterGenerator
     {
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For("EncounterGenerator");
+
         private static readonly EncounterService _encounterService = new();
 
         public static bool ShouldTriggerEncounter(string regionKey)
@@ -34,3 +38,4 @@ namespace AutoGladiators.Client.Services
         }
     }
 }
+

@@ -1,160 +1,67 @@
-# 🤖 AutoGladiators
+🤖 AutoGladiators
+AutoGladiators is a cross-platform, turn-based robot battle RPG built with .NET MAUI.
+Players explore locations, encounter wild bots, and engage in strategic battles to earn rewards, upgrade their team, and progress through the game world.
 
-**AutoGladiators** is a cross-platform AI-driven arena game where customizable robots ("GladiatorBots") battle, race, or train autonomously — powered by dynamic state machines, behavior profiles, and configurable environments.
+🎯 Current Focus (MVP)
+The current development branch is building a core gameplay loop:
 
----
+Adventure – Navigate locations and trigger wild encounters.
 
-## 🎮 Game Summary
+Encounter – A wild GladiatorBot appears.
 
-AutoGladiators combines tactical bot building, stat management, and simulated battles to challenge both players' strategic thinking and AI programming logic.
+Battle – Turn-based combat using your bot’s moves.
 
-Each bot has attributes and skills such as:
+Victory – Earn XP and gold, then return to Adventure.
 
-- ⚔️ Strength, Agility, Endurance
-- 🧠 Intelligence, Adaptability
-- 🛡️ Armor, Weapons (e.g., sword, gun, cannon)
-- ⚡ Energy and Health Pools
+🔹 Features in Progress
+Starter Bot & Roster – Begin with a basic GladiatorBot in your team.
 
-Bots operate autonomously using **behavior profiles** and **state transitions**, determined by:
+Wild Encounter Generation – Spawn random enemy bots based on location.
 
-- Current Level
-- Battle Conditions
-- Victory Objectives
-- Adaptive AI logic
+Battle Manager – Handles turn resolution, damage calculation, and victory/defeat detection.
 
----
+State Machine Architecture – Game flow is managed by modular states (ExploringState, BattlingState, VictoryState, etc.).
 
-## 🧠 Core Architecture
+Cross-Platform UI – Shared logic across Android and Windows builds.
 
-### ✅ State Machine Driven
-Every GladiatorBot operates via a modular state machine:
+🛠 Tech Stack
+Framework: .NET MAUI (Android + Windows targets)
 
-- `IdleState`
-- `TrainingState`
-- `RacingState`
-- `BattlingState`
-- `VictoryState` / `DefeatState`
+Architecture: State machine-driven game flow
 
-Transitions between states are handled through rules (e.g., timers, win conditions, defeat, user actions).
+Language: C#
 
----
+Data: Simple in-memory game state (SQLite planned)
 
-### 🧠 Behavior Profiles
+UI Binding: MVVM pattern (ViewModels + XAML)
 
-Each bot's personality and tactics are defined by a `BehaviorProfile` interface:
+📅 Roadmap
+Phase 1 (MVP Loop)
 
-```csharp
-int Intelligence { get; }
-int Adaptability { get; }
-string DecideAction(GladiatorBot self, GladiatorBot opponent, string currentState);
-Profiles include:
+Adventure → Encounter → Battle → Victory → Back to Adventure.
 
-AggressiveBehavior – Always seeks to attack
+Stable, crash-free gameplay with minimal UI.
 
-DefensiveBehavior – Prioritizes evasion and self-preservation
+Phase 2
 
-BalancedBehavior – Adapts based on energy, stats, and game state
+Expand locations and encounter variety.
 
-ReactiveBehavior – Counterattacks and pivots based on observed patterns
+Add multiple player bots and roster management.
 
-⚙️ Level Configuration
-Levels are JSON-driven and define:
+Introduce more moves, status effects, and AI variation.
 
-Mode: Battle, Race, or Training
+Phase 3
 
-Modifiers: PowerStrikes, EnergyDrain, EvadeBoost, etc.
+NPC interactions, shops, quests, and story progression.
 
-BotSettings: Initial energy, health
+Persistent player saves.
 
-VictoryCondition: LastBotStanding, FirstToFinish, TimeSurvival, etc.
+Animation, polish, and balance pass.
 
-Example:
+🚀 Development Notes
+The old behaviour profiles, races, and pure simulation mode have been removed from the core focus.
 
-json
-Copy
-Edit
-{
-  "LevelName": "Arena Alpha",
-  "Mode": "Battle",
-  "Environment": "Desert",
-  "Modifiers": ["PowerStrikes", "Evade"],
-  "Rules": {
-    "VictoryCondition": "LastBotStanding"
-  }
-}
-📲 Mobile and Cross-Platform
-Built with .NET MAUI, the game is:
+The codebase still contains some legacy files, which are being refactored or removed in stages.
 
-✔️ Deployable to Android and Windows
+A logging branch is in progress to aid debugging and track state transitions.
 
-✔️ Extensible to iOS and macOS
-
-✔️ CI/CD-enabled (Jenkins support in progress)
-
-🔮 Future Functionality
-Planned features:
-
-🧩 Game Mechanics
-Stat-based crafting & upgrades
-
-Unlockable parts (e.g., new chassis, boosters)
-
-Shop economy using earned coins
-
-AI training via persistent evolution (ML-style leveling)
-
-🧠 AI Enhancements
-AI learns from defeat history
-
-Bots develop skill trees over time
-
-Multiplayer: Bots fight other players’ designs asynchronously
-
-🖼 UI & UX
-Drag-and-drop bot customization
-
-Animated battle replays
-
-Simulation viewer with bot telemetry overlays
-
-🌍 Online Features (Stretch)
-Leaderboards and Bot Ratings
-
-Shareable behavior profiles
-
-Bot tournaments with procedural levels
-
-🚀 How to Build and Run
-Clone the Repo
-
-bash
-Copy
-Edit
-git clone https://github.com/YourUser/AutoGladiators.git
-cd AutoGladiators
-Build the Solution
-
-Open with Visual Studio 2022 or later (with .NET MAUI workloads)
-
-Or use CLI:
-
-bash
-Copy
-Edit
-dotnet build -t:Run -f net8.0-android
-Deploy to Android Emulator or Device
-
-bash
-Copy
-Edit
-dotnet build -t:Install -f net8.0-android
-👨‍💻 Contributing
-This project is in active development. Contributions welcome via pull requests, especially in the following areas:
-
-Battle logic optimization
-
-Visual simulation views
-
-Audio feedback
-
-New AI profiles
