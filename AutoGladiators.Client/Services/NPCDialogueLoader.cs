@@ -13,15 +13,14 @@ namespace AutoGladiators.Client.Services
     /// </summary>
     public sealed class DialogueData
     {
-        private static readonly IAppLogger Log = AppLog.For<DialogueData>();
-
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For("DialogueData");
         public string NPCName { get; init; } = string.Empty;
         public List<DialogueNode> DialogueNodes { get; init; } = new();
     }
 
     public static class NPCDialogueLoader
     {
-        private static readonly IAppLogger Log = AppLog.For<DialogueData>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<DialogueData>();
 
         private static readonly JsonSerializerOptions _json = new()
         {

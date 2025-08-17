@@ -11,8 +11,7 @@ namespace AutoGladiators.Client.Services
 {
     public static class DatabaseService
     {
-        private static readonly IAppLogger Log = AppLog.For<DatabaseService>();
-
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For("DatabaseService");
         static SQLiteAsyncConnection db;
 
         public static async Task InitAsync()

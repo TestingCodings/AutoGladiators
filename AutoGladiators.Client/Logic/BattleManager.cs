@@ -13,7 +13,7 @@ namespace AutoGladiators.Client.Logic
 {
     public class BattleManager
     {
-        private static readonly IAppLogger Log = AppLog.For<BattleManager>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<BattleManager>();
 
         public GladiatorBot PlayerBot { get; }
         public GladiatorBot EnemyBot { get; }
@@ -80,7 +80,7 @@ namespace AutoGladiators.Client.Logic
 
     public class BattleRewards
     {
-        private static readonly IAppLogger Log = AppLog.For<BattleManager>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<BattleManager>();
 
         public int Experience { get; set; }
         public int Gold { get; set; }
@@ -91,7 +91,7 @@ namespace AutoGladiators.Client.Logic
 
     public class BattleAI
     {
-        private static readonly IAppLogger Log = AppLog.For<BattleManager>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<BattleManager>();
 
         private readonly Random rng = new Random();
         private GladiatorBot player;
@@ -161,7 +161,7 @@ namespace AutoGladiators.Client.Logic
     // --- Minimal MoveDatabase for move lookup ---
     public static class MoveDatabase
     {
-        private static readonly IAppLogger Log = AppLog.For<BattleManager>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<BattleManager>();
 
         // Replace this with your actual move lookup logic as needed
         public static Move? GetMoveByName(string name)

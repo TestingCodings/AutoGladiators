@@ -9,7 +9,7 @@ namespace AutoGladiators.Client.Logic
 {
     public class MovementHandler
     {
-        private static readonly IAppLogger Log = AppLog.For<MovementHandler>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<MovementHandler>();
 
         private EncounterService _encounterService;
         private PlayerLocation _currentLocation;

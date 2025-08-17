@@ -3,7 +3,7 @@ using System.IO;
 namespace AutoGladiators.Client.Services.Logging;
 public sealed class FileSink : ILogSink
 {
-    private static readonly IAppLogger Log = AppLog.For<FileSink>();
+    private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<FileSink>();
 
     private readonly string _dir;
     public LogLevel MinLevel { get; }

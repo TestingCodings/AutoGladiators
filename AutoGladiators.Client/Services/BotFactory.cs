@@ -10,7 +10,7 @@ namespace AutoGladiators.Client.Services
 {
     public static class BotFactory
     {
-        private static readonly IAppLogger Log = AppLog.For<BotFactory>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For("BotFactory");
 
         private static readonly Random _rand = new();
         private static Dictionary<string, BotTemplate> _botTemplates = new();

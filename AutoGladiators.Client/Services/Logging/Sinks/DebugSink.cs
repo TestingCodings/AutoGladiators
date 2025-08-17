@@ -2,7 +2,7 @@ using System.Diagnostics;
 namespace AutoGladiators.Client.Services.Logging;
 public sealed class DebugSink : ILogSink
 {
-    private static readonly IAppLogger Log = AppLog.For<DebugSink>();
+    private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<DebugSink>();
 
     public LogLevel MinLevel { get; }
     public DebugSink(LogLevel min = LogLevel.Debug) => MinLevel = min;

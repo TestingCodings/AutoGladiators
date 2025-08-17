@@ -10,7 +10,7 @@ namespace AutoGladiators.Client.StateMachine.States
 {
     public sealed class VictoryState : IGameState
     {
-        private static readonly IAppLogger Log = AppLog.For<VictoryState>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<VictoryState>();
 
         public GameStateId Id => GameStateId.Victory;
 

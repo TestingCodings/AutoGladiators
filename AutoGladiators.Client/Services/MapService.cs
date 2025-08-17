@@ -6,8 +6,7 @@ namespace AutoGladiators.Client.Services
 {
     public static class MapService
     {
-        private static readonly IAppLogger Log = AppLog.For<MapService>();
-
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For("MapService");
         public static Dictionary<string, MapLocation> AllLocations = new()
         {
             ["home_base"] = new MapLocation

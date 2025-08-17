@@ -10,7 +10,7 @@ namespace AutoGladiators.Client.Services
 {
     public class EncounterService
     {
-        private static readonly IAppLogger Log = AppLog.For<EncounterService>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<EncounterService>();
 
         private readonly Dictionary<string, List<WildBotEncounter>> _regionEncounters;
         private readonly Random _rng = new();
@@ -94,7 +94,7 @@ namespace AutoGladiators.Client.Services
 
     public class WildBotEncounter
     {
-        private static readonly IAppLogger Log = AppLog.For<EncounterService>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<EncounterService>();
 
         public string BotId { get; }
         public Rarity Rarity { get; }

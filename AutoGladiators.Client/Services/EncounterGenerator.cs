@@ -7,7 +7,7 @@ namespace AutoGladiators.Client.Services
 {
     public static class EncounterGenerator
     {
-        private static readonly IAppLogger Log = AppLog.For<EncounterGenerator>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For("EncounterGenerator");
 
         private static readonly EncounterService _encounterService = new();
 

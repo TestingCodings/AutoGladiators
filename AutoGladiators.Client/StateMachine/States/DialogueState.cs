@@ -9,7 +9,7 @@ namespace AutoGladiators.Client.StateMachine.States
 {
     public sealed class DialogueState : IGameState
     {
-        private static readonly IAppLogger Log = AppLog.For<DialogueState>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<DialogueState>();
 
         public GameStateId Id => GameStateId.Dialogue;
         private string? _npcId;

@@ -9,7 +9,7 @@ namespace AutoGladiators.Client.Services
 {
     public class ItemService
     {
-        private static readonly IAppLogger Log = AppLog.For<ItemService>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<ItemService>();
 
         public static ItemService Instance { get; } = new();
 
@@ -39,7 +39,7 @@ namespace AutoGladiators.Client.Services
 
     public class Item
     {
-        private static readonly IAppLogger Log = AppLog.For<ItemService>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<ItemService>();
 
         public string Id { get; }
         public string Name { get; }

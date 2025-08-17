@@ -26,7 +26,7 @@ namespace AutoGladiators.Client.StateMachine.States
 
     public sealed class FusionState : IGameState
     {
-        private static readonly IAppLogger Log = AppLog.For<FusionState>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<FusionState>();
 
         public GameStateId Id => GameStateId.Fusion;
 

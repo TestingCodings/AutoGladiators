@@ -7,7 +7,7 @@ namespace AutoGladiators.Client.Services
 {
     public class FusionService
     {
-        private static readonly IAppLogger Log = AppLog.For<FusionService>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<FusionService>();
 
         public static FusionResult TryFuseBots(GladiatorBot bot1, GladiatorBot bot2)
         {
@@ -34,7 +34,7 @@ namespace AutoGladiators.Client.Services
 
         public class FusionResult
         {
-        private static readonly IAppLogger Log = AppLog.For<FusionService>();
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<FusionService>();
 
             public bool Success { get; }
             public string Message { get; }

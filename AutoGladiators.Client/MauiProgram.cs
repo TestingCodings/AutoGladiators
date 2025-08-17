@@ -1,9 +1,9 @@
+using AutoGladiators.Client.Services.Logging;
+using CommunityToolkit.Maui;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
-using AutoGladiators.Client.Services.Logging;
-using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client
 {
@@ -15,6 +15,7 @@ namespace AutoGladiators.Client
 
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -22,25 +23,19 @@ namespace AutoGladiators.Client
                 });
 
 #if DEBUG
-            builder.Logging.AddDebug();
-            // Optionally add console logging for Windows:
-            // builder.Logging.AddConsole();
+            // builder.Logging.AddConsole(); // Remove or comment out this line; not supported on MAUI/Android by default
 #endif
 
-            // Register DI services here
+            // Register DI services here as needed
             // builder.Services.AddSingleton<GameStateService>();
 
             var app = builder.Build();
 
-            // Initialize the central AppLog so all classes using AppLog.For<T>() work
-            var loggerFactory = app.Services.GetRequiredService<IAppLoggerFactory>();
+            // Wire AppLog to platform logger factory
+            var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
             AppLog.Initialize(loggerFactory);
 
             return app;
         }
     }
 }
-// This file is the entry point for the MAUI application.
-// It sets up the application, configures fonts, and initializes logging.
-// It also allows for dependency injection of services like GameStateService.
-// The logging configuration can be adjusted based on the environment (e.g., DEBUG).
