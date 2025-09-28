@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Reflection;
-using AutoGladiators.Client.Models;
-using AutoGladiators.Client.Core;
+using AutoGladiators.Core.Models;
+using AutoGladiators.Core.Core;
 
 
 

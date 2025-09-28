@@ -1,0 +1,114 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using AutoGladiators.Core.Models;
+using AutoGladiators.Core.Core;
+using AutoGladiators.Core.Services.Logging;
+using Microsoft.Extensions.Logging;
+
+namespace AutoGladiators.Core.Services
+{
+    public class EncounterService
+    {
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<EncounterService>();
+
+        private readonly Dictionary<string, List<WildBotEncounter>> _regionEncounters;
+        private readonly Random _rng = new();
+
+        public EncounterService()
+        {
+            _regionEncounters = new Dictionary<string, List<WildBotEncounter>>
+            {
+                ["ScrapFields"] = new List<WildBotEncounter>
+                {
+                    new("RustyCharger", Rarity.Common, 1, 5),
+                    new("ClawScout", Rarity.Uncommon, 3, 7),
+                    new("SparkWolf", Rarity.Rare, 5, 10)
+                },
+                ["VoltanRuins"] = new List<WildBotEncounter>
+                {
+                    new("VoltWasp", Rarity.Common, 4, 8),
+                    new("PlasmaOx", Rarity.Uncommon, 6, 10),
+                    new("QuantumHydra", Rarity.Legendary, 10, 15)
+                }
+            };
+        }
+
+        public bool TryTriggerEncounter(PlayerLocation location, out GladiatorBot encounteredBot)
+        {
+            int playerLevel = GameStateService.Instance.CurrentPlayer.Level;
+            encounteredBot = GenerateWildBot(location.Region, playerLevel);
+            return encounteredBot != null;
+        }
+
+        public bool CheckForEncounter(PlayerLocation location)
+        {
+            // Basic encounter logic: Can be replaced with terrain, time, weather, etc.
+            return location.X % 5 == 0 && location.Y % 3 == 0;
+        }
+
+        public bool encounterTriggered(PlayerLocation location)
+        {
+            // Check if the player is in a region with encounters
+            if (!_regionEncounters.ContainsKey(location.Region))
+                return false;
+
+            // Random chance to trigger an encounter
+            return _rng.Next(100) < 20; // 20% chance
+        }
+
+        public GladiatorBot? GenerateWildBot(string region, int playerLevel)
+        {
+            if (!_regionEncounters.TryGetValue(region, out var encounters))
+                return null;
+
+            var eligible = encounters
+                .Where(e => playerLevel >= e.MinLevel && playerLevel <= e.MaxLevel)
+                .ToList();
+
+            if (!eligible.Any()) return null;
+
+            var weightedPool = eligible.SelectMany(e => Enumerable.Repeat(e, GetWeight(e.Rarity))).ToList();
+            var chosen = weightedPool[_rng.Next(weightedPool.Count)];
+
+            return BotFactory.CreateBot(chosen.BotId, GetBotLevel(playerLevel, chosen));
+        }
+
+        private int GetBotLevel(int playerLevel, WildBotEncounter e)
+        {
+            int randomOffset = _rng.Next(-1, 2); // -1, 0, or +1
+            return Math.Clamp(playerLevel + randomOffset, e.MinLevel, e.MaxLevel);
+        }
+
+        private static int GetWeight(Rarity rarity) => rarity switch
+        {
+            Rarity.Common => 10,
+            Rarity.Uncommon => 5,
+            Rarity.Rare => 2,
+            Rarity.Legendary => 1,
+            _ => 1
+        };
+    }
+
+    public enum Rarity { Common, Uncommon, Rare, Legendary }
+
+    public class WildBotEncounter
+    {
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<EncounterService>();
+
+        public string BotId { get; }
+        public Rarity Rarity { get; }
+        public int MinLevel { get; }
+        public int MaxLevel { get; }
+
+        public WildBotEncounter(string botId, Rarity rarity, int minLevel, int maxLevel)
+        {
+            BotId = botId;
+            Rarity = rarity;
+            MinLevel = minLevel;
+            MaxLevel = maxLevel;
+        }
+    }
+}
+// This code defines an EncounterService that manages wild bot encounters in different regions.
+// It includes methods to check for encounters, generate wild bots based on player level and region, and handle encounter logic.

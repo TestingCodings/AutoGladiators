@@ -1,9 +1,12 @@
-using AutoGladiators.Client.Services.Logging;
+﻿using AutoGladiators.Core.Services.Logging;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
+using AutoGladiators.Core.Services.Storage;
+using AutoGladiators.Client.Services.Storage;
+using AutoGladiators.Core.Services;
 
 namespace AutoGladiators.Client
 {
@@ -34,6 +37,14 @@ namespace AutoGladiators.Client
             // Wire AppLog to platform logger factory
             var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
             AppLog.Initialize(loggerFactory);
+
+            
+
+            builder.Services.AddSingleton<IAppStorage, AppStorage>(); // your Client-side impl
+            builder.Services.AddSingleton<NPCDialogueService>();
+            builder.Services.AddSingleton<NPCDialogueLoader>();
+            builder.Services.AddSingleton<DatabaseService>();
+
 
             return app;
         }

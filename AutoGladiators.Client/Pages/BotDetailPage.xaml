@@ -4,16 +4,77 @@
             x:Class="AutoGladiators.Client.Pages.BotDetailPage"
             Title="Bot Details">
 
-    <ScrollView>
-        <StackLayout Padding="20">
-            <Label Text="{Binding Bot.Name}" FontSize="24" FontAttributes="Bold" />
-            <Label Text="{Binding Bot.Description}" FontSize="16" />
-            <Image Source="{Binding Bot.ImagePath}" HeightRequest="200" />
+    <ScrollView BackgroundColor="#1a1a1a">
+        <StackLayout Padding="20" Spacing="15">
+            <!-- Header Section -->
+            <Frame BackgroundColor="#2d2d2d" CornerRadius="10" Padding="20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-            <Label Text="Stats:" FontSize="18" FontAttributes="Bold" Margin="0,10,0,0"/>
-            <Label Text="{Binding BotStats}" FontSize="14" />
+                    <Label Grid.Row="0" Grid.Column="0" Text="{Binding Bot.Name}" FontSize="28" 
+                           FontAttributes="Bold" TextColor="White"/>
+                    <Label Grid.Row="0" Grid.Column="1" Text="{Binding BotLevel}" FontSize="18" 
+                           TextColor="LightBlue" FontAttributes="Bold"/>
+                    <Label Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Bot.ElementalCore, StringFormat='Element: {0}'}" 
+                           FontSize="16" TextColor="Cyan" Margin="0,5"/>
+                    <Label Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding Bot.Description}" 
+                           FontSize="14" TextColor="LightGray"/>
+                </Grid>
+            </Frame>
 
-            <Button Text="Add to Inventory" Clicked="OnAddToInventoryClicked" Margin="0,20,0,0"/>
+            <!-- Bot Image (if available) -->
+            <Image Source="{Binding Bot.ImagePath}" HeightRequest="200" 
+                   BackgroundColor="#404040" IsVisible="False"/>
+
+            <!-- Stats Section -->
+            <Frame BackgroundColor="#2d2d2d" CornerRadius="10" Padding="15">
+                <StackLayout>
+                    <Label Text="Battle Statistics" FontSize="20" FontAttributes="Bold" 
+                           TextColor="White" HorizontalOptions="Center" Margin="0,0,0,10"/>
+                    <Label Text="{Binding BotStats}" FontSize="14" TextColor="LightGray" 
+                           LineBreakMode="WordWrap"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- Status Effects Section -->
+            <Frame BackgroundColor="#2d2d2d" CornerRadius="10" Padding="15">
+                <StackLayout>
+                    <Label Text="Status Effects" FontSize="18" FontAttributes="Bold" 
+                           TextColor="White" Margin="0,0,0,5"/>
+                    <Label Text="{Binding StatusEffectsText}" FontSize="14" 
+                           TextColor="Orange" LineBreakMode="WordWrap"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- Moveset Section -->
+            <Frame BackgroundColor="#2d2d2d" CornerRadius="10" Padding="15">
+                <StackLayout>
+                    <Label Text="Known Moves" FontSize="18" FontAttributes="Bold" 
+                           TextColor="White" Margin="0,0,0,5"/>
+                    <Label Text="{Binding MovesetText}" FontSize="14" 
+                           TextColor="Yellow" LineBreakMode="WordWrap"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- Actions Section -->
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Text="Add to Inventory" Clicked="OnAddToInventoryClicked" 
+                        BackgroundColor="#4CAF50" TextColor="White" CornerRadius="5"/>
+                <Button Grid.Column="1" Text="Battle Test" BackgroundColor="#2196F3" TextColor="White" 
+                        CornerRadius="5" Clicked="OnBattleTestClicked"/>
+            </Grid>
         </StackLayout>
     </ScrollView>
 </ContentPage>
