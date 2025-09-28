@@ -1,4 +1,4 @@
-using Android.App;
+﻿using Android.App;
 using Android.Runtime;
 using Microsoft.Maui;
 using AutoGladiators.Client;

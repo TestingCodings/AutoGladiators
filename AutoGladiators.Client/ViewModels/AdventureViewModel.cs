@@ -1,9 +1,9 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Windows.Input;
-using AutoGladiators.Client.Models;
-using AutoGladiators.Client.Services;
-using AutoGladiators.Client.Core;
+using AutoGladiators.Core.Models;
+using AutoGladiators.Core.Services;
+using AutoGladiators.Core.Core;
 using Microsoft.Maui.Controls;
 
 namespace AutoGladiators.Client.ViewModels

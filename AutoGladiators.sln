@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -8,25 +8,35 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BehaviorEngineLib", "Shared
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillTreeLib", "SharedLibs\SkillTreeLib\SkillTreeLib.csproj", "{00000003-0003-0003-0003-000000000003}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoGladiators.Client", "AutoGladiators.Client\AutoGladiators.Client.csproj", "{00000004-0004-0004-0004-000000000004}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoGladiators.Tests", "AutoGladiators.Tests\AutoGladiators.Tests.csproj", "{8C5C6AF8-416A-42B9-80C0-5B0951B2F986}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{00000005-0005-0005-0005-000000000005}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoGladiators_MAUI", "AutoGladiators.Client\AutoGladiators_MAUI.csproj", "{98D8B324-AA55-495F-85B7-C13FE21D2D9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoGladiators.Core", "AutoGladiators.Core\AutoGladiators.Core.csproj", "{9A485A66-C692-4875-BBAD-8ACF5E019888}"
 EndProject
 Global
-    GlobalSection(SolutionConfigurationPlatforms) = preSolution
-        Debug|Any CPU = Debug|Any CPU
-        Release|Any CPU = Release|Any CPU
-    EndGlobalSection
-    GlobalSection(ProjectConfigurationPlatforms) = postSolution
-        {00000001-0001-0001-0001-000000000001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-        {00000001-0001-0001-0001-000000000001}.Debug|Any CPU.Build.0 = Debug|Any CPU
-        {00000002-0002-0002-0002-000000000002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-        {00000002-0002-0002-0002-000000000002}.Debug|Any CPU.Build.0 = Debug|Any CPU
-        {00000003-0003-0003-0003-000000000003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-        {00000003-0003-0003-0003-000000000003}.Debug|Any CPU.Build.0 = Debug|Any CPU
-        {00000004-0004-0004-0004-000000000004}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-        {00000004-0004-0004-0004-000000000004}.Debug|Any CPU.Build.0 = Debug|Any CPU
-        {00000005-0005-0005-0005-000000000005}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-        {00000005-0005-0005-0005-000000000005}.Debug|Any CPU.Build.0 = Debug|Any CPU
-    EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{00000001-0001-0001-0001-000000000001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00000001-0001-0001-0001-000000000001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00000002-0002-0002-0002-000000000002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00000002-0002-0002-0002-000000000002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00000003-0003-0003-0003-000000000003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00000003-0003-0003-0003-000000000003}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C5C6AF8-416A-42B9-80C0-5B0951B2F986}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C5C6AF8-416A-42B9-80C0-5B0951B2F986}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C5C6AF8-416A-42B9-80C0-5B0951B2F986}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C5C6AF8-416A-42B9-80C0-5B0951B2F986}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98D8B324-AA55-495F-85B7-C13FE21D2D9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98D8B324-AA55-495F-85B7-C13FE21D2D9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98D8B324-AA55-495F-85B7-C13FE21D2D9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98D8B324-AA55-495F-85B7-C13FE21D2D9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A485A66-C692-4875-BBAD-8ACF5E019888}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A485A66-C692-4875-BBAD-8ACF5E019888}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A485A66-C692-4875-BBAD-8ACF5E019888}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A485A66-C692-4875-BBAD-8ACF5E019888}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 EndGlobal

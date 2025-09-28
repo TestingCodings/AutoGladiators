@@ -1,11 +1,11 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using AutoGladiators.Client.Logic;
-using AutoGladiators.Client.Models;
-using AutoGladiators.Client.StateMachine.States;
-using AutoGladiators.Client.Core;
+using AutoGladiators.Core.Logic;
+using AutoGladiators.Core.Models;
+using AutoGladiators.Core.StateMachine.States;
+using AutoGladiators.Core.Core;
 using System.Threading.Tasks;
 using System.Linq;
 
@@ -67,14 +67,14 @@ namespace AutoGladiators.Client.ViewModels
 
         private async Task ExecutePlayerMove(Move move)
         {
-            if (_battleManager.IsBattleOver)
+            if (_battleManager.IsBattleOver())
                 return;
 
             var result = move.Use(PlayerBot, EnemyBot);
             Log(result);
             CheckBattleEnd();
 
-            if (!_battleManager.IsBattleOver)
+            if (!_battleManager.IsBattleOver())
             {
                 await Task.Delay(1000);
                 EnemyTurn();

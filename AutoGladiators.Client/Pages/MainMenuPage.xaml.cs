@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using Microsoft.Maui.Controls;
-using AutoGladiators.Client.StateMachine;
-using AutoGladiators.Client.Core;
+using AutoGladiators.Core.StateMachine;
+using AutoGladiators.Core.Core;
 
 namespace AutoGladiators.Client.Pages
 {
@@ -19,7 +19,7 @@ namespace AutoGladiators.Client.Pages
             {
                 // Just ask the state machine to go exploring; if save/loading is needed, do it first.
                 await GameLoop.GoToAsync(GameStateId.Exploring, new StateArgs { Reason = "Continue" });
-                await DisplayAlert("Continue", "Resuming adventure…", "OK");
+                await DisplayAlert("Continue", "Resuming adventureâ€¦", "OK");
             };
 
             var debugBtn = new Button { Text = "Debug Menu" };

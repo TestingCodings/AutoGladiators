@@ -8,12 +8,45 @@
     <CollectionView x:Name="BotList" SelectionMode="Single" SelectionChanged="OnBotSelected">
         <CollectionView.ItemTemplate>
             <DataTemplate>
-                <Frame BorderColor="Gray" Margin="10" Padding="15">
-                    <StackLayout>
-                        <Label Text="{Binding Name}" FontSize="20" TextColor="White"/>
-                        <Label Text="{Binding ElementalCore}" FontSize="14" TextColor="LightGray"/>
-                        <Label Text="{Binding Description}" FontSize="12" TextColor="Gray"/>
-                    </StackLayout>
+                <Frame BorderColor="Gray" Margin="10" Padding="15" BackgroundColor="#2a2a2a" CornerRadius="10">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Bot Name and Level -->
+                        <StackLayout Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
+                            <Label Text="{Binding Name}" FontSize="20" TextColor="White" FontAttributes="Bold"/>
+                            <Label Text="{Binding Rarity}" FontSize="12" TextColor="Gold" 
+                                   BackgroundColor="#404040" Padding="5,2" VerticalOptions="Center" 
+                                   Margin="10,0,0,0"/>
+                        </StackLayout>
+                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding Level, StringFormat='Lv.{0}'}" 
+                               FontSize="16" TextColor="LightBlue" FontAttributes="Bold"/>
+
+                        <!-- Element and Class -->
+                        <StackLayout Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="15" Margin="0,5">
+                            <Label Text="{Binding ElementalCore}" FontSize="14" TextColor="Cyan"/>
+                            <Label Text="{Binding BotClass}" FontSize="14" TextColor="Orange"/>
+                        </StackLayout>
+
+                        <!-- Stats -->
+                        <StackLayout Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="20" Margin="0,5">
+                            <Label Text="{Binding Health, StringFormat='HP: {0}'}" FontSize="12" TextColor="LightGreen"/>
+                            <Label Text="{Binding AttackPower, StringFormat='ATK: {0}'}" FontSize="12" TextColor="Red"/>
+                        </StackLayout>
+
+                        <!-- Description -->
+                        <Label Grid.Row="3" Grid.ColumnSpan="2" Text="{Binding Description}" 
+                               FontSize="12" TextColor="LightGray" Margin="0,5,0,0"/>
+                    </Grid>
                 </Frame>
             </DataTemplate>
         </CollectionView.ItemTemplate>

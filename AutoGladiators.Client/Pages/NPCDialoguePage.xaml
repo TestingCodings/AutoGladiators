@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AutoGladiators.Client.Pages.NPCDialoguePage"
+             Title="NPC Dialogue"
+             BackgroundColor="#1a1a1a">
+
+    <ScrollView Padding="15">
+        <StackLayout Spacing="20">
+
+            <!-- NPC Information Section -->
+            <Frame BackgroundColor="#2d2d2d" CornerRadius="10" Padding="20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- NPC Avatar Placeholder -->
+                    <Frame Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" 
+                           BackgroundColor="#404040" 
+                           CornerRadius="25" 
+                           WidthRequest="50" 
+                           HeightRequest="50" 
+                           Margin="0,0,15,0"
+                           VerticalOptions="Start">
+                        <Label Text="👤" 
+                               FontSize="24" 
+                               HorizontalOptions="Center" 
+                               VerticalOptions="Center"/>
+                    </Frame>
+
+                    <!-- NPC Name -->
+                    <Label Grid.Row="0" Grid.Column="1" 
+                           x:Name="NPCNameLabel"
+                           Text="{Binding NPCName}" 
+                           FontSize="20" 
+                           FontAttributes="Bold" 
+                           TextColor="Gold" 
+                           VerticalOptions="End"/>
+
+                    <!-- NPC Status/Title -->
+                    <Label Grid.Row="1" Grid.Column="1" 
+                           Text="Merchant • Friendly" 
+                           FontSize="12" 
+                           TextColor="LightGray" 
+                           VerticalOptions="Start"/>
+                </Grid>
+            </Frame>
+
+            <!-- Dialogue Text Section -->
+            <Frame BackgroundColor="#2d2d2d" CornerRadius="10" Padding="20">
+                <StackLayout>
+                    <Label Text="Dialogue" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="White" 
+                           Margin="0,0,0,10"/>
+                    
+                    <Label x:Name="DialogueTextLabel"
+                           Text="{Binding CurrentText}" 
+                           FontSize="16" 
+                           TextColor="LightGray" 
+                           LineBreakMode="WordWrap"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- Response Options Section -->
+            <Frame BackgroundColor="#2d2d2d" CornerRadius="10" Padding="15">
+                <StackLayout>
+                    <Label Text="Response Options" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="White" 
+                           Margin="0,0,0,10"/>
+                    
+                    <!-- Options will be dynamically added here -->
+                    <StackLayout x:Name="OptionsContainer" 
+                                 Spacing="8"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- Action Buttons Section -->
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <Button Grid.Column="0" 
+                        Text="Leave" 
+                        BackgroundColor="#666666" 
+                        TextColor="White" 
+                        CornerRadius="8"
+                        Clicked="OnLeaveClicked"/>
+                
+                <Button Grid.Column="1" 
+                        Text="Inventory" 
+                        BackgroundColor="#4CAF50" 
+                        TextColor="White" 
+                        CornerRadius="8"
+                        Clicked="OnInventoryClicked"/>
+            </Grid>
+
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

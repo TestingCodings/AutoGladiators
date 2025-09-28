@@ -1,4 +1,4 @@
-#if WINDOWS
+﻿#if WINDOWS
 using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
 using AutoGladiators.Client;

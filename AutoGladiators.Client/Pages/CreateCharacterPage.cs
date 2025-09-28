@@ -1,7 +1,7 @@
-using AutoGladiators.Client.Core;
-using AutoGladiators.Client.Models;
-using AutoGladiators.Client.StateMachine;
-using AutoGladiators.Client.Services;
+﻿using AutoGladiators.Core.Core;
+using AutoGladiators.Core.Models;
+using AutoGladiators.Core.StateMachine;
+using AutoGladiators.Core.Services;
 using Microsoft.Maui.Controls;
 
 namespace AutoGladiators.Client.Pages
@@ -34,7 +34,7 @@ namespace AutoGladiators.Client.Pages
                 {
                     Name = $"{playerName}'s Bot",
                     Level = 1,
-                    Health = 50,
+                    MaxHealth = 50,
                     Strength = 10,
                     Defense = 8
                 };

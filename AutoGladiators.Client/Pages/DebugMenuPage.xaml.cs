@@ -1,8 +1,8 @@
-using AutoGladiators.Client.Models;
-using AutoGladiators.Client.Services;
-using AutoGladiators.Client.Core;
-using AutoGladiators.Client.StateMachine;
-using AutoGladiators.Client.StateMachine.States;
+﻿using AutoGladiators.Core.Models;
+using AutoGladiators.Core.Services;
+using AutoGladiators.Core.Core;
+using AutoGladiators.Core.StateMachine;
+using AutoGladiators.Core.StateMachine.States;
 
 
 namespace AutoGladiators.Client.Pages
@@ -24,13 +24,19 @@ namespace AutoGladiators.Client.Pages
 
         private void OnGiveChipsClicked(object sender, EventArgs e)
         {
-            GameStateService.Instance.Inventory.AddItem(new AutoGladiators.Client.Models.Item { Name = "ControlChip" }); // Replace with actual item and count
+            GameStateService.Instance.Inventory.AddItem(new AutoGladiators.Core.Models.Item
+            {
+                Name = "ControlChip",
+                Description = "A chip used to control bots.",
+                Type = AutoGladiators.Core.Enums.ItemType.Capture.ToString(), // Replace with the correct enum/type if different
+                Effect = "Controls a wild bot" // Replace with the actual effect logic or object if needed
+            }); // Replace with actual item and count
             DisplayAlert("Inventory", "Added 5 ControlChips.", "OK");
         }
 
         private async void OnTestBattleClicked(object sender, EventArgs e)
         {
-            var wildBot = EncounterGenerator.GetRandomWildBot("ScrapFields");
+            var wildBot = EncounterGenerator.GenerateWildBot();
             if (wildBot == null)
             {
                 await DisplayAlert("Error", "Failed to generate wild bot.", "OK");

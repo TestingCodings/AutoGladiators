@@ -1,7 +1,7 @@
-using Microsoft.Maui.Controls;
+﻿using Microsoft.Maui.Controls;
 using AutoGladiators.Client.ViewModels;
-using AutoGladiators.Client.Services;
-using AutoGladiators.Client.Core;
+using AutoGladiators.Core.Services;
+using AutoGladiators.Core.Core;
 
 namespace AutoGladiators.Client.Pages
 {
