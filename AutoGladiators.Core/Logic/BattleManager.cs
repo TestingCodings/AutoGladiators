@@ -78,13 +78,13 @@ namespace AutoGladiators.Core.Logic
 
         private void ExecuteMove(GladiatorBot attacker, GladiatorBot defender, Move move)
         {
-            if (attacker.IsFainted) return;
+            if (attacker.IsFainted || move == null) return;
 
-            if (move.CheckAccuracy(_rng))
-            {
-                var damage = move.CalculateDamage(attacker, defender, _rng);
-                defender.ReceiveDamage(damage);
-            }
+            // Use the Move's built-in Use method which handles accuracy, damage, and feedback
+            var result = move.Use(attacker, defender);
+            
+            // Log the battle action
+            Log.LogInformation(result);
         }
 
         public Move? ChooseMove(GladiatorBot bot)
@@ -243,16 +243,36 @@ namespace AutoGladiators.Core.Logic
         }
     }
 
-    // --- Minimal MoveDatabase for move lookup ---
+    // --- MVP MoveDatabase for move lookup ---
     public static class MoveDatabase
     {
         private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<BattleManager>();
 
-        // Replace this with your actual move lookup logic as needed
+        private static readonly Dictionary<string, Move> _moves;
+        
+        static MoveDatabase()
+        {
+            _moves = new Dictionary<string, Move>();
+            
+            // Load MVP moves
+            var mvpMoves = Move.CreateMVPMoves();
+            foreach (var move in mvpMoves)
+            {
+                _moves[move.Name] = move;
+            }
+        }
+        
         public static Move? GetMoveByName(string name)
         {
-            // Example: return a dummy Move with just the name set
-            return new Move { Name = name };
+            if (string.IsNullOrEmpty(name)) return null;
+            
+            _moves.TryGetValue(name, out var move);
+            return move;
+        }
+        
+        public static List<Move> GetAllMoves()
+        {
+            return _moves.Values.ToList();
         }
     }
 }

@@ -51,6 +51,11 @@ namespace AutoGladiators.Client.ViewModels
             set { _battleStateText = value; OnPropertyChanged(); }
         }
 
+        // Properties for XAML binding
+        public double PlayerHpFraction => PlayerBot?.MaxHealth > 0 ? (double)PlayerBot.CurrentHealth / PlayerBot.MaxHealth : 0.0;
+        public double EnemyHpFraction => EnemyBot?.MaxHealth > 0 ? (double)EnemyBot.CurrentHealth / EnemyBot.MaxHealth : 0.0;
+        public string BattleLogText => string.Join("\n", BattleLog);
+
         public ICommand UseMoveCommand { get; }
 
         public BattleViewModel(GladiatorBot player, GladiatorBot enemy)
@@ -84,6 +89,9 @@ namespace AutoGladiators.Client.ViewModels
             OnPropertyChanged(nameof(PlayerBot));
             OnPropertyChanged(nameof(EnemyBot));
             OnPropertyChanged(nameof(PlayerMoves));
+            OnPropertyChanged(nameof(PlayerHpFraction));
+            OnPropertyChanged(nameof(EnemyHpFraction));
+            OnPropertyChanged(nameof(BattleLogText));
         }
 
         private void EnemyTurn()
@@ -96,38 +104,47 @@ namespace AutoGladiators.Client.ViewModels
             }
         }
 
-        private async void CheckBattleEnd()
+        private void CheckBattleEnd()
         {
             if (PlayerBot.IsFainted)
             {
-                BattleStateText = "You lost...";
-                Log("Your bot has fainted, but you can continue.");
-                await OnBattleEnded();
+                BattleStateText = "Defeat...";
+                Log("Your bot has been defeated!");
+                // Let the state machine handle defeat transitions
+                OnBattleEnded(false);
             }
             else if (EnemyBot.IsFainted)
             {
-                BattleStateText = "You won!";
+                BattleStateText = "Victory!";
                 Log($"You defeated {EnemyBot.Name}!");
-                await OnBattleEnded();
+                // Let the state machine handle victory transitions
+                OnBattleEnded(true);
             }
         }
 
-        private async Task OnBattleEnded()
+        private void OnBattleEnded(bool victory)
         {
-            // Delay to show win/loss message
-            await Task.Delay(2000);
-
-            // === TODO SECTION ===
-            // Award XP, drop loot, update quests, persist, etc.
-
-            // Return to previous page
-            await Shell.Current.GoToAsync("..");
+            // The state machine (BattlingState) will now handle the victory/defeat logic
+            // This method just updates UI state to show the battle has ended
+            
+            // Set a flag or trigger state machine transition if needed
+            // For now, we'll rely on the battle manager's state to determine if the battle is over
+            
+            if (victory)
+            {
+                Log("Battle won! Transitioning to victory state...");
+            }
+            else
+            {
+                Log("Battle lost! Transitioning to defeat state...");
+            }
         }
 
         private void Log(string message)
         {
             BattleLog.Add(message);
             OnPropertyChanged(nameof(BattleLog));
+            OnPropertyChanged(nameof(BattleLogText));
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -140,28 +157,32 @@ namespace AutoGladiators.Client.ViewModels
         {
             if (bot == null) return Enumerable.Empty<Move>();
 
-            // Try common shapes in your models with minimal assumptions
-            // 1) LearnableMoves already a sequence of Move
-            var learnableMovesProp = bot.GetType().GetProperty("LearnableMoves");
-            var learnable = learnableMovesProp?.GetValue(bot);
-            if (learnable is IEnumerable<Move> mv) return mv;
-
-            // 2) LearnableMoves is a sequence of names
-            if (learnable is IEnumerable<string> names1) return names1.Select(n => new Move { Name = n });
-
-            // 3) Moves (equipped/known)
-            var movesProp = bot.GetType().GetProperty("Moves");
-            var movesVal = movesProp?.GetValue(bot);
-            if (movesVal is IEnumerable<Move> mv2) return mv2;
-            if (movesVal is IEnumerable<string> names2) return names2.Select(n => new Move { Name = n });
-
-            // 4) MoveNames
-            var moveNamesProp = bot.GetType().GetProperty("MoveNames");
-            var moveNamesVal = moveNamesProp?.GetValue(bot) as IEnumerable<string>;
-            if (moveNamesVal != null) return moveNamesVal.Select(n => new Move { Name = n });
-
-            // Nothing found
-            return Enumerable.Empty<Move>();
+            var moves = new List<Move>();
+            
+            // Get moves from Moveset property
+            if (bot.Moveset != null && bot.Moveset.Any())
+            {
+                foreach (var moveName in bot.Moveset)
+                {
+                    var move = AutoGladiators.Core.Logic.MoveDatabase.GetMoveByName(moveName);
+                    if (move != null)
+                    {
+                        moves.Add(move);
+                    }
+                }
+            }
+            
+            // If no moves found, provide a basic attack
+            if (!moves.Any())
+            {
+                var basicAttack = AutoGladiators.Core.Logic.MoveDatabase.GetMoveByName("Tackle");
+                if (basicAttack != null)
+                {
+                    moves.Add(basicAttack);
+                }
+            }
+            
+            return moves;
         }
     }
 }

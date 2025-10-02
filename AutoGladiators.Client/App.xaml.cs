@@ -1,6 +1,8 @@
 ﻿using Microsoft.Maui.Controls;
 using AutoGladiators.Client.Pages;
+using AutoGladiators.Client.Services;
 using AutoGladiators.Core.Services;
+using AutoGladiators.Core.Core;
 
 namespace AutoGladiators.Client
 {
@@ -11,6 +13,20 @@ namespace AutoGladiators.Client
 
             InitializeComponent(); // must match the x:Class in App.xaml
             DependencyService.Register<GameStateService>();
+
+            // Initialize the UI bridge for the state machine
+            var uiBridge = new MauiUiBridge();
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await GameLoop.InitializeAsync(uiBridge);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error initializing game loop: {ex.Message}");
+                }
+            });
 
             // Set the root of the app to the Main Menu wrapped in a navigation stack
             MainPage = new NavigationPage(new MainMenuPage());

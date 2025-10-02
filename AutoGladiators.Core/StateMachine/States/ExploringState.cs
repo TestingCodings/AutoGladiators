@@ -25,14 +25,19 @@ namespace AutoGladiators.Core.StateMachine.States
 
         public Task<StateTransition?> ExecuteAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            // 40% chance to trigger encounter
-            if (EncounterGenerator.ShouldTriggerEncounter())
+            // For MVP: always generate an encounter when this state executes
+            // In the future this could be made more sophisticated
+            var encounterGenerator = new EncounterGenerator();
+            var currentLocation = GameStateService.Instance.CurrentPlayer?.CurrentLocation?.Region ?? "Wilds";
+            var wildBot = encounterGenerator.GenerateWildEncounter(currentLocation);
+            
+            if (wildBot != null)
             {
-                var wildBot = EncounterGenerator.GenerateWildBot();
                 GameStateService.Instance.CurrentEncounter = wildBot;
                 Log.LogInformation($"Encounter! Wild {wildBot.Name} (Lv{wildBot.Level}) appeared.");
                 return Task.FromResult<StateTransition?>(new StateTransition(GameStateId.Battling));
             }
+            
             Log.LogInformation("No encounter this step. Continue exploring.");
             return Task.FromResult<StateTransition?>(null);
         }

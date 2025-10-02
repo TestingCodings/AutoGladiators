@@ -36,7 +36,8 @@ namespace AutoGladiators.Client.Pages
 
         private async void OnTestBattleClicked(object sender, EventArgs e)
         {
-            var wildBot = EncounterGenerator.GenerateWildBot();
+            var encounterGenerator = new AutoGladiators.Core.Services.EncounterGenerator();
+            var wildBot = encounterGenerator.GenerateWildEncounter("DebugZone");
             if (wildBot == null)
             {
                 await DisplayAlert("Error", "Failed to generate wild bot.", "OK");

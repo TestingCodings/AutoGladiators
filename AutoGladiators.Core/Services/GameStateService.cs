@@ -70,10 +70,36 @@ namespace AutoGladiators.Core.Services
                 playerName = playerName,
                 Level = 1,
                 Experience = 0,
-                Gold = 0,
+                Gold = 100, // Starting gold
                 StoryFlags = new Dictionary<string, bool>()
             };
+            
             BotRoster.Clear();
+            
+            // Add starter bot
+            var starterBot = new GladiatorBot
+            {
+                Id = 1,
+                Name = "Starter",
+                Level = 1,
+                ElementalCore = AutoGladiators.Core.Enums.ElementalCore.Metal,
+                Description = "Your faithful starting companion",
+                
+                MaxHealth = 100,
+                CurrentHealth = 100,
+                AttackPower = 20,
+                Defense = 15,
+                Speed = 12,
+                Energy = 100,
+                Endurance = 50,
+                Luck = 10,
+                
+                Moveset = new List<string> { "Tackle", "Guard", "Metal Strike" },
+                LearnableMoves = new List<string> { "Tackle", "Guard", "Metal Strike", "Power Boost" }
+            };
+            
+            BotRoster.Add(starterBot);
+            
             Inventory.Clear();
             PlayerLocation = new PlayerLocation { Region = "StarterZone", X = 0, Y = 0 };
             _flags.Clear();

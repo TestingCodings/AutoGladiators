@@ -5,41 +5,48 @@ using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Core.Services
 {
-    public static class EncounterGenerator
+    public class EncounterGenerator
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For("EncounterGenerator");
+        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<EncounterGenerator>();
+        private readonly Random _rng = new();
 
-        private static readonly EncounterService _encounterService = new();
-
-        private static readonly Random _rng = new();
-
-        // 40% chance to trigger an encounter
-        public static bool ShouldTriggerEncounter()
-        {
-            double roll = _rng.NextDouble();
-            Log.LogInformation($"Encounter roll: {roll:F2}");
-            return roll < 0.4;
-        }
-
-        // Returns a simple wild bot (uses BotFactory if available, else fallback)
-        public static GladiatorBot GenerateWildBot()
+        // MVP: Always generates an encounter for the core loop
+        public GladiatorBot? GenerateWildEncounter(string location)
         {
             var playerLevel = GameStateService.Instance.CurrentPlayer?.Level ?? 1;
-            // Use BotFactory if available
-            var bot = BotFactory.CreateBot("WildBot", playerLevel); // "WildBot" is a placeholder
-            if (bot == null)
+            
+            // Create deterministic enemy bots based on location
+            var enemyTemplates = new[]
             {
-                bot = new GladiatorBot
-                {
-                    Id = _rng.Next(1000, 9999),
-                    Name = "WildBot",
-                    Level = playerLevel,
-                    HP = 20 + playerLevel * 2,
-                    Moveset = new System.Collections.Generic.List<string> { "Jab" }
-                };
-            }
-            Log.LogInformation($"Generated wild bot: {bot.Name} (Lv{bot.Level})");
-            return bot;
+                new { Name = "Scrapling", Element = AutoGladiators.Core.Enums.ElementalCore.Metal, Hp = 60 },
+                new { Name = "Rustbeast", Element = AutoGladiators.Core.Enums.ElementalCore.Fire, Hp = 70 },
+                new { Name = "Voltaic Drone", Element = AutoGladiators.Core.Enums.ElementalCore.Electric, Hp = 55 }
+            };
+            
+            var template = enemyTemplates[_rng.Next(enemyTemplates.Length)];
+            
+            var enemy = new GladiatorBot
+            {
+                Id = _rng.Next(1000, 9999),
+                Name = template.Name,
+                Level = Math.Max(1, playerLevel + _rng.Next(-1, 2)), // ±1 level variance
+                ElementalCore = template.Element,
+                Description = $"A wild {template.Name} encountered in {location}",
+                
+                // Combat stats
+                MaxHealth = template.Hp + (playerLevel * 5),
+                CurrentHealth = template.Hp + (playerLevel * 5),
+                AttackPower = 15 + (playerLevel * 2),
+                Defense = 10 + playerLevel,
+                Speed = 8 + _rng.Next(0, 5),
+                
+                // Basic moves
+                Moveset = new System.Collections.Generic.List<string> { "Tackle", "Guard" },
+                LearnableMoves = new System.Collections.Generic.List<string> { "Tackle", "Guard", "Power Strike" }
+            };
+            
+            Log.LogInformation($"Generated wild encounter: {enemy.Name} (Lv{enemy.Level}) in {location}");
+            return enemy;
         }
     }
 }

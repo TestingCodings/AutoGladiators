@@ -3,138 +3,127 @@ using System;
 using System.Collections.Generic;
 using AutoGladiators.Core.Core;
 using AutoGladiators.Core.Logic;
+using AutoGladiators.Core.Services;
+using System.Linq;
 
 
 namespace AutoGladiators.Client.Pages
 {
     public partial class AdventurePage : ContentPage
     {
-        public class AdventureLocation
-        {
-            public required string Name { get; set; }
-            public required string Description { get; set; }
-            public string Region { get; set; } = "Unknown";
-            public string Rarity { get; set; } = "Common";
-        }
+        private Label? _statusLabel;
+        private Button? _enterWildsButton;
+        private readonly AutoGladiators.Core.Services.GameStateService _gameState;
 
         public AdventurePage()
         {
             InitializeComponent();
-
-            var locations = new List<AdventureLocation>
+            _gameState = AutoGladiators.Core.Services.GameStateService.Instance;
+            
+            // Initialize game state if needed
+            if (_gameState.CurrentPlayer == null)
             {
-                new AdventureLocation { Name = "Scrap Canyon", Description = "An abandoned junkyard full of hostile bots.", Region = "Wasteland", Rarity = "Common" },
-                new AdventureLocation { Name = "Techspire City", Description = "Meet NPCs, shop, and upgrade bots.", Region = "Urban", Rarity = "Safe" },
-                new AdventureLocation { Name = "Core Mine", Description = "A dangerous area rich in elemental chips.", Region = "Underground", Rarity = "Rare" },
-                new AdventureLocation { Name = "Arena Gateway", Description = "Enter battle simulations for EXP and loot.", Region = "Arena District", Rarity = "Epic" },
-                new AdventureLocation { Name = "Plasma Foundry", Description = "Advanced manufacturing facility with plasma bots.", Region = "Industrial", Rarity = "Legendary" },
-                new AdventureLocation { Name = "Frozen Peaks", Description = "Icy mountains inhabited by ice-element bots.", Region = "Arctic", Rarity = "Rare" }
+                _gameState.InitializeNewGame("Adventure Player");
+            }
+            
+            CreateMVPInterface();
+            UpdateStatusDisplay();
+        }
+        
+        private void CreateMVPInterface()
+        {
+            // Clear existing content and create MVP interface
+            Content = new StackLayout
+            {
+                Padding = new Thickness(20),
+                Spacing = 20,
+                BackgroundColor = Colors.Black,
+                Children =
+                {
+                    new Label
+                    {
+                        Text = "Adventure Mode",
+                        FontSize = 24,
+                        FontAttributes = FontAttributes.Bold,
+                        TextColor = Colors.Gold,
+                        HorizontalOptions = LayoutOptions.Center
+                    },
+                    (_statusLabel = new Label
+                    {
+                        FontSize = 16,
+                        TextColor = Colors.White,
+                        HorizontalOptions = LayoutOptions.Center,
+                        Margin = new Thickness(0, 10)
+                    }),
+                    (_enterWildsButton = new Button
+                    {
+                        Text = "Enter the Wilds",
+                        FontSize = 18,
+                        BackgroundColor = Colors.DarkGreen,
+                        TextColor = Colors.White,
+                        CornerRadius = 10,
+                        Padding = new Thickness(20, 15),
+                        Margin = new Thickness(0, 20)
+                    })
+                }
             };
-
-            LocationList.ItemsSource = locations;
+            
+            _enterWildsButton.Clicked += OnEnterWildsClicked;
         }
 
-        private async void OnLocationSelected(object sender, SelectionChangedEventArgs e)
+        private async void OnEnterWildsClicked(object sender, EventArgs e)
         {
-            if (e.CurrentSelection.FirstOrDefault() is AdventureLocation location)
+            try
             {
-                await DisplayAlert("Traveling to:", location.Name, "Continue");
-
-                switch (location.Name)
+                // Generate encounter through GameStateService
+                var encounterGenerator = new AutoGladiators.Core.Services.EncounterGenerator();
+                var enemyBot = encounterGenerator.GenerateWildEncounter("Wilds");
+                
+                if (enemyBot != null)
                 {
-                    case "Scrap Canyon":
-                        // Create default player and enemy bots for battle
-                        var playerBot = new GladiatorBot
-                        {
-                            Name = "Player Bot",
-                            ElementalCore = AutoGladiators.Core.Enums.ElementalCore.Metal,
-                            Description = "Your trusty battle bot",
-                            MaxHealth = 100,
-                            CurrentHealth = 100,
-                            AttackPower = 25,
-                            Defense = 20,
-                            Speed = 15,
-                            Energy = 100,
-                            Endurance = 50,
-                            Luck = 10
-                        };
-                        var enemyBot = new GladiatorBot
-                        {
-                            Name = "Scrap Warrior",
-                            ElementalCore = AutoGladiators.Core.Enums.ElementalCore.Fire,
-                            Description = "A hostile bot from the junkyard",
-                            MaxHealth = 85,
-                            CurrentHealth = 85,
-                            AttackPower = 22,
-                            Defense = 18,
-                            Speed = 20,
-                            Energy = 80,
-                            Endurance = 40,
-                            Luck = 8
-                        };
+                    // Set the encounter in game state
+                    _gameState.CurrentEncounter = enemyBot;
+                    
+                    // Get player's current bot
+                    var playerBot = _gameState.GetCurrentBot();
+                    
+                    if (playerBot != null && enemyBot != null)
+                    {
+                        // Navigate to battle
                         await Navigation.PushAsync(new BattlePage(playerBot, enemyBot));
-                        break;
-                    case "Techspire City":
-                        string npcId = "1"; // Shop keeper or city guide NPC
-                        await Navigation.PushAsync(new NPCDialoguePage(npcId));
-                        break;
-                    case "Plasma Foundry":
-                        var plasmaPlayerBot = new GladiatorBot
-                        {
-                            Name = "Player Bot",
-                            ElementalCore = AutoGladiators.Core.Enums.ElementalCore.Metal,
-                            Description = "Your trusty battle bot",
-                            MaxHealth = 100,
-                            CurrentHealth = 100,
-                            AttackPower = 25,
-                            Defense = 20,
-                            Speed = 15
-                        };
-                        var plasmaBoss = new GladiatorBot
-                        {
-                            Name = "Plasma Forge",
-                            ElementalCore = AutoGladiators.Core.Enums.ElementalCore.Plasma,
-                            Description = "A powerful plasma-enhanced manufacturing bot",
-                            MaxHealth = 150,
-                            CurrentHealth = 150,
-                            AttackPower = 35,
-                            Defense = 25,
-                            Speed = 12
-                        };
-                        await Navigation.PushAsync(new BattlePage(plasmaPlayerBot, plasmaBoss));
-                        break;
-                    case "Frozen Peaks":
-                        var icePlayerBot = new GladiatorBot
-                        {
-                            Name = "Player Bot",
-                            ElementalCore = AutoGladiators.Core.Enums.ElementalCore.Metal,
-                            Description = "Your trusty battle bot",
-                            MaxHealth = 100,
-                            CurrentHealth = 100,
-                            AttackPower = 25,
-                            Defense = 20,
-                            Speed = 15
-                        };
-                        var iceBot = new GladiatorBot
-                        {
-                            Name = "Frost Guardian",
-                            ElementalCore = AutoGladiators.Core.Enums.ElementalCore.Ice,
-                            Description = "An ancient ice-element guardian of the peaks",
-                            MaxHealth = 120,
-                            CurrentHealth = 120,
-                            AttackPower = 28,
-                            Defense = 30,
-                            Speed = 8
-                        };
-                        await Navigation.PushAsync(new BattlePage(icePlayerBot, iceBot));
-                        break;
-                    default:
-                        await DisplayAlert("Coming Soon", $"{location.Name} is under development.", "OK");
-                        break;
+                    }
+                    else
+                    {
+                        await DisplayAlert("Error", "No bot available for battle!", "OK");
+                    }
                 }
-
-                LocationList.SelectedItem = null; // Deselect
+                else
+                {
+                    await DisplayAlert("No Encounter", "The wilds are quiet today...", "OK");
+                }
             }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", $"Failed to enter wilds: {ex.Message}", "OK");
+            }
+        }
+        
+        private void UpdateStatusDisplay()
+        {
+            if (_gameState.CurrentPlayer != null)
+            {
+                var player = _gameState.CurrentPlayer;
+                var botCount = _gameState.BotRoster.Count;
+                _statusLabel.Text = $"Player: {player.playerName}\n" +
+                                   $"Level: {player.Level} | XP: {player.Experience}\n" +
+                                   $"Gold: {player.Gold} | Bots: {botCount}";
+            }
+        }
+        
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            UpdateStatusDisplay();
         }
     }
 }

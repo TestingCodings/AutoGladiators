@@ -55,14 +55,38 @@ namespace AutoGladiators.Core.StateMachine.States
 
             if (playerWon)
             {
-                int xp = Math.Max(5, _enemy.Level * 10);
-                int gold = Math.Max(2, _enemy.Level * 5);
-                _game.ApplyBattleRewards(xp, gold);
+                // Enhanced reward calculation
+                int baseXp = Math.Max(5, _enemy.Level * 10);
+                int levelDifference = _enemy.Level - _player.Level;
+                
+                // Bonus XP for defeating higher level enemies
+                int xpBonus = Math.Max(0, levelDifference * 5);
+                int totalXp = baseXp + xpBonus;
+                
+                // Gold calculation with some randomness
+                var random = new Random();
+                int baseGold = Math.Max(2, _enemy.Level * 5);
+                int goldVariance = random.Next(-2, 3); // -2 to +2 variance
+                int totalGold = Math.Max(1, baseGold + goldVariance);
+                
+                _game.ApplyBattleRewards(totalXp, totalGold);
                 _game.SetLastBattleStats(_player, _enemy, true);
                 _game.SetFlag("LastBattleOutcome", true);
+                
+                Log.LogInformation($"Victory rewards calculated: {totalXp} XP (base: {baseXp}, bonus: {xpBonus}), {totalGold} Gold (base: {baseGold})");
+                
                 _pending = new StateTransition(
                     GameStateId.Victory,
-                    new StateArgs { Reason = "BattleWon", Payload = new { xp, gold, enemyId = _enemy.Id } }
+                    new StateArgs { 
+                        Reason = "BattleWon", 
+                        Payload = new { 
+                            xp = totalXp, 
+                            gold = totalGold, 
+                            enemyId = _enemy.Id,
+                            enemyName = _enemy.Name,
+                            enemyLevel = _enemy.Level 
+                        } 
+                    }
                 );
             }
             else if (playerLost)
