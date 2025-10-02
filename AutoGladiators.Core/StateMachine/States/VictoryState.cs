@@ -14,26 +14,68 @@ namespace AutoGladiators.Core.StateMachine.States
 
         public GameStateId Id => GameStateId.Victory;
 
+        private bool _rewardsApplied = false;
+        private bool _userConfirmed = false;
+
         public Task EnterAsync(GameStateContext ctx, StateArgs? args = null, CancellationToken ct = default)
         {
+            _rewardsApplied = false;
+            _userConfirmed = false;
+            
             Log.LogInformation("Battle concluded. Victory!");
-            ctx.Ui?.ShowVictoryScreen(args?.Payload);
+            
+            // Extract reward information from payload
+            var payload = args?.Payload as dynamic;
+            var xp = payload?.xp ?? 0;
+            var gold = payload?.gold ?? 0;
+            var enemyId = payload?.enemyId ?? "";
+
+            // Display victory screen with reward details
+            var victoryData = new
+            {
+                xp = xp,
+                gold = gold,
+                enemyId = enemyId,
+                message = $"Victory! You earned {xp} XP and {gold} Gold!"
+            };
+
+            ctx.Ui?.ShowVictoryScreen(victoryData);
+            ctx.Ui?.SetStatus($"Victory! +{xp} XP, +{gold} Gold");
+
+            _rewardsApplied = true;
+            Log.LogInformation($"Victory rewards applied: {xp} XP, {gold} Gold");
+            
             return Task.CompletedTask;
         }
 
         public Task<StateTransition?> ExecuteAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            Log.LogInformation("Returning to adventure after victory.");
-            return Task.FromResult<StateTransition?>(new StateTransition(
-                GameStateId.Exploring,
-                new StateArgs { Reason = "VictoryReturn" }
-            ));
+            // For now, automatically continue after a brief moment
+            // In a real UI implementation, this would wait for user input
+            if (_rewardsApplied && !_userConfirmed)
+            {
+                _userConfirmed = true;
+                
+                Log.LogInformation("Returning to adventure after victory.");
+                return Task.FromResult<StateTransition?>(new StateTransition(
+                    GameStateId.Exploring,
+                    new StateArgs { Reason = "VictoryReturn" }
+                ));
+            }
+
+            return Task.FromResult<StateTransition?>(null);
         }
 
         public Task ExitAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            Console.WriteLine("Post-battle tasks completed.");
+            Console.WriteLine("Post-battle victory tasks completed.");
             ctx.Ui?.HideVictoryScreen();
+            ctx.Ui?.SetStatus("Returned to adventure");
+            
+            // Reset state for next battle
+            _rewardsApplied = false;
+            _userConfirmed = false;
+            
             return Task.CompletedTask;
         }
     }

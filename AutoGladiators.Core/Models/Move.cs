@@ -41,23 +41,27 @@ namespace AutoGladiators.Core.Models
 
     public int CalculateDamage(GladiatorBot attacker, GladiatorBot defender, IRng rng)
         {
-            // Basic damage formula
-            int baseDamage = (((2 * attacker.Level / 5 + 2) * Power * attacker.Strength / defender.Defense) / 50) + 2;
-
-            // Apply random factor (85% to 100%)
-            double randomFactor = rng.Next(85, 101) / 100.0;
-            baseDamage = (int)(baseDamage * randomFactor);
-
-            // TODO: Implement elemental multiplier if defender has an Element property and ElementalSystem.GetMultiplier exists.
-            // For now, skip this step to avoid errors.
-
-            // Critical hit check
-            if (rng.NextDouble() * 100 < attacker.CriticalHitChance)
+            // Simplified damage formula for MVP
+            int attackPower = attacker.AttackPower;
+            int defense = defender.Defense;
+            
+            // Base damage: attacker's power modified by move power
+            double baseDamage = (attackPower + Power) * 0.7;
+            
+            // Defense reduces damage
+            baseDamage = Math.Max(baseDamage - (defense * 0.5), baseDamage * 0.1);
+            
+            // Apply random factor (90% to 110%)
+            double randomFactor = rng.Next(90, 111) / 100.0;
+            baseDamage *= randomFactor;
+            
+            // Critical hit check (10% base chance)
+            if (rng.NextDouble() < 0.1)
             {
-                baseDamage = (int)(baseDamage * 1.5); // Critical hits do 1.5x damage
+                baseDamage *= 1.5; // Critical hits do 1.5x damage
             }
 
-            return Math.Max(1, baseDamage); // Ensure at least 1 damage is done
+            return Math.Max(1, (int)baseDamage); // Ensure at least 1 damage is done
         }
     public int Power { get; set; }
 
@@ -86,26 +90,79 @@ namespace AutoGladiators.Core.Models
 
             attacker.UseEnergy(EnergyCost);
 
-            var rng = new Random();
-            if (rng.NextDouble() > Accuracy)
+            var rng = new DefaultRng();
+            if (!CheckAccuracy(rng))
                 return $"{attacker.Name} used {Name}, but it missed!";
 
-            int damage = Type == MoveType.Attack
-                ? Math.Max(1, Power + attacker.Strength - defender.Defense)
-                : 0;
+            int damage = 0;
+            if (Type == MoveType.Attack)
+            {
+                // Use the more sophisticated damage calculation if available
+                if (Power > 0)
+                {
+                    damage = CalculateDamage(attacker, defender, rng);
+                }
+                else
+                {
+                    // Fallback simple calculation
+                    damage = Math.Max(1, attacker.AttackPower - defender.Defense / 2);
+                }
+            }
 
-            defender.ReceiveDamage(damage);
+            if (damage > 0)
+            {
+                defender.ReceiveDamage(damage);
+            }
 
             string result = $"{attacker.Name} used {Name}!";
-            if (damage > 0) result += $" It dealt {damage} damage to {defender.Name}.";
-
-            if (!string.IsNullOrEmpty(StatusEffect) && rng.Next(100) < EffectChance)
+            if (damage > 0) 
             {
-                defender.StatusCondition = StatusEffect;
-                result += $" {defender.Name} is now {StatusEffect}!";
+                result += $" It dealt {damage} damage to {defender.Name}!";
+                if (defender.CurrentHealth <= 0)
+                {
+                    result += $" {defender.Name} has been defeated!";
+                }
             }
 
             return result;
+        }
+        
+        // MVP: Create basic moves for starter bots
+        public static List<Move> CreateMVPMoves()
+        {
+            return new List<Move>
+            {
+                new Move
+                {
+                    Name = "Tackle",
+                    Description = "A straightforward physical attack",
+                    Type = MoveType.Attack,
+                    Power = 20,
+                    Accuracy = 90.0,
+                    EnergyCost = 5,
+                    Category = MoveCategory.Attack
+                },
+                new Move
+                {
+                    Name = "Guard",
+                    Description = "Reduce incoming damage for this turn",
+                    Type = MoveType.Defense,
+                    Power = 0,
+                    Accuracy = 100.0,
+                    EnergyCost = 3,
+                    Category = MoveCategory.Buff
+                },
+                new Move
+                {
+                    Name = "Metal Strike",
+                    Description = "A powerful metal-enhanced attack",
+                    Type = MoveType.Attack,
+                    Power = 35,
+                    Accuracy = 85.0,
+                    EnergyCost = 10,
+                    Category = MoveCategory.Attack
+                }
+            };
         }
     }
 }

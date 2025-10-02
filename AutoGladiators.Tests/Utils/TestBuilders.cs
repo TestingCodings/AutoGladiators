@@ -23,7 +23,8 @@ public static class TestBuilders
         {
             Name = name,
             Level = level,
-            Strength = attack,  // Using Strength property
+            AttackPower = attack,  // Using AttackPower property
+            Strength = attack,     // Keep Strength for compatibility
             Defense = defense,
             CriticalHitChance = CriticalHitChance,
             Speed = speed,

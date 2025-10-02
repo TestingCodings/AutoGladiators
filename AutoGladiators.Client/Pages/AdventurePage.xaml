@@ -2,39 +2,6 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="AutoGladiators.Client.Pages.AdventurePage"
-             Title="Adventure"
-             BackgroundColor="#1a1a1a">
-
-    <StackLayout Padding="20" Spacing="15">
-
-        <Label Text="Select Destination"
-               FontSize="24"
-               TextColor="White"
-               HorizontalOptions="Center" />
-
-        <CollectionView x:Name="LocationList"
-                        SelectionMode="Single"
-                        SelectionChanged="OnLocationSelected">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Frame BackgroundColor="#2d2d2d"
-                           CornerRadius="10"
-                           Padding="15"
-                           Margin="5">
-                        <StackLayout>
-                            <Label Text="{Binding Name}" FontSize="18" TextColor="White" />
-                            <Label Text="{Binding Description}" FontSize="14" TextColor="LightGray" />
-                            <!-- Wild Zone Metadata -->
-                            <StackLayout Orientation="Horizontal" Spacing="10" Margin="0,5,0,0">
-                                <Label Text="Region:" FontSize="12" TextColor="Gray"/>
-                                <Label Text="{Binding Region}" FontSize="12" TextColor="LightBlue"/>
-                                <Label Text="Rarity:" FontSize="12" TextColor="Gray" Margin="15,0,0,0"/>
-                                <Label Text="{Binding Rarity}" FontSize="12" TextColor="Gold"/>
-                            </StackLayout>
-                        </StackLayout>
-                    </Frame>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-    </StackLayout>
+             Title="Adventure">
+    <!-- Content created programmatically in code-behind -->
 </ContentPage>
