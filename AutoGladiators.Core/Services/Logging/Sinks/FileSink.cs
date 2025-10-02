@@ -6,14 +6,14 @@ namespace AutoGladiators.Core.Services.Logging;
 
 public sealed class FileSink : ILogSink
 {
-    private readonly IAppStorage _storage;
+    private readonly IAppStorage? _storage;
     private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<FileSink>();
 
     private readonly string _dir;
     public LogLevel MinLevel { get; }
     public FileSink(string? directory = null, LogLevel min = LogLevel.Info)
     {
-        _dir = directory ?? Path.Combine(_storage.AppDataPath, "logs");
+        _dir = directory ?? "logs";
         Directory.CreateDirectory(_dir);
         MinLevel = min;
     }

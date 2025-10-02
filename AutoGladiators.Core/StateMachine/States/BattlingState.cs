@@ -5,6 +5,7 @@ using AutoGladiators.Core.StateMachine;
 using AutoGladiators.Core.Services;
 using AutoGladiators.Core.Core;
 using AutoGladiators.Core.Services.Logging;
+using AutoGladiators.Core.Services.Analytics;
 using Microsoft.Extensions.Logging;
 
 
@@ -12,7 +13,9 @@ namespace AutoGladiators.Core.StateMachine.States
 {
     public sealed class BattlingState : IGameState
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<BattlingState>();
+        private static readonly IAppLogger _logger = AppLog.For<BattlingState>();
+        private static readonly IBattleAnalytics _analytics = new BattleAnalytics();
+        private static readonly IPerformanceMonitor _performance = new PerformanceMonitor();
 
         public GameStateId Id => GameStateId.Battling;
 
@@ -22,18 +25,27 @@ namespace AutoGladiators.Core.StateMachine.States
         private GladiatorBot? _enemy;
         private bool _resolved;
         private StateTransition? _pending;
+        private DateTime _battleStartTime;
 
         public async Task EnterAsync(GameStateContext ctx, StateArgs? args = null, CancellationToken ct = default)
         {
+            using var _ = _performance.StartOperation("BattleState.Enter");
+            
             _resolved = false;
             _pending = null;
+            _battleStartTime = DateTime.UtcNow;
 
             _player = _game.GetCurrentBot();
             _enemy = _game.CurrentEncounter;
 
             if (_player is null || _enemy is null)
             {
-                Log.LogWarning("Battle could not start: missing player or enemy bot.");
+                _logger.LogError("BattleState", "MissingBattleBots", null, new Dictionary<string, object?>
+                {
+                    ["PlayerPresent"] = _player != null,
+                    ["EnemyPresent"] = _enemy != null
+                });
+                
                 _pending = new StateTransition(
                     GameStateId.Exploring,
                     new StateArgs { Reason = "NoBattleBots" }
@@ -42,16 +54,30 @@ namespace AutoGladiators.Core.StateMachine.States
                 return;
             }
 
+            // Log battle analytics
+            _analytics.LogBattleStart(_player, _enemy);
+
             ctx.Ui?.ShowBattleHud(_player, _enemy);
             ctx.Ui?.SetStatus($"Battle started: {_player.Name} vs {_enemy.Name}");
 
             // Run one-turn battle
+            using var battlePerf = _performance.StartOperation("BattleExecution", new Dictionary<string, object?>
+            {
+                ["PlayerLevel"] = _player.Level,
+                ["EnemyLevel"] = _enemy.Level
+            });
+            
             var battleManager = new AutoGladiators.Core.Logic.BattleManager(_player, _enemy);
             var battleLog = await battleManager.RunOneTurnBattleAsync();
-            Log.LogInformation(battleLog);
+            
+            _logger.Info($"Battle completed: {battleLog}");
 
             bool playerWon = _player.CurrentHealth > 0 && _enemy.CurrentHealth <= 0;
             bool playerLost = _enemy.CurrentHealth > 0 && _player.CurrentHealth <= 0;
+
+            // Log battle completion analytics
+            var battleDuration = DateTime.UtcNow - _battleStartTime;
+            _analytics.LogBattleEnd(_player, _enemy, playerWon, battleDuration);
 
             if (playerWon)
             {
@@ -69,11 +95,45 @@ namespace AutoGladiators.Core.StateMachine.States
                 int goldVariance = random.Next(-2, 3); // -2 to +2 variance
                 int totalGold = Math.Max(1, baseGold + goldVariance);
                 
+                // Apply progression system
+                _player.Experience += totalXp;
+                var progressionService = new BotProgressionService();
+                var levelUpResult = progressionService.TryLevelUp(_player);
+
+                // Add random items to inventory after victory
+                var inventoryService = InventoryService.Instance;
+                if (random.NextDouble() < 0.3) // 30% chance for healing potion
+                {
+                    inventoryService.AddItem(new HealingPotion(50 + random.Next(0, 26))); // 50-75 heal
+                }
+                if (random.NextDouble() < 0.15) // 15% chance for energy potion
+                {
+                    inventoryService.AddItem(new EnergyPotion(30 + random.Next(0, 21))); // 30-50 energy
+                }
+                
                 _game.ApplyBattleRewards(totalXp, totalGold);
                 _game.SetLastBattleStats(_player, _enemy, true);
                 _game.SetFlag("LastBattleOutcome", true);
                 
-                Log.LogInformation($"Victory rewards calculated: {totalXp} XP (base: {baseXp}, bonus: {xpBonus}), {totalGold} Gold (base: {baseGold})");
+                // Log rewards analytics including level up
+                _analytics.LogRewardsEarned(_player.Id.ToString(), totalXp, totalGold, _enemy.Level);
+                if (levelUpResult.HasLeveledUp)
+                {
+                    _analytics.LogPlayerLevelUp(_player.Id.ToString(), levelUpResult.NewLevel, _player.Experience);
+                }
+                
+                _logger.LogBattleEvent("Victory", _player.Id.ToString(), _enemy.Id.ToString(), new Dictionary<string, object?>
+                {
+                    ["XpEarned"] = totalXp,
+                    ["BaseXp"] = baseXp,
+                    ["XpBonus"] = xpBonus,
+                    ["GoldEarned"] = totalGold,
+                    ["BaseGold"] = baseGold,
+                    ["LevelsGained"] = levelUpResult.LevelsGained,
+                    ["NewLevel"] = levelUpResult.NewLevel,
+                    ["StatGrowth"] = levelUpResult.StatGrowth.ToString(),
+                    ["BattleDurationSeconds"] = battleDuration.TotalSeconds
+                });
                 
                 _pending = new StateTransition(
                     GameStateId.Victory,
