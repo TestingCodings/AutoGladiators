@@ -12,10 +12,14 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Frame BackgroundColor="#1f1f1f" CornerRadius="10" Padding="15" Margin="5">
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnItemTapped" />
+                        </Frame.GestureRecognizers>
                         <StackLayout Orientation="Vertical">
-                            <Label Text="{Binding Name}" FontSize="18" TextColor="Gold"/>
+                            <Label Text="{Binding Name}" FontSize="18" TextColor="{Binding RarityColor}"/>
                             <Label Text="{Binding Description}" FontSize="14" TextColor="LightGray"/>
                             <Label Text="{Binding QuantityText}" FontSize="12" TextColor="Gray"/>
+                            <Label Text="Tap to use" FontSize="10" TextColor="Yellow" HorizontalOptions="End"/>
                         </StackLayout>
                     </Frame>
                 </DataTemplate>
