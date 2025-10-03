@@ -1,122 +1,201 @@
 ﻿using Microsoft.Maui.Controls;
 using System;
-using System.Collections.Generic;
 using AutoGladiators.Core.Core;
-using AutoGladiators.Core.Logic;
 using AutoGladiators.Core.Services;
-using System.Linq;
-
+using AutoGladiators.Core.StateMachine;
+using AutoGladiators.Core.Services.Logging;
+using AutoGladiators.Core.Models;
 
 namespace AutoGladiators.Client.Pages
 {
     public partial class AdventurePage : ContentPage
     {
-        private Label? _statusLabel;
-        private Button? _enterWildsButton;
-        private readonly AutoGladiators.Core.Services.GameStateService _gameState;
+        private static readonly IAppLogger Log = AppLog.For<AdventurePage>();
+        private readonly GameStateService _gameState;
 
         public AdventurePage()
         {
             InitializeComponent();
-            _gameState = AutoGladiators.Core.Services.GameStateService.Instance;
+            _gameState = GameStateService.Instance;
             
             // Initialize game state if needed
             if (_gameState.CurrentPlayer == null)
             {
-                _gameState.InitializeNewGame("Adventure Player");
+                _gameState.InitializeNewGame("Adventurer");
             }
             
-            CreateMVPInterface();
             UpdateStatusDisplay();
+            Log.Info("AdventurePage initialized");
         }
         
-        private void CreateMVPInterface()
+        private async void OnExploreScrapYardsClicked(object sender, EventArgs e)
         {
-            // Clear existing content and create MVP interface
-            Content = new StackLayout
-            {
-                Padding = new Thickness(20),
-                Spacing = 20,
-                BackgroundColor = Colors.Black,
-                Children =
-                {
-                    new Label
-                    {
-                        Text = "Adventure Mode",
-                        FontSize = 24,
-                        FontAttributes = FontAttributes.Bold,
-                        TextColor = Colors.Gold,
-                        HorizontalOptions = LayoutOptions.Center
-                    },
-                    (_statusLabel = new Label
-                    {
-                        FontSize = 16,
-                        TextColor = Colors.White,
-                        HorizontalOptions = LayoutOptions.Center,
-                        Margin = new Thickness(0, 10)
-                    }),
-                    (_enterWildsButton = new Button
-                    {
-                        Text = "Enter the Wilds",
-                        FontSize = 18,
-                        BackgroundColor = Colors.DarkGreen,
-                        TextColor = Colors.White,
-                        CornerRadius = 10,
-                        Padding = new Thickness(20, 15),
-                        Margin = new Thickness(0, 20)
-                    })
-                }
-            };
-            
-            _enterWildsButton.Clicked += OnEnterWildsClicked;
+            await ExploreLocation("Scrap Yards", "ScrapYards", 1, 3);
+        }
+        
+        private async void OnExploreElectricWastesClicked(object sender, EventArgs e)
+        {
+            await ExploreLocation("Electric Wastes", "ElectricWastes", 3, 6);
+        }
+        
+        private async void OnExploreVolcanicDepthsClicked(object sender, EventArgs e)
+        {
+            await ExploreLocation("Volcanic Depths", "VolcanicDepths", 5, 9);
+        }
+        
+        private async void OnExploreCrystalCavernsClicked(object sender, EventArgs e)
+        {
+            await ExploreLocation("Crystal Caverns", "CrystalCaverns", 8, 15);
         }
 
-        private async void OnEnterWildsClicked(object sender, EventArgs e)
+        private async Task ExploreLocation(string locationName, string locationId, int minLevel, int maxLevel)
         {
             try
             {
-                // Generate encounter through GameStateService
-                var encounterGenerator = new AutoGladiators.Core.Services.EncounterGenerator();
-                var enemyBot = encounterGenerator.GenerateWildEncounter("Wilds");
+                Log.Info($"Exploring {locationName}");
                 
-                if (enemyBot != null)
+                // Check if player has any bots
+                var playerBot = _gameState.GetCurrentBot();
+                if (playerBot == null)
                 {
-                    // Set the encounter in game state
-                    _gameState.CurrentEncounter = enemyBot;
-                    
-                    // Get player's current bot
-                    var playerBot = _gameState.GetCurrentBot();
-                    
-                    if (playerBot != null && enemyBot != null)
+                    await DisplayAlert("No Bot Available", 
+                        $"You need a bot to explore {locationName}!\n\nVisit the Debug Menu to add a bot to your roster, or check your Bot Roster.", 
+                        "OK");
+                    return;
+                }
+
+                // Show exploration message
+                await DisplayAlert("Exploring...", 
+                    $"You venture into the {locationName} with {playerBot.Name}...\n\nSearching for wild bots to encounter!", 
+                    "Continue");
+
+                // Generate encounter based on location difficulty
+                var enemyLevel = Math.Max(minLevel, Math.Min(maxLevel, playerBot.Level + Random.Shared.Next(-1, 3)));
+                var enemyBot = BotFactory.CreateBot($"{locationId}Bot", enemyLevel);
+                
+                if (enemyBot == null)
+                {
+                    await DisplayAlert("No Encounter", $"The {locationName} seems quiet today...\n\nTry exploring again!", "OK");
+                    return;
+                }
+
+                // Customize enemy based on location
+                CustomizeEnemyForLocation(enemyBot, locationId);
+                
+                Log.Info($"Generated encounter: {enemyBot.Name} (Level {enemyBot.Level}) in {locationName}");
+                
+                // Set encounter in game state
+                _gameState.CurrentEncounter = enemyBot;
+                
+                // Show encounter preview
+                bool shouldBattle = await DisplayAlert("Wild Bot Encounter!", 
+                    $"A wild {enemyBot.Name} appears!\n\n" +
+                    $"Level: {enemyBot.Level}\n" +
+                    $"Element: {enemyBot.ElementalCore}\n" +
+                    $"HP: {enemyBot.MaxHealth}\n\n" +
+                    $"Do you want to battle with {playerBot.Name}?", 
+                    "Battle!", "Retreat");
+                
+                if (shouldBattle)
+                {
+                    // Create battle setup
+                    var setup = new BattleSetup(playerBot, enemyBot, PlayerInitiated: true);
+
+                    // Navigate to battle
+                    await GameLoop.GoToAsync(GameStateId.Battling, new StateArgs
                     {
-                        // Navigate to battle
-                        await Navigation.PushAsync(new BattlePage(playerBot, enemyBot));
-                    }
-                    else
-                    {
-                        await DisplayAlert("Error", "No bot available for battle!", "OK");
-                    }
+                        Reason = $"Adventure_{locationId}",
+                        Payload = setup
+                    });
+
+                    await Navigation.PushAsync(new BattlePage(playerBot, enemyBot));
                 }
                 else
                 {
-                    await DisplayAlert("No Encounter", "The wilds are quiet today...", "OK");
+                    await DisplayAlert("Retreated", $"You safely retreat from the {locationName}.", "OK");
                 }
             }
             catch (Exception ex)
             {
-                await DisplayAlert("Error", $"Failed to enter wilds: {ex.Message}", "OK");
+                Log.Error($"Exploration of {locationName} failed: {ex.Message}", ex);
+                await DisplayAlert("Exploration Failed", $"Something went wrong exploring {locationName}: {ex.Message}", "OK");
+            }
+        }
+        
+        private void CustomizeEnemyForLocation(GladiatorBot enemyBot, string locationId)
+        {
+            switch (locationId)
+            {
+                case "ScrapYards":
+                    enemyBot.Name = $"Rusty {enemyBot.Name}";
+                    enemyBot.ElementalCore = AutoGladiators.Core.Enums.ElementalCore.Metal;
+                    break;
+                case "ElectricWastes":
+                    enemyBot.Name = $"Charged {enemyBot.Name}";
+                    enemyBot.ElementalCore = AutoGladiators.Core.Enums.ElementalCore.Electric;
+                    enemyBot.AttackPower = (int)(enemyBot.AttackPower * 1.2); // Electric bonus
+                    break;
+                case "VolcanicDepths":
+                    enemyBot.Name = $"Blazing {enemyBot.Name}";
+                    enemyBot.ElementalCore = AutoGladiators.Core.Enums.ElementalCore.Fire;
+                    enemyBot.MaxHealth = (int)(enemyBot.MaxHealth * 1.3); // Fire tanky
+                    enemyBot.CurrentHealth = enemyBot.MaxHealth;
+                    break;
+                case "CrystalCaverns":
+                    enemyBot.Name = $"Crystal {enemyBot.Name}";
+                    enemyBot.ElementalCore = Random.Shared.Next(2) == 0 
+                        ? AutoGladiators.Core.Enums.ElementalCore.Ice 
+                        : AutoGladiators.Core.Enums.ElementalCore.Metal;
+                    enemyBot.AttackPower = (int)(enemyBot.AttackPower * 1.4); // Legendary power
+                    enemyBot.MaxHealth = (int)(enemyBot.MaxHealth * 1.4);
+                    enemyBot.CurrentHealth = enemyBot.MaxHealth;
+                    break;
+            }
+        }
+        
+        private async void OnReturnToBaseClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                Log.Info("Returning to main menu from adventure");
+                await Navigation.PopAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Navigation back failed: {ex.Message}", ex);
+                await DisplayAlert("Error", $"Navigation failed: {ex.Message}", "OK");
             }
         }
         
         private void UpdateStatusDisplay()
         {
-            if (_gameState.CurrentPlayer != null)
+            try
             {
-                var player = _gameState.CurrentPlayer;
-                var botCount = _gameState.BotRoster.Count;
-                _statusLabel.Text = $"Player: {player.playerName}\n" +
-                                   $"Level: {player.Level} | XP: {player.Experience}\n" +
-                                   $"Gold: {player.Gold} | Bots: {botCount}";
+                if (_gameState.CurrentPlayer != null)
+                {
+                    var player = _gameState.CurrentPlayer;
+                    var botCount = _gameState.BotRoster.Count;
+                    var currentBot = _gameState.GetCurrentBot();
+                    
+                    var statusText = $"Player: {player.playerName} (Lv.{player.Level})  |  ";
+                    statusText += $"XP: {player.Experience}  |  Gold: {player.Gold}  |  Bots: {botCount}";
+                    
+                    if (currentBot != null)
+                    {
+                        statusText += $"\nActive Bot: {currentBot.Name} (Lv.{currentBot.Level}) - {currentBot.ElementalCore}";
+                    }
+                    
+                    PlayerStatusLabel.Text = statusText;
+                }
+                else
+                {
+                    PlayerStatusLabel.Text = "Initializing adventure...";
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error updating status display: {ex.Message}", ex);
+                PlayerStatusLabel.Text = "Status unavailable";
             }
         }
         

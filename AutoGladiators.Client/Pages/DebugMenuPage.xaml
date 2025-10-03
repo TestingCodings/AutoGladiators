@@ -1,38 +1,155 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="AutoGladiators.Client.Pages.DebugMenuPage"
-             Title="Debug Tools"
-             BackgroundColor="#121212">
-
+             Title="Debug Console"
+             BackgroundColor="#0A0A0F">
+    
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
-
-            <Label Text="⚙️ Developer Debug Menu" FontSize="24" TextColor="White" />
-
-            <!-- Section: Inject Bots -->
-            <Button Text="Add Random Test Bot"
-                    Clicked="OnAddBotClicked" />
-
-            <!-- Section: Inventory -->
-            <Button Text="Give 5 Control Chips"
-                    Clicked="OnGiveChipsClicked" />
-
-            <!-- Section: Test Battle -->
-            <Button Text="Trigger Wild Battle (ScrapFields)"
-                    Clicked="OnTestBattleClicked" />
-
-            <!-- Section: Flags -->
-            <Button Text="Set IntroQuest Flag"
-                    Clicked="OnSetFlagClicked" />
-            <Button Text="Show All Quest Flags"
-                    Clicked="OnShowFlagsClicked" />
-
-            <!-- Section: Location Warp -->
-            <Label Text="Warp to Region:" TextColor="LightGray"/>
-            <Entry x:Name="LocationEntry" Placeholder="e.g. scrapyard" TextColor="Black" />
-            <Button Text="Warp"
-                    Clicked="OnWarpClicked" />
-
-        </VerticalStackLayout>
+        <Grid RowDefinitions="Auto,*,Auto" Padding="20">
+            
+            <!-- Header Section -->
+            <StackLayout Grid.Row="0" Spacing="10" Margin="0,20,0,40">
+                <Label Text="🔧 DEBUG CONSOLE" 
+                       FontSize="28" 
+                       FontAttributes="Bold"
+                       TextColor="#FFD700"
+                       HorizontalTextAlignment="Center"/>
+                <Label Text="Developer Tools and Testing" 
+                       FontSize="14" 
+                       TextColor="#B0B0B0"
+                       HorizontalTextAlignment="Center"/>
+            </StackLayout>
+            
+            <!-- Debug Actions -->
+            <StackLayout Grid.Row="1" Spacing="15">
+                
+                <!-- Bot Management -->
+                <Frame BackgroundColor="#1A1A2E" 
+                       CornerRadius="12" 
+                       HasShadow="True"
+                       Padding="0">
+                    <Button Text="🤖 Add Random Bot to Roster" 
+                            FontSize="16" 
+                            FontAttributes="Bold"
+                            TextColor="#4A9EFF"
+                            BackgroundColor="Transparent"
+                            HeightRequest="50"
+                            Clicked="OnAddBotClicked"/>
+                </Frame>
+                
+                <!-- High Level Bot -->
+                <Frame BackgroundColor="#1A1A2E" 
+                       CornerRadius="12" 
+                       HasShadow="True"
+                       Padding="0">
+                    <Button Text="⭐ Generate Level 10 Bot" 
+                            FontSize="16" 
+                            FontAttributes="Bold"
+                            TextColor="#00D4AA"
+                            BackgroundColor="Transparent"
+                            HeightRequest="50"
+                            Clicked="OnAddHighLevelBotClicked"/>
+                </Frame>
+                
+                <!-- Control Chips -->
+                <Frame BackgroundColor="#1A1A2E" 
+                       CornerRadius="12" 
+                       HasShadow="True"
+                       Padding="0">
+                    <Button Text="💎 Give 5 Control Chips" 
+                            FontSize="16" 
+                            FontAttributes="Bold"
+                            TextColor="#FF6B35"
+                            BackgroundColor="Transparent"
+                            HeightRequest="50"
+                            Clicked="OnGiveChipsClicked"/>
+                </Frame>
+                
+                <!-- Energy Packs -->
+                <Frame BackgroundColor="#1A1A2E" 
+                       CornerRadius="12" 
+                       HasShadow="True"
+                       Padding="0">
+                    <Button Text="⚡ Give Energy Packs" 
+                            FontSize="16" 
+                            FontAttributes="Bold"
+                            TextColor="#FFD700"
+                            BackgroundColor="Transparent"
+                            HeightRequest="50"
+                            Clicked="OnGiveEnergyClicked"/>
+                </Frame>
+                
+                <!-- Test Battle -->
+                <Frame BackgroundColor="#1A1A2E" 
+                       CornerRadius="12" 
+                       HasShadow="True"
+                       Padding="0">
+                    <Button Text="⚔️ Quick Test Battle" 
+                            FontSize="16" 
+                            FontAttributes="Bold"
+                            TextColor="#FF4757"
+                            BackgroundColor="Transparent"
+                            HeightRequest="50"
+                            Clicked="OnTestBattleClicked"/>
+                </Frame>
+                
+                <!-- Hard Battle -->
+                <Frame BackgroundColor="#1A1A2E" 
+                       CornerRadius="12" 
+                       HasShadow="True"
+                       Padding="0">
+                    <Button Text="💀 Battle Strong Opponent" 
+                            FontSize="16" 
+                            FontAttributes="Bold"
+                            TextColor="#8B5CF6"
+                            BackgroundColor="Transparent"
+                            HeightRequest="50"
+                            Clicked="OnHardBattleClicked"/>
+                </Frame>
+                
+                <!-- Game Stats -->
+                <Frame BackgroundColor="#1A1A2E" 
+                       CornerRadius="12" 
+                       HasShadow="True"
+                       Padding="0">
+                    <Button Text="📊 Show Game Stats" 
+                            FontSize="16" 
+                            FontAttributes="Bold"
+                            TextColor="#00FF88"
+                            BackgroundColor="Transparent"
+                            HeightRequest="50"
+                            Clicked="OnShowStatsClicked"/>
+                </Frame>
+                
+                <!-- Reset Data -->
+                <Frame BackgroundColor="#1A1A2E" 
+                       CornerRadius="12" 
+                       HasShadow="True"
+                       Padding="0">
+                    <Button Text="🗑️ Reset Game Data" 
+                            FontSize="16" 
+                            FontAttributes="Bold"
+                            TextColor="#FF3838"
+                            BackgroundColor="Transparent"
+                            HeightRequest="50"
+                            Clicked="OnResetDataClicked"/>
+                </Frame>
+                
+            </StackLayout>
+            
+            <!-- Footer Section -->
+            <StackLayout Grid.Row="2" Spacing="10" Margin="0,40,0,20">
+                <Button Text="← Back to Main Menu" 
+                        FontSize="14" 
+                        TextColor="#B0B0B0"
+                        BackgroundColor="#2A2A3E"
+                        CornerRadius="8"
+                        HeightRequest="45"
+                        Clicked="OnBackClicked"/>
+            </StackLayout>
+            
+        </Grid>
     </ScrollView>
+    
 </ContentPage>
