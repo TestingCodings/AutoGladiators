@@ -32,19 +32,31 @@ namespace AutoGladiators.Client
             // Register DI services here as needed
             // builder.Services.AddSingleton<GameStateService>();
 
-            var app = builder.Build();
-
-            // Wire AppLog to platform logger factory
-            var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
-            AppLog.Initialize(loggerFactory);
-
-            
-
-            builder.Services.AddSingleton<IAppStorage, AppStorage>(); // your Client-side impl
+            // Register services before building the app
+            builder.Services.AddSingleton<IAppStorage, AppStorage>();
             builder.Services.AddSingleton<NPCDialogueService>();
             builder.Services.AddSingleton<NPCDialogueLoader>();
             builder.Services.AddSingleton<DatabaseService>();
+            builder.Services.AddSingleton<GameStateService>();
 
+            var app = builder.Build();
+
+            try
+            {
+                // Wire AppLog to platform logger factory
+                var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
+                AppLog.Initialize(loggerFactory);
+                
+                // Test logging to ensure it's working
+                var logger = AppLog.For("MauiProgram");
+                logger.Info("AutoGladiators MAUI app initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to initialize AppLog: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                // Continue without custom logging - app should still work
+            }
 
             return app;
         }

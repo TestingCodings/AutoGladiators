@@ -12,18 +12,45 @@ namespace AutoGladiators.Client.Pages
             Title = "AutoGladiators";
 
             var newGame = new Button { Text = "New Game" };
-            newGame.Clicked += async (_, __) => await Navigation.PushAsync(new CreateCharacterPage());
+            newGame.Clicked += async (_, __) =>
+            {
+                try
+                {
+                    await Navigation.PushAsync(new CreateCharacterPage());
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlert("Error", $"Failed to start new game: {ex.Message}", "OK");
+                }
+            };
 
             var continueBtn = new Button { Text = "Continue" };
             continueBtn.Clicked += async (_, __) =>
             {
-                // Just ask the state machine to go exploring; if save/loading is needed, do it first.
-                await GameLoop.GoToAsync(GameStateId.Exploring, new StateArgs { Reason = "Continue" });
-                await DisplayAlert("Continue", "Resuming adventureâ€¦", "OK");
+                try
+                {
+                    // Just ask the state machine to go exploring; if save/loading is needed, do it first.
+                    await GameLoop.GoToAsync(GameStateId.Exploring, new StateArgs { Reason = "Continue" });
+                    await DisplayAlert("Continue", "Resuming adventure…", "OK");
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlert("Error", $"Failed to continue game: {ex.Message}", "OK");
+                }
             };
 
             var debugBtn = new Button { Text = "Debug Menu" };
-            debugBtn.Clicked += async (_, __) => await Navigation.PushAsync(new DebugMenuPage());
+            debugBtn.Clicked += async (_, __) =>
+            {
+                try
+                {
+                    await Navigation.PushAsync(new DebugMenuPage());
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlert("Error", $"Failed to open debug menu: {ex.Message}", "OK");
+                }
+            };
 
             Content = new VerticalStackLayout
             {

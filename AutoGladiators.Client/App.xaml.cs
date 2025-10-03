@@ -3,6 +3,7 @@ using AutoGladiators.Client.Pages;
 using AutoGladiators.Client.Services;
 using AutoGladiators.Core.Services;
 using AutoGladiators.Core.Core;
+using AutoGladiators.Core.Services.Logging;
 
 namespace AutoGladiators.Client
 {
@@ -10,26 +11,42 @@ namespace AutoGladiators.Client
     {
         public App()
         {
-
-            InitializeComponent(); // must match the x:Class in App.xaml
-            DependencyService.Register<GameStateService>();
-
-            // Initialize the UI bridge for the state machine
-            var uiBridge = new MauiUiBridge();
-            _ = Task.Run(async () =>
+            try
             {
-                try
-                {
-                    await GameLoop.InitializeAsync(uiBridge);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error initializing game loop: {ex.Message}");
-                }
-            });
+                InitializeComponent();
+                
+                // Don't use DependencyService with DI - services are already registered in MauiProgram
+                // DependencyService.Register<GameStateService>();
 
-            // Set the root of the app to the Main Menu wrapped in a navigation stack
-            MainPage = new NavigationPage(new MainMenuPage());
+                // Initialize the UI bridge for the state machine
+                var uiBridge = new MauiUiBridge();
+                
+                // Initialize game loop in background but don't block app startup
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await GameLoop.InitializeAsync(uiBridge);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Use proper logging instead of Console.WriteLine
+                        var logger = AppLog.For<App>();
+                        logger.Error($"Error initializing game loop: {ex.Message}", ex);
+                        logger.Error($"Stack trace: {ex.StackTrace}");
+                    }
+                });
+
+                // Set the root of the app to the Main Menu wrapped in a navigation stack
+                MainPage = new NavigationPage(new MainMenuPage());
+            }
+            catch (Exception ex)
+            {
+                // Log startup errors
+                System.Diagnostics.Debug.WriteLine($"App initialization failed: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                throw; // Re-throw to prevent app from starting in bad state
+            }
         }
     }
 }
