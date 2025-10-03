@@ -2,68 +2,103 @@
 using Microsoft.Maui.Controls;
 using AutoGladiators.Core.StateMachine;
 using AutoGladiators.Core.Core;
+using AutoGladiators.Core.Services.Logging;
 
 namespace AutoGladiators.Client.Pages
 {
-    public sealed class MainMenuPage : ContentPage
+    public partial class MainMenuPage : ContentPage
     {
+        private static readonly IAppLogger Log = AppLog.For<MainMenuPage>();
+        
         public MainMenuPage()
         {
-            Title = "AutoGladiators";
+            InitializeComponent();
+            Log.Info("MainMenuPage initialized");
+        }
 
-            var newGame = new Button { Text = "New Game" };
-            newGame.Clicked += async (_, __) =>
+        private async void OnAdventureClicked(object sender, EventArgs e)
+        {
+            try
             {
-                try
-                {
-                    await Navigation.PushAsync(new CreateCharacterPage());
-                }
-                catch (Exception ex)
-                {
-                    await DisplayAlert("Error", $"Failed to start new game: {ex.Message}", "OK");
-                }
-            };
+                Log.Info("Adventure button clicked");
+                await Navigation.PushAsync(new AdventurePage());
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to open adventure: {ex.Message}", ex);
+                await DisplayAlert("Error", $"Failed to open adventure: {ex.Message}", "OK");
+            }
+        }
 
-            var continueBtn = new Button { Text = "Continue" };
-            continueBtn.Clicked += async (_, __) =>
+        private async void OnBotRosterClicked(object sender, EventArgs e)
+        {
+            try
             {
-                try
-                {
-                    // Just ask the state machine to go exploring; if save/loading is needed, do it first.
-                    await GameLoop.GoToAsync(GameStateId.Exploring, new StateArgs { Reason = "Continue" });
-                    await DisplayAlert("Continue", "Resuming adventure…", "OK");
-                }
-                catch (Exception ex)
-                {
-                    await DisplayAlert("Error", $"Failed to continue game: {ex.Message}", "OK");
-                }
-            };
+                Log.Info("Bot Roster button clicked");
+                await Navigation.PushAsync(new BotRosterPage());
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to open bot roster: {ex.Message}", ex);
+                await DisplayAlert("Error", $"Failed to open bot roster: {ex.Message}", "OK");
+            }
+        }
 
-            var debugBtn = new Button { Text = "Debug Menu" };
-            debugBtn.Clicked += async (_, __) =>
+        private async void OnInventoryClicked(object sender, EventArgs e)
+        {
+            try
             {
-                try
-                {
-                    await Navigation.PushAsync(new DebugMenuPage());
-                }
-                catch (Exception ex)
-                {
-                    await DisplayAlert("Error", $"Failed to open debug menu: {ex.Message}", "OK");
-                }
-            };
+                Log.Info("Inventory button clicked");
+                await Navigation.PushAsync(new InventoryPage());
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to open inventory: {ex.Message}", ex);
+                await DisplayAlert("Error", $"Failed to open inventory: {ex.Message}", "OK");
+            }
+        }
 
-            Content = new VerticalStackLayout
+        private async void OnBattleArenaClicked(object sender, EventArgs e)
+        {
+            try
             {
-                Padding = 24,
-                Spacing = 16,
-                Children =
-                {
-                    new Label { Text = "AUTOGLADIATORS", FontSize = 24, FontAttributes = FontAttributes.Bold, HorizontalTextAlignment = TextAlignment.Center },
-                    newGame,
-                    continueBtn,
-                    debugBtn
-                }
-            };
+                Log.Info("Battle Arena button clicked");
+                // Navigate to battle mode selector or create a quick battle
+                await Navigation.PushAsync(new BattleModeSelectorPage());
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to open battle arena: {ex.Message}", ex);
+                await DisplayAlert("Error", $"Failed to open battle arena: {ex.Message}", "OK");
+            }
+        }
+
+        private async void OnSettingsClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                Log.Info("Settings button clicked");
+                await DisplayAlert("Settings", "Settings menu coming soon!", "OK");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Settings error: {ex.Message}", ex);
+                await DisplayAlert("Error", $"Settings error: {ex.Message}", "OK");
+            }
+        }
+
+        private async void OnDebugMenuClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                Log.Info("Debug Menu button clicked");
+                await Navigation.PushAsync(new DebugMenuPage());
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to open debug menu: {ex.Message}", ex);
+                await DisplayAlert("Error", $"Failed to open debug menu: {ex.Message}", "OK");
+            }
         }
     }
 }
