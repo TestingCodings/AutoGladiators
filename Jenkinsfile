@@ -58,7 +58,17 @@ pipeline {
             }
             post {
                 always {
-                    publishTestResults testResultsPattern: '**/TestResults/*.trx'
+                    // Archive test result files
+                    archiveArtifacts artifacts: '**/TestResults/*.trx', allowEmptyArchive: true
+                    
+                    // Try to publish test results if MSTest plugin is available
+                    script {
+                        try {
+                            step([$class: 'MSTestPublisher', testResultsFile: '**/TestResults/*.trx'])
+                        } catch (Exception e) {
+                            echo "MSTest plugin not available, test results archived only"
+                        }
+                    }
                 }
             }
         }
@@ -79,7 +89,6 @@ pipeline {
             steps {
                 archiveArtifacts artifacts: 'publish\\**\\*.apk', allowEmptyArchive: true
                 archiveArtifacts artifacts: '**/bin/Release/**/*.dll', allowEmptyArchive: true
-                archiveArtifacts artifacts: '**/TestResults/*.trx', allowEmptyArchive: true
             }
         }
     }
