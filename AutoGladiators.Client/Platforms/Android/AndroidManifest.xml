@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.cortexa.autogladiators">
-    <application android:label="AutoGladiators" android:theme="@style/Maui.SplashTheme">
+    
+    <!-- Permissions for file system access -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    
+    <!-- For Android 11+ scoped storage -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    
+    <application android:label="AutoGladiators" 
+                 android:theme="@style/Maui.SplashTheme"
+                 android:requestLegacyExternalStorage="true">
         <activity android:name="crc64a5a37c43dff01024.MainActivity"
                   android:exported="true"
                   android:theme="@style/Maui.MainTheme"
