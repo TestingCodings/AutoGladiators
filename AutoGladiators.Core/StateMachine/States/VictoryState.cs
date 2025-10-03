@@ -10,7 +10,7 @@ namespace AutoGladiators.Core.StateMachine.States
 {
     public sealed class VictoryState : IGameState
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<VictoryState>();
+        private static readonly IAppLogger Log = AppLog.For<VictoryState>();
 
         public GameStateId Id => GameStateId.Victory;
 
@@ -22,7 +22,7 @@ namespace AutoGladiators.Core.StateMachine.States
             _rewardsApplied = false;
             _userConfirmed = false;
             
-            Log.LogInformation("Battle concluded. Victory!");
+            Log.Info("Battle concluded. Victory!");
             
             // Extract reward information from payload
             var payload = args?.Payload as dynamic;
@@ -43,7 +43,7 @@ namespace AutoGladiators.Core.StateMachine.States
             ctx.Ui?.SetStatus($"Victory! +{xp} XP, +{gold} Gold");
 
             _rewardsApplied = true;
-            Log.LogInformation($"Victory rewards applied: {xp} XP, {gold} Gold");
+            Log.Info($"Victory rewards applied: {xp} XP, {gold} Gold");
             
             return Task.CompletedTask;
         }
@@ -56,7 +56,7 @@ namespace AutoGladiators.Core.StateMachine.States
             {
                 _userConfirmed = true;
                 
-                Log.LogInformation("Returning to adventure after victory.");
+                Log.Info("Returning to adventure after victory.");
                 return Task.FromResult<StateTransition?>(new StateTransition(
                     GameStateId.Exploring,
                     new StateArgs { Reason = "VictoryReturn" }

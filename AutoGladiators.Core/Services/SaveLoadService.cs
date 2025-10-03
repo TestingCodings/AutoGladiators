@@ -8,7 +8,7 @@ namespace AutoGladiators.Core.Services
 {
     public class SaveLoadService
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<SaveLoadService>();
+        private static readonly IAppLogger Log = AppLog.For<SaveLoadService>();
 
         private const string SaveFileName = "autosave.json";
 

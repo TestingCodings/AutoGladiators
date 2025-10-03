@@ -8,7 +8,7 @@ namespace AutoGladiators.Core.Services
 {
     public class PlayerMovementService : IDisposable
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<PlayerMovementService>();
+        private static readonly IAppLogger Log = AppLog.For<PlayerMovementService>();
 
         private PlayerLocation _currentLocation;
         private System.Timers.Timer _movementTimer;

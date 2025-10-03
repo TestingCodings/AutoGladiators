@@ -92,13 +92,15 @@ namespace AutoGladiators.Core.Services
         private void ApplyStatGrowth(GladiatorBot bot, StatGrowth growth)
         {
             bot.MaxHealth += growth.Health;
-            bot.CurrentHealth += growth.Health; // Heal on level up
             bot.AttackPower += growth.AttackPower;
             bot.Defense += growth.Defense;
             bot.Speed += growth.Speed;
             bot.MaxEnergy += growth.Energy;
             bot.Energy = bot.MaxEnergy; // Restore energy on level up
             bot.Luck += growth.Luck;
+
+            // Fully heal on level up - set after MaxHealth is updated
+            bot.CurrentHealth = bot.MaxHealth;
 
             // Update derived stats
             bot.CriticalHitChance = Math.Min(25.0, 5.0 + (bot.Luck * 0.5)); // Max 25% crit

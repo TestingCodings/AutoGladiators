@@ -10,7 +10,7 @@ namespace AutoGladiators.Core.StateMachine.States
 {
     public sealed class IdleState : IGameState
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<IdleState>();
+        private static readonly IAppLogger Log = AppLog.For<IdleState>();
 
         public GameStateId Id => GameStateId.Idle;
 

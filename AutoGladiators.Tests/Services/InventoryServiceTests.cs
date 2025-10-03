@@ -15,6 +15,7 @@ namespace AutoGladiators.Tests.Services
         public void Setup()
         {
             _inventoryService = InventoryService.Instance;
+            _inventoryService.ClearInventory(); // Clear inventory state between tests
             _testBot = new GladiatorBot
             {
                 Id = 1,

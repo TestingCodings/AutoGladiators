@@ -15,7 +15,7 @@ namespace AutoGladiators.Core.Logic
 {
     public class BattleManager
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<BattleManager>();
+        private static readonly IAppLogger Log = AppLog.For<BattleManager>();
 
         public GladiatorBot Player { get; private set; }
         public GladiatorBot Enemy { get; private set; }
@@ -84,7 +84,7 @@ namespace AutoGladiators.Core.Logic
             var result = move.Use(attacker, defender);
             
             // Log the battle action
-            Log.LogInformation(result);
+            Log.Info(result);
         }
 
         public Move? ChooseMove(GladiatorBot bot)
@@ -164,7 +164,7 @@ namespace AutoGladiators.Core.Logic
 
     public class BattleRewards
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<BattleManager>();
+        private static readonly IAppLogger Log = AppLog.For<BattleRewards>();
 
         public int Experience { get; set; }
         public int Gold { get; set; }
@@ -175,7 +175,7 @@ namespace AutoGladiators.Core.Logic
 
     public class BattleAI
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<BattleManager>();
+        private static readonly IAppLogger Log = AppLog.For<BattleAI>();
 
         private readonly Random rng = new Random();
     private GladiatorBot? player;
@@ -246,7 +246,7 @@ namespace AutoGladiators.Core.Logic
     // --- MVP MoveDatabase for move lookup ---
     public static class MoveDatabase
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<BattleManager>();
+        private static readonly IAppLogger Log = AppLog.For("MoveDatabase");
 
         private static readonly Dictionary<string, Move> _moves;
         
