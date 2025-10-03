@@ -81,7 +81,7 @@ pipeline {
 
         stage('Publish APK') {
             steps {
-                bat 'dotnet publish AutoGladiators.Client\\AutoGladiators_MAUI.csproj --configuration Release -f net8.0-android -o publish\\ --no-build'
+                bat 'dotnet publish AutoGladiators.Client\\AutoGladiators_MAUI.csproj --configuration Release -f net8.0-android -o publish\\'
             }
         }
 
