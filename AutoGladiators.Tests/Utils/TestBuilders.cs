@@ -19,7 +19,7 @@ public static class TestBuilders
         int energy = 100,
         ElementalCore core = ElementalCore.None)
     {
-        return new GladiatorBot
+        var bot = new GladiatorBot
         {
             Name = name,
             Level = level,
@@ -32,8 +32,22 @@ public static class TestBuilders
             CurrentHealth = maxHp,  // Start at full health
             Energy = energy,
             MaxEnergy = energy,
-            ElementalCore = core
+            ElementalCore = core,
+            IsFainted = false      // Explicitly initialize as not fainted
         };
+        
+        // Apply level scaling to reflect the proper stats for the level
+        bot.ApplyLevelScaling();
+        
+        // If maxHp was explicitly set, override the scaled value
+        if (maxHp != 100) // 100 is the default
+        {
+            bot.MaxHealth = maxHp;
+        }
+        
+        bot.CurrentHealth = bot.MaxHealth; // Ensure full health after scaling
+        
+        return bot;
     }
 
     public static AutoGladiators.Core.Models.Move MakeMove(

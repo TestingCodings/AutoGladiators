@@ -12,7 +12,7 @@ namespace AutoGladiators.Core.StateMachine.States
 {
     public sealed class ExploringState : IGameState
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<ExploringState>();
+        private static readonly IAppLogger Log = AppLog.For<ExploringState>();
 
         public GameStateId Id => GameStateId.Exploring;
 
@@ -34,11 +34,11 @@ namespace AutoGladiators.Core.StateMachine.States
             if (wildBot != null)
             {
                 GameStateService.Instance.CurrentEncounter = wildBot;
-                Log.LogInformation($"Encounter! Wild {wildBot.Name} (Lv{wildBot.Level}) appeared.");
+                Log.Info($"Encounter! Wild {wildBot.Name} (Lv{wildBot.Level}) appeared.");
                 return Task.FromResult<StateTransition?>(new StateTransition(GameStateId.Battling));
             }
             
-            Log.LogInformation("No encounter this step. Continue exploring.");
+            Log.Info("No encounter this step. Continue exploring.");
             return Task.FromResult<StateTransition?>(null);
         }
 

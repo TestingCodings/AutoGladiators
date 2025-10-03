@@ -135,24 +135,39 @@ namespace AutoGladiators.Core.Core
             {
                 Level++;
                 Experience = 0;
-                MaxHealth += 10;
-                MaxEnergy += 5;
-                AttackPower += 2;
-                Defense += 1;
-                Speed += 1;
+                ApplyLevelScaling();
             }
         }
 
         public int GetXpThreshold(int level) => 100 + (level * 20);
 
+        // Apply level-based stat scaling for existing bots
+        public void ApplyLevelScaling()
+        {
+            // Base stats get improved with level
+            int levelBonus = Level - 1; // Level 1 has no bonus
+            MaxHealth = 100 + (levelBonus * 10);
+            MaxEnergy = 100 + (levelBonus * 5);
+            AttackPower = 50 + (levelBonus * 2);
+            Strength = AttackPower; // Keep Strength in sync
+            Defense = 25 + levelBonus;
+            Speed = 40 + levelBonus;
+            
+            // Ensure current health doesn't exceed max
+            if (CurrentHealth > MaxHealth)
+                CurrentHealth = MaxHealth;
+        }
+
         // Battle utilities
         public void ReceiveDamage(int amount)
         {
-            int damageTaken = Math.Max(0, amount - Defense);
-            CurrentHealth -= damageTaken;
-            if (CurrentHealth <= 0)
+            // Apply damage by increasing the damage taken
+            damageTaken += amount;
+            
+            // Cap damage taken so health doesn't go below 0
+            if (damageTaken >= MaxHealth)
             {
-                CurrentHealth = 0;
+                damageTaken = MaxHealth;
                 IsFainted = true;
                 StatusCondition = "Disabled";
             }

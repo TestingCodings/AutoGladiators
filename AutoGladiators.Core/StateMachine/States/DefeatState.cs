@@ -12,13 +12,13 @@ namespace AutoGladiators.Core.StateMachine.States
 {
     public sealed class DefeatState : IGameState
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<DefeatState>();
+        private static readonly IAppLogger Log = AppLog.For<DefeatState>();
 
         public GameStateId Id => GameStateId.Defeat;
 
         public Task EnterAsync(GameStateContext ctx, StateArgs? args = null, CancellationToken ct = default)
         {
-            Log.LogInformation("Battle concluded. Defeat.");
+            Log.Info("Battle concluded. Defeat.");
             ctx.Ui?.ShowDefeatScreen(args?.Payload);
             ctx.Ui?.SetStatus("You were defeated");
             return Task.CompletedTask;
@@ -26,7 +26,7 @@ namespace AutoGladiators.Core.StateMachine.States
 
         public Task<StateTransition?> ExecuteAsync(GameStateContext ctx, CancellationToken ct = default)
         {
-            Log.LogInformation("Returning to adventure after defeat.");
+            Log.Info("Returning to main menu after defeat");
             return Task.FromResult<StateTransition?>(new StateTransition(
                 GameStateId.Exploring,
                 new StateArgs { Reason = "DefeatReturn" }

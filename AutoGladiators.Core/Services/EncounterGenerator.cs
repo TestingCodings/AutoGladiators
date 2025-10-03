@@ -7,7 +7,7 @@ namespace AutoGladiators.Core.Services
 {
     public class EncounterGenerator
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<EncounterGenerator>();
+        private static readonly IAppLogger Log = AppLog.For<EncounterGenerator>();
         private readonly Random _rng = new();
 
         // MVP: Always generates an encounter for the core loop
@@ -39,13 +39,15 @@ namespace AutoGladiators.Core.Services
                 AttackPower = 15 + (playerLevel * 2),
                 Defense = 10 + playerLevel,
                 Speed = 8 + _rng.Next(0, 5),
+                MaxEnergy = 100 + (playerLevel * 5),
+                Energy = 100 + (playerLevel * 5),
                 
                 // Basic moves
                 Moveset = new System.Collections.Generic.List<string> { "Tackle", "Guard" },
                 LearnableMoves = new System.Collections.Generic.List<string> { "Tackle", "Guard", "Power Strike" }
             };
             
-            Log.LogInformation($"Generated wild encounter: {enemy.Name} (Lv{enemy.Level}) in {location}");
+            Log.Info($"Generated wild encounter: {enemy.Name} (Lv{enemy.Level}) in {location}");
             return enemy;
         }
     }

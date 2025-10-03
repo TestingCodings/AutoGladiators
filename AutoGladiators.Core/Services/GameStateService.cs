@@ -12,7 +12,7 @@ namespace AutoGladiators.Core.Services
 {
     public partial class GameStateService
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<GameStateService>();
+        private static readonly IAppLogger Log = AppLog.For<GameStateService>();
 
         // Optional notifier you can hook from a VM
         public Action<string, bool>? SetQuestFlag { get; set; }

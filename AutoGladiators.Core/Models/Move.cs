@@ -29,7 +29,9 @@ namespace AutoGladiators.Core.Models
     {
         // If Accuracy is 100, always hit; otherwise, roll
         if (Accuracy >= 100) return true;
-        return rng.Next(1, 101) <= Accuracy;
+        // Convert percentage accuracy to 0.0-1.0 range and compare with random double
+        double threshold = Accuracy / 100.0;
+        return rng.NextDouble() <= threshold;
     }
 
     public bool isCrit(IRng rng)

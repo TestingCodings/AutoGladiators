@@ -11,7 +11,7 @@ namespace AutoGladiators.Core.StateMachine.States
 {
     public sealed class InventoryState : IGameState
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<InventoryState>();
+        private static readonly IAppLogger Log = AppLog.For<InventoryState>();
 
         public GameStateId Id => GameStateId.Inventory;
 

@@ -116,7 +116,7 @@ namespace AutoGladiators.Tests.Services
             Assert.IsTrue(result.HasLeveledUp);
             Assert.IsTrue(_testBot.MaxHealth > initialHealth);
             Assert.IsTrue(_testBot.AttackPower > initialAttack);
-            Assert.IsTrue(_testBot.CurrentHealth == _testBot.MaxHealth); // Should heal on level up
+            Assert.AreEqual(_testBot.MaxHealth, _testBot.CurrentHealth, "CurrentHealth should equal MaxHealth after level up");
         }
 
         [Test]

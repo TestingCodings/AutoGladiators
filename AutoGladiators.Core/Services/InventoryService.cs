@@ -74,11 +74,11 @@ namespace AutoGladiators.Core.Services {
 
         public override UseItemResult Use(GladiatorBot target)
         {
-            if (!CanUse(target))
-                return UseItemResult.CreateFailed("Cannot use healing potion on this target");
-
             if (target.CurrentHealth >= target.MaxHealth)
                 return UseItemResult.CreateFailed("Bot is already at full health");
+
+            if (!CanUse(target))
+                return UseItemResult.CreateFailed("Cannot use healing potion on this target");
 
             int previousHealth = target.CurrentHealth;
             target.CurrentHealth = Math.Min(target.MaxHealth, target.CurrentHealth + HealAmount);
@@ -109,11 +109,11 @@ namespace AutoGladiators.Core.Services {
 
         public override UseItemResult Use(GladiatorBot target)
         {
-            if (!CanUse(target))
-                return UseItemResult.CreateFailed("Cannot use energy potion on this target");
-
             if (target.Energy >= target.MaxEnergy)
                 return UseItemResult.CreateFailed("Bot is already at full energy");
+
+            if (!CanUse(target))
+                return UseItemResult.CreateFailed("Cannot use energy potion on this target");
 
             int previousEnergy = target.Energy;
             target.Energy = Math.Min(target.MaxEnergy, target.Energy + EnergyAmount);
@@ -321,6 +321,11 @@ namespace AutoGladiators.Core.Services {
             });
 
             return result;
+        }
+
+        public void ClearInventory()
+        {
+            _modernInventory.Clear();
         }
 
         public bool RemoveItem(Guid itemId, int quantity = 1)

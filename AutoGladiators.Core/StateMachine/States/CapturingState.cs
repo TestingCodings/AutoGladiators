@@ -29,7 +29,7 @@ namespace AutoGladiators.Core.StateMachine.States
 
     public sealed class CapturingState : IGameState
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<CapturingState>();
+        private static readonly IAppLogger Log = AppLog.For<CapturingState>();
 
         public GameStateId Id => GameStateId.Capturing;
 

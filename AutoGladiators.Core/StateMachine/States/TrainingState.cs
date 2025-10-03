@@ -28,7 +28,7 @@ namespace AutoGladiators.Core.StateMachine.States
 
     public sealed class TrainingState : IGameState
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<TrainingState>();
+        private static readonly IAppLogger Log = AppLog.For<TrainingState>();
 
         public GameStateId Id => GameStateId.Training;
 
