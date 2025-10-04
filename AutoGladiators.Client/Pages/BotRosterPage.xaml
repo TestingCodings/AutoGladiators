@@ -2,53 +2,248 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="AutoGladiators.Client.Pages.BotRosterPage"
-             Title="My Bots"
-             BackgroundColor="Black">
+             Title="Bot Collection"
+             BackgroundColor="#0A0A0F">
 
-    <CollectionView x:Name="BotList" SelectionMode="Single" SelectionChanged="OnBotSelected">
-        <CollectionView.ItemTemplate>
-            <DataTemplate>
-                <Frame BorderColor="Gray" Margin="10" Padding="15" BackgroundColor="#2a2a2a" CornerRadius="10">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+    <Grid RowDefinitions="Auto,Auto,*">
+        
+        <!-- Header Section -->
+        <Frame Grid.Row="0" BackgroundColor="#1A1A2E" CornerRadius="15" HasShadow="True" Margin="15,15,15,10">
+            <StackLayout>
+                <Label Text="BOT COLLECTION" 
+                       FontSize="24" 
+                       FontAttributes="Bold"
+                       TextColor="#FFD700"
+                       HorizontalTextAlignment="Center"/>
+                <Grid ColumnDefinitions="*,*,*" Margin="0,10,0,0">
+                    <StackLayout Grid.Column="0" HorizontalOptions="Center">
+                        <Label x:Name="TotalBotsLabel" Text="12" FontSize="20" FontAttributes="Bold" TextColor="#4A9EFF" HorizontalTextAlignment="Center"/>
+                        <Label Text="Total Bots" FontSize="12" TextColor="#B0B0B0" HorizontalTextAlignment="Center"/>
+                    </StackLayout>
+                    <StackLayout Grid.Column="1" HorizontalOptions="Center">
+                        <Label x:Name="AvgLevelLabel" Text="4.2" FontSize="20" FontAttributes="Bold" TextColor="#00FF88" HorizontalTextAlignment="Center"/>
+                        <Label Text="Avg Level" FontSize="12" TextColor="#B0B0B0" HorizontalTextAlignment="Center"/>
+                    </StackLayout>
+                    <StackLayout Grid.Column="2" HorizontalOptions="Center">
+                        <Label x:Name="RareBotsLabel" Text="3" FontSize="20" FontAttributes="Bold" TextColor="#8B5CF6" HorizontalTextAlignment="Center"/>
+                        <Label Text="Rare+" FontSize="12" TextColor="#B0B0B0" HorizontalTextAlignment="Center"/>
+                    </StackLayout>
+                </Grid>
+            </StackLayout>
+        </Frame>
+        
+        <!-- Filter and Sort Controls -->
+        <Frame Grid.Row="1" BackgroundColor="#2A2A3E" CornerRadius="12" HasShadow="True" Margin="15,0,15,10">
+            <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10">
+                
+                <!-- Sort Options -->
+                <Label Grid.Row="0" Grid.ColumnSpan="3" Text="Sort &amp; Filter" FontSize="14" FontAttributes="Bold" TextColor="#FFD700" Margin="0,0,0,8"/>
+                
+                <Picker Grid.Row="1" Grid.Column="0" 
+                        x:Name="SortPicker" 
+                        Title="Sort By"
+                        BackgroundColor="#1A1A2E"
+                        TextColor="#B0B0B0"
+                        TitleColor="#4A9EFF"
+                        SelectedIndexChanged="OnSortPickerChanged">
+                    <Picker.Items>
+                        <x:String>Name</x:String>
+                        <x:String>Level</x:String>
+                        <x:String>Rarity</x:String>
+                        <x:String>Element</x:String>
+                        <x:String>Power</x:String>
+                    </Picker.Items>
+                </Picker>
+                
+                <Picker Grid.Row="1" Grid.Column="1" 
+                        x:Name="ElementFilter" 
+                        Title="Element"
+                        BackgroundColor="#1A1A2E"
+                        TextColor="#B0B0B0"
+                        TitleColor="#4A9EFF"
+                        SelectedIndexChanged="OnFilterPickerChanged">
+                    <Picker.Items>
+                        <x:String>All</x:String>
+                        <x:String>Fire</x:String>
+                        <x:String>Electric</x:String>
+                        <x:String>Ice</x:String>
+                        <x:String>Metal</x:String>
+                        <x:String>Wind</x:String>
+                    </Picker.Items>
+                </Picker>
+                
+                <Picker Grid.Row="1" Grid.Column="2" 
+                        x:Name="RarityFilter" 
+                        Title="Rarity"
+                        BackgroundColor="#1A1A2E"
+                        TextColor="#B0B0B0"
+                        TitleColor="#4A9EFF"
+                        SelectedIndexChanged="OnFilterPickerChanged">
+                    <Picker.Items>
+                        <x:String>All</x:String>
+                        <x:String>Common</x:String>
+                        <x:String>Uncommon</x:String>
+                        <x:String>Rare</x:String>
+                        <x:String>Epic</x:String>
+                        <x:String>Legendary</x:String>
+                    </Picker.Items>
+                </Picker>
+            </Grid>
+        </Frame>
 
-                        <!-- Bot Name and Level -->
-                        <StackLayout Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
-                            <Label Text="{Binding Name}" FontSize="20" TextColor="White" FontAttributes="Bold"/>
-                            <Label Text="{Binding Rarity}" FontSize="12" TextColor="Gold" 
-                                   BackgroundColor="#404040" Padding="5,2" VerticalOptions="Center" 
-                                   Margin="10,0,0,0"/>
-                        </StackLayout>
-                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding Level, StringFormat='Lv.{0}'}" 
-                               FontSize="16" TextColor="LightBlue" FontAttributes="Bold"/>
-
-                        <!-- Element and Class -->
-                        <StackLayout Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="15" Margin="0,5">
-                            <Label Text="{Binding ElementalCore}" FontSize="14" TextColor="Cyan"/>
-                            <Label Text="{Binding BotClass}" FontSize="14" TextColor="Orange"/>
-                        </StackLayout>
-
-                        <!-- Stats -->
-                        <StackLayout Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="20" Margin="0,5">
-                            <Label Text="{Binding Health, StringFormat='HP: {0}'}" FontSize="12" TextColor="LightGreen"/>
-                            <Label Text="{Binding AttackPower, StringFormat='ATK: {0}'}" FontSize="12" TextColor="Red"/>
-                        </StackLayout>
-
-                        <!-- Description -->
-                        <Label Grid.Row="3" Grid.ColumnSpan="2" Text="{Binding Description}" 
-                               FontSize="12" TextColor="LightGray" Margin="0,5,0,0"/>
-                    </Grid>
-                </Frame>
-            </DataTemplate>
-        </CollectionView.ItemTemplate>
-    </CollectionView>
+        <!-- Bot Collection -->
+        <CollectionView Grid.Row="2" x:Name="BotList" ItemsSource="{Binding FilteredBots}" SelectionMode="Single" SelectionChanged="OnBotSelected" Margin="15,0">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame BackgroundColor="#1A1A2E" 
+                           CornerRadius="15" 
+                           HasShadow="True" 
+                           Margin="0,5,0,10" 
+                           Padding="15"
+                           BorderColor="{Binding RarityColor}">
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnBotCardTapped" />
+                        </Frame.GestureRecognizers>
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="80,*,Auto">
+                            
+                            <!-- Bot Avatar/Icon -->
+                            <Frame Grid.Row="0" Grid.Column="0" Grid.RowSpan="3"
+                                   BackgroundColor="{Binding ElementColor}"
+                                   CornerRadius="10"
+                                   WidthRequest="70"
+                                   HeightRequest="70"
+                                   Padding="0"
+                                   Margin="0,0,10,0"
+                                   HasShadow="True">
+                                <Label Text="{Binding ElementIcon}" 
+                                       FontSize="30"
+                                       TextColor="White"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center"
+                                       FontAttributes="Bold"/>
+                            </Frame>
+                            
+                            <!-- Bot Name and Rarity -->
+                            <StackLayout Grid.Row="0" Grid.Column="1" Orientation="Vertical">
+                                <Label Text="{Binding Name}" 
+                                       FontSize="18" 
+                                       TextColor="#FFD700" 
+                                       FontAttributes="Bold"/>
+                                <Frame BackgroundColor="{Binding RarityColor}" 
+                                       CornerRadius="12" 
+                                       Padding="8,4"
+                                       HorizontalOptions="Start"
+                                       Margin="0,2,0,0">
+                                    <Label Text="{Binding Rarity}" 
+                                           FontSize="10" 
+                                           TextColor="White" 
+                                           FontAttributes="Bold"/>
+                                </Frame>
+                            </StackLayout>
+                            
+                            <!-- Level and Experience -->
+                            <StackLayout Grid.Row="0" Grid.Column="2" HorizontalOptions="End">
+                                <Label Text="{Binding Level, StringFormat='LV.{0}'}" 
+                                       FontSize="16" 
+                                       TextColor="#4A9EFF" 
+                                       FontAttributes="Bold"
+                                       HorizontalTextAlignment="End"/>
+                                <ProgressBar Progress="{Binding ExpProgress}" 
+                                             ProgressColor="#00FF88"
+                                             BackgroundColor="#2A2A3E"
+                                             WidthRequest="60"
+                                             HeightRequest="4"
+                                             Margin="0,4,0,0"/>
+                            </StackLayout>
+                            
+                            <!-- Element and Class Info -->
+                            <Grid Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" 
+                                  ColumnDefinitions="*,*" 
+                                  Margin="0,8,0,0">
+                                <StackLayout Grid.Column="0" Orientation="Horizontal">
+                                    <Label Text="{Binding ElementalCore}" 
+                                           FontSize="12" 
+                                           TextColor="{Binding ElementColor}"
+                                           FontAttributes="Bold"/>
+                                    <Label Text="|" 
+                                           FontSize="12" 
+                                           TextColor="#4A4A4A" 
+                                           Margin="5,0"/>
+                                    <Label Text="{Binding BotClass}" 
+                                           FontSize="12" 
+                                           TextColor="#B0B0B0"/>
+                                </StackLayout>
+                                <Label Grid.Column="1" 
+                                       Text="{Binding PowerRating, StringFormat='Power: {0}'}" 
+                                       FontSize="12" 
+                                       TextColor="#FF6B6B"
+                                       FontAttributes="Bold"
+                                       HorizontalTextAlignment="End"/>
+                            </Grid>
+                            
+                            <!-- Stats Bar -->
+                            <Grid Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" 
+                                  ColumnDefinitions="*,*,*" 
+                                  Margin="0,8,0,0">
+                                <StackLayout Grid.Column="0">
+                                    <Label Text="HP" FontSize="10" TextColor="#B0B0B0" HorizontalTextAlignment="Center"/>
+                                    <Label Text="{Binding MaxHealth}" FontSize="12" TextColor="#00FF88" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                                    <ProgressBar Progress="{Binding HealthPercent}" ProgressColor="#00FF88" BackgroundColor="#2A2A3E" HeightRequest="3"/>
+                                </StackLayout>
+                                <StackLayout Grid.Column="1" Margin="10,0">
+                                    <Label Text="ATK" FontSize="10" TextColor="#B0B0B0" HorizontalTextAlignment="Center"/>
+                                    <Label Text="{Binding AttackPower}" FontSize="12" TextColor="#FF4757" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                                    <ProgressBar Progress="{Binding AttackPercent}" ProgressColor="#FF4757" BackgroundColor="#2A2A3E" HeightRequest="3"/>
+                                </StackLayout>
+                                <StackLayout Grid.Column="2">
+                                    <Label Text="DEF" FontSize="10" TextColor="#B0B0B0" HorizontalTextAlignment="Center"/>
+                                    <Label Text="{Binding Defense}" FontSize="12" TextColor="#4A9EFF" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                                    <ProgressBar Progress="{Binding DefensePercent}" ProgressColor="#4A9EFF" BackgroundColor="#2A2A3E" HeightRequest="3"/>
+                                </StackLayout>
+                            </Grid>
+                            
+                            <!-- Equipment Slots Preview -->
+                            <Grid Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" 
+                                  ColumnDefinitions="Auto,Auto,Auto,Auto" 
+                                  HorizontalOptions="Center"
+                                  Margin="0,8,0,0">
+                                <Frame Grid.Column="0" BackgroundColor="{Binding WeaponSlotColor}" CornerRadius="6" WidthRequest="24" HeightRequest="24" Padding="0" Margin="2">
+                                    <Label Text="W" FontSize="10" TextColor="White" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontAttributes="Bold"/>
+                                </Frame>
+                                <Frame Grid.Column="1" BackgroundColor="{Binding ArmorSlotColor}" CornerRadius="6" WidthRequest="24" HeightRequest="24" Padding="0" Margin="2">
+                                    <Label Text="A" FontSize="10" TextColor="White" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontAttributes="Bold"/>
+                                </Frame>
+                                <Frame Grid.Column="2" BackgroundColor="{Binding AccessorySlotColor}" CornerRadius="6" WidthRequest="24" HeightRequest="24" Padding="0" Margin="2">
+                                    <Label Text="C" FontSize="10" TextColor="White" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontAttributes="Bold"/>
+                                </Frame>
+                                <Frame Grid.Column="3" BackgroundColor="{Binding ModuleSlotColor}" CornerRadius="6" WidthRequest="24" HeightRequest="24" Padding="0" Margin="2">
+                                    <Label Text="M" FontSize="10" TextColor="White" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" FontAttributes="Bold"/>
+                                </Frame>
+                            </Grid>
+                            
+                            <!-- Status and Actions -->
+                            <Grid Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" 
+                                  ColumnDefinitions="*,Auto" 
+                                  Margin="0,8,0,0">
+                                <Label Grid.Column="0" 
+                                       Text="{Binding StatusText}" 
+                                       FontSize="11" 
+                                       TextColor="{Binding StatusColor}"
+                                       VerticalTextAlignment="Center"/>
+                                <Button Grid.Column="1" 
+                                        Text="Details" 
+                                        FontSize="12"
+                                        BackgroundColor="#4A9EFF"
+                                        TextColor="White"
+                                        CornerRadius="6"
+                                        Padding="12,6"
+                                        Clicked="OnViewDetailsClicked"
+                                        CommandParameter="{Binding}"/>
+                            </Grid>
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
 </ContentPage>
