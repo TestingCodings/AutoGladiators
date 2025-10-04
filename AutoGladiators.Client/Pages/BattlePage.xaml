@@ -4,8 +4,8 @@
              xmlns:converters="clr-namespace:AutoGladiators.Client.Converters"
              x:Class="AutoGladiators.Client.Pages.BattlePage"
              x:Name="BattlePageRoot"
-             Title="Turn-Based Battle">
-
+             Title="⚔️ Battle Arena"
+             BackgroundColor="#0A0A0F">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -13,40 +13,281 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <VerticalStackLayout Padding="20" Spacing="10">
-
-        <!-- Enemy Info -->
-        <Label Text="{Binding EnemyBot.Name}" FontSize="20" FontAttributes="Bold"/>
-        <ProgressBar Progress="{Binding EnemyBot.HP, Converter={StaticResource HpProgressConverter}, ConverterParameter={Binding EnemyBot.MaxHP}}" />
-        <Label Text="{Binding EnemyBot.HP, StringFormat='HP: {0}'}" />
-
-        <!-- Spacer -->
-        <BoxView HeightRequest="20"/>
-
-        <!-- Battle Log -->
-        <ScrollView HeightRequest="150">
-            <Label Text="{Binding BattleLogText}" LineBreakMode="WordWrap" />
-        </ScrollView>
-
-        <!-- Spacer -->
-        <BoxView HeightRequest="20"/>
-
-        <!-- Player Info -->
-        <Label Text="{Binding PlayerBot.Name}" FontSize="20" FontAttributes="Bold"/>
-        <ProgressBar Progress="{Binding EnemyHpFraction}" />
-        <ProgressBar Progress="{Binding PlayerHpFraction}" />
-        <Label Text="{Binding PlayerBot.HP, StringFormat='HP: {0}'}" />
-
-        <!-- Move Buttons -->
-        <CollectionView ItemsSource="{Binding PlayerMoves}" SelectionMode="None">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                <Button Text="{Binding Name}"
-                        Command="{Binding BindingContext.UseMoveCommand, Source={x:Reference BattlePageRoot}}"
-                        CommandParameter="{Binding .}" />
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-
-    </VerticalStackLayout>
+    <Grid BackgroundColor="#0A0A0F">
+        <!-- Battle Arena Background -->
+        <BoxView BackgroundColor="#1A1A2E" Opacity="0.3"/>
+        
+        <!-- Main Battle Layout -->
+        <Grid RowDefinitions="Auto,*,Auto,Auto" Margin="10">
+            
+            <!-- Enemy Arena Section -->
+            <Frame Grid.Row="0" 
+                   BackgroundColor="#2A1B3D" 
+                   CornerRadius="15" 
+                   HasShadow="True"
+                   Margin="10,20,10,10"
+                   Padding="20">
+                <StackLayout>
+                    <!-- Enemy Bot Display -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackLayout Grid.Column="0">
+                            <Label Text="{Binding EnemyBot.Name}" 
+                                   FontSize="24" 
+                                   FontAttributes="Bold"
+                                   TextColor="#FF4757"/>
+                            <Label Text="{Binding EnemyBot.Level, StringFormat='Level {0}'}" 
+                                   FontSize="14" 
+                                   TextColor="#B0B0B0"/>
+                        </StackLayout>
+                        
+                        <!-- Enemy Bot Avatar Placeholder -->
+                        <Frame Grid.Column="1" 
+                               BackgroundColor="#FF4757" 
+                               CornerRadius="35"
+                               WidthRequest="70" 
+                               HeightRequest="70"
+                               HasShadow="True"
+                               x:Name="EnemyAvatar">
+                            <Label Text="🤖" 
+                                   FontSize="30" 
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center"
+                                   TextColor="White"/>
+                        </Frame>
+                    </Grid>
+                    
+                    <!-- Enemy Health Bar -->
+                    <StackLayout Margin="0,10,0,0">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" 
+                                   Text="HP" 
+                                   FontSize="12" 
+                                   TextColor="#B0B0B0"
+                                   FontAttributes="Bold"/>
+                            <Label Grid.Column="1" 
+                                   Text="{Binding EnemyBot.CurrentHealth, StringFormat='{0}'}" 
+                                   FontSize="12" 
+                                   TextColor="#FF4757"
+                                   FontAttributes="Bold"/>
+                        </Grid>
+                        
+                        <!-- Animated Health Bar -->
+                        <Frame BackgroundColor="#333" 
+                               CornerRadius="10" 
+                               Padding="2" 
+                               HeightRequest="20"
+                               HasShadow="False">
+                            <ProgressBar x:Name="EnemyHealthBar"
+                                       Progress="{Binding EnemyHpFraction}" 
+                                       ProgressColor="#FF4757"
+                                       BackgroundColor="Transparent"/>
+                        </Frame>
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+            
+            <!-- Battle Action Area -->
+            <Grid Grid.Row="1" RowDefinitions="*,Auto" Margin="10">
+                <!-- Battle Effects Display -->
+                <StackLayout Grid.Row="0" 
+                           VerticalOptions="CenterAndExpand"
+                           HorizontalOptions="CenterAndExpand"
+                           x:Name="BattleEffectsArea">
+                    
+                    <!-- Damage/Heal Indicators -->
+                    <Label x:Name="DamageIndicator"
+                           FontSize="36"
+                           FontAttributes="Bold"
+                           TextColor="#FFD700"
+                           IsVisible="False"
+                           HorizontalTextAlignment="Center"/>
+                    
+                    <!-- Battle Status -->
+                    <Label Text="{Binding BattleStateText}"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="#FFD700"
+                           HorizontalTextAlignment="Center"
+                           IsVisible="{Binding ShowBattleStatus}"/>
+                </StackLayout>
+                
+                <!-- Battle Log Area -->
+                <Frame Grid.Row="1" 
+                       BackgroundColor="#1A1A2E" 
+                       CornerRadius="10"
+                       HeightRequest="120"
+                       Margin="0,10"
+                       Padding="15">
+                    <ScrollView x:Name="BattleLogScroll">
+                        <Label Text="{Binding BattleLogText}" 
+                               LineBreakMode="WordWrap" 
+                               FontSize="12"
+                               TextColor="#B0B0B0"/>
+                    </ScrollView>
+                </Frame>
+            </Grid>
+            
+            <!-- Player Arena Section -->
+            <Frame Grid.Row="2" 
+                   BackgroundColor="#1B3D2A" 
+                   CornerRadius="15" 
+                   HasShadow="True"
+                   Margin="10,10,10,10"
+                   Padding="20">
+                <StackLayout>
+                    <!-- Player Health Bar -->
+                    <StackLayout Margin="0,0,0,10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" 
+                                   Text="HP" 
+                                   FontSize="12" 
+                                   TextColor="#B0B0B0"
+                                   FontAttributes="Bold"/>
+                            <Label Grid.Column="1" 
+                                   Text="{Binding PlayerBot.CurrentHealth, StringFormat='{0}'}" 
+                                   FontSize="12" 
+                                   TextColor="#00D4AA"
+                                   FontAttributes="Bold"/>
+                        </Grid>
+                        
+                        <!-- Animated Health Bar -->
+                        <Frame BackgroundColor="#333" 
+                               CornerRadius="10" 
+                               Padding="2" 
+                               HeightRequest="20"
+                               HasShadow="False">
+                            <ProgressBar x:Name="PlayerHealthBar"
+                                       Progress="{Binding PlayerHpFraction}" 
+                                       ProgressColor="#00D4AA"
+                                       BackgroundColor="Transparent"/>
+                        </Frame>
+                    </StackLayout>
+                    
+                    <!-- Player Bot Display -->
+                    <Grid ColumnDefinitions="Auto,*">
+                        <!-- Player Bot Avatar -->
+                        <Frame Grid.Column="0" 
+                               BackgroundColor="#00D4AA" 
+                               CornerRadius="35"
+                               WidthRequest="70" 
+                               HeightRequest="70"
+                               HasShadow="True"
+                               x:Name="PlayerAvatar">
+                            <Label Text="⚔️" 
+                                   FontSize="30" 
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center"
+                                   TextColor="White"/>
+                        </Frame>
+                        
+                        <StackLayout Grid.Column="1" 
+                                   VerticalOptions="Center"
+                                   Margin="15,0,0,0">
+                            <Label Text="{Binding PlayerBot.Name}" 
+                                   FontSize="24" 
+                                   FontAttributes="Bold"
+                                   TextColor="#00D4AA"/>
+                            <Label Text="{Binding PlayerBot.Level, StringFormat='Level {0}'}" 
+                                   FontSize="14" 
+                                   TextColor="#B0B0B0"/>
+                        </StackLayout>
+                    </Grid>
+                </StackLayout>
+            </Frame>
+            
+            <!-- Move Selection Area -->
+            <Frame Grid.Row="3" 
+                   BackgroundColor="#2A2A3E" 
+                   CornerRadius="15"
+                   HasShadow="True"
+                   Margin="10,10,10,20"
+                   Padding="15">
+                <StackLayout>
+                    <Label Text="SELECT MOVE" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="#FFD700"
+                           HorizontalTextAlignment="Center"
+                           Margin="0,0,0,10"/>
+                    
+                    <!-- Enhanced Move Grid -->
+                    <CollectionView ItemsSource="{Binding PlayerMoves}" 
+                                  SelectionMode="None">
+                        <CollectionView.ItemsLayout>
+                            <GridItemsLayout Orientation="Vertical" 
+                                           Span="2" 
+                                           HorizontalItemSpacing="10"
+                                           VerticalItemSpacing="10"/>
+                        </CollectionView.ItemsLayout>
+                        
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame BackgroundColor="#4A4A6E" 
+                                       CornerRadius="12"
+                                       HasShadow="True"
+                                       Padding="15">
+                                    <StackLayout>
+                                        <Label Text="{Binding Name}" 
+                                               FontSize="14" 
+                                               FontAttributes="Bold"
+                                               TextColor="White"
+                                               HorizontalTextAlignment="Center"/>
+                                        <Label Text="{Binding Element, StringFormat='{0} Type'}" 
+                                               FontSize="10" 
+                                               TextColor="#B0B0B0"
+                                               HorizontalTextAlignment="Center"/>
+                                        <Label Text="{Binding Power, StringFormat='Power: {0}'}" 
+                                               FontSize="10" 
+                                               TextColor="#FFD700"
+                                               HorizontalTextAlignment="Center"/>
+                                        <Button Text="Use Move"
+                                                BackgroundColor="#5A5A8E"
+                                                TextColor="White"
+                                                CornerRadius="8"
+                                                FontSize="12"
+                                                HeightRequest="35"
+                                                Margin="0,5,0,0"
+                                                Command="{Binding BindingContext.UseMoveCommand, Source={x:Reference BattlePageRoot}}"
+                                                CommandParameter="{Binding .}"/>
+                                    </StackLayout>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </Frame>
+        </Grid>
+        
+        <!-- Victory/Defeat Overlay -->
+        <Grid BackgroundColor="#000000" 
+              Opacity="0.9"
+              IsVisible="{Binding ShowBattleEndScreen}"
+              x:Name="BattleEndOverlay">
+            <StackLayout VerticalOptions="Center" 
+                       HorizontalOptions="Center"
+                       Spacing="20">
+                
+                <Label Text="{Binding BattleEndTitle}"
+                       FontSize="48"
+                       FontAttributes="Bold"
+                       TextColor="{Binding BattleEndColor}"
+                       HorizontalTextAlignment="Center"/>
+                
+                <Label Text="{Binding BattleEndMessage}"
+                       FontSize="18"
+                       TextColor="#B0B0B0"
+                       HorizontalTextAlignment="Center"/>
+                
+                <Button Text="Continue"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        BackgroundColor="#4A9EFF"
+                        TextColor="White"
+                        CornerRadius="25"
+                        WidthRequest="150"
+                        HeightRequest="50"
+                        Command="{Binding ContinueCommand}"/>
+            </StackLayout>
+        </Grid>
+    </Grid>
 </ContentPage>

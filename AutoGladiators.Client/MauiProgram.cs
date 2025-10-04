@@ -38,6 +38,10 @@ namespace AutoGladiators.Client
             builder.Services.AddSingleton<NPCDialogueLoader>();
             builder.Services.AddSingleton<DatabaseService>();
             builder.Services.AddSingleton<GameStateService>();
+            
+            // Register Visual Asset Services (Sprint 4)
+            builder.Services.AddSingleton<AutoGladiators.Client.Services.SpriteManager>();
+            builder.Services.AddSingleton<AutoGladiators.Client.Services.AnimationManager>();
 
             var app = builder.Build();
 
