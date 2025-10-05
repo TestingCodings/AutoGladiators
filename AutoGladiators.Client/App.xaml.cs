@@ -1,4 +1,5 @@
 ﻿using Microsoft.Maui.Controls;
+using Microsoft.Extensions.DependencyInjection;
 using AutoGladiators.Client.Pages;
 using AutoGladiators.Client.Services;
 using AutoGladiators.Core.Services;
@@ -30,24 +31,30 @@ namespace AutoGladiators.Client
                     }
                     catch (Exception ex)
                     {
-                        // Use proper logging instead of Console.WriteLine
-                        var logger = AppLog.For<App>();
-                        logger.Error($"Error initializing game loop: {ex.Message}", ex);
-                        logger.Error($"Stack trace: {ex.StackTrace}");
+                        // Use proper logging instead of Console.WriteLine - fallback to Debug if AppLog isn't ready
+                        try
+                        {
+                            var logger = AppLog.For<App>();
+                            logger.Error($"Error initializing game loop: {ex.Message}", ex);
+                        }
+                        catch
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Error initializing game loop: {ex.Message}");
+                            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                        }
                     }
                 });
 
-                // Set the root of the app to the Main Menu wrapped in a navigation stack
-                // Get the PlayerProfileService from the DI container
-                var profileService = Handler?.MauiContext?.Services?.GetService<PlayerProfileService>();
-                if (profileService != null)
-                {
-                    MainPage = new NavigationPage(new MainMenuPage(profileService));
-                }
-                else
-                {
-                    throw new InvalidOperationException("PlayerProfileService not found in DI container");
-                }
+                // Create a temporary main page that will resolve services later
+                MainPage = new ContentPage 
+                { 
+                    Content = new ActivityIndicator 
+                    { 
+                        IsRunning = true, 
+                        VerticalOptions = LayoutOptions.Center 
+                    } 
+                };
+
             }
             catch (Exception ex)
             {
@@ -56,6 +63,58 @@ namespace AutoGladiators.Client
                 System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw; // Re-throw to prevent app from starting in bad state
             }
+        }
+
+        protected override void OnStart()
+        {
+            base.OnStart();
+            
+            // Now the handler and services should be properly initialized
+            Task.Run(async () =>
+            {
+                try
+                {
+                    // Small delay to ensure everything is fully initialized
+                    await Task.Delay(100);
+                    
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        try
+                        {
+                            // Get the PlayerProfileService from the DI container
+                            var serviceProvider = Handler?.MauiContext?.Services;
+                            if (serviceProvider != null)
+                            {
+                                var profileService = serviceProvider.GetService<PlayerProfileService>();
+                                if (profileService != null)
+                                {
+                                    MainPage = new NavigationPage(new MainMenuPage(profileService));
+                                }
+                                else
+                                {
+                                    // Fallback - try to create instance manually
+                                    MainPage = new NavigationPage(new MainMenuPage(PlayerProfileService.Instance));
+                                }
+                            }
+                            else
+                            {
+                                // Fallback - try to create instance manually
+                                MainPage = new NavigationPage(new MainMenuPage(PlayerProfileService.Instance));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Failed to resolve services: {ex.Message}");
+                            // Last resort fallback
+                            MainPage = new NavigationPage(new MainMenuPage(PlayerProfileService.Instance));
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"OnStart service resolution failed: {ex.Message}");
+                }
+            });
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SQLite;
 using AutoGladiators.Core.Services;
 using AutoGladiators.Core.Models;
 using AutoGladiators.Core.Models.Exploration;
@@ -9,21 +10,34 @@ namespace AutoGladiators.Core.Core
 {
     public class PlayerProfile
     {
+        [PrimaryKey]
         public Guid Id { get; set; } = Guid.NewGuid();
         public string PlayerName { get; set; } = string.Empty;
+        
+        [Ignore]
         public List<GladiatorBot> BotRoster { get; set; } = new();
+        
+        [Ignore]
         public Dictionary<string, int> Inventory { get; set; } = new(); // ItemId -> Quantity
         
         // Game Progress
         public int? ActiveBotId { get; set; }
         public string CurrentMapRegion { get; set; } = "TutorialArea";
+        
+        [Ignore]
         public MapPosition CurrentPosition { get; set; } = new();
         
         // Exploration System (Pokemon-style)
+        [Ignore]
         public WorldPosition WorldPosition { get; set; } = new WorldPosition("starter_town", 10, 10);
         
+        [Ignore]
         public HashSet<string> UnlockedRegions { get; set; } = new() { "TutorialArea" };
+        
+        [Ignore]
         public HashSet<string> CompletedQuests { get; set; } = new();
+        
+        [Ignore]
         public Dictionary<string, bool> GameFlags { get; set; } = new();
         
         // Session Data
@@ -45,14 +59,26 @@ namespace AutoGladiators.Core.Core
         public int ExplorationPoints { get; set; }
 
         // Legacy compatibility properties
+        [Ignore]
         public string playerName => PlayerName;
+        
+        [Ignore]
         public int Level => PlayerLevel;
+        
+        [Ignore]
         public int Experience => ExplorationPoints;
+        
+        [Ignore]
         public int Gold => GetItemQuantity("Gold");
+        
+        [Ignore]
         public PlayerLocation CurrentLocation => new PlayerLocation { X = CurrentPosition.X, Y = CurrentPosition.Y };
+        
+        [Ignore]
         public Dictionary<string, bool> StoryFlags => GameFlags;
 
         // Statistics wrapper for new system compatibility
+        [Ignore]
         public PlayerStatistics Statistics => new PlayerStatistics
         {
             Level = PlayerLevel,
@@ -63,18 +89,25 @@ namespace AutoGladiators.Core.Core
         };
         
         // Game settings wrapper
+        [Ignore]
         public GameSettings GameSettings => new GameSettings
         {
             Difficulty = Difficulty
         };
 
         // Computed Properties
+        [Ignore]
         public GladiatorBot? ActiveBot => ActiveBotId.HasValue 
             ? BotRoster.FirstOrDefault(b => b.Id == ActiveBotId.Value)
             : BotRoster.FirstOrDefault();
-            
+        
+        [Ignore]    
         public int TotalBots => BotRoster.Count;
+        
+        [Ignore]
         public int PlayerLevel => Math.Max(1, ExplorationPoints / 100 + BotRoster.Count / 3);
+        
+        [Ignore]
         public double WinRate => BattlesWon + BattlesLost > 0 
             ? (double)BattlesWon / (BattlesWon + BattlesLost) 
             : 0.0;
