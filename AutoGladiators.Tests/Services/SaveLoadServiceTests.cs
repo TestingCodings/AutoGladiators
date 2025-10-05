@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
-using AutoGladiators.Core.Services;
+using AutoGladiators.Core.Core;
 using AutoGladiators.Core.Models;
+using AutoGladiators.Core.Services;
 using System.IO;
 
 namespace AutoGladiators.Tests.Services
@@ -11,11 +12,12 @@ namespace AutoGladiators.Tests.Services
         [Test]
         public void SaveLoad_RoundTrip_PreservesPlayerProfile()
         {
-            var profile = new PlayerProfile { Name = "Test", Gold = 123 };
+            var profile = new PlayerProfile { PlayerName = "Test" };
+            profile.AddItem("Gold", 123);
             var path = Path.GetTempFileName();
             SaveLoadService.SaveProfile(profile, path);
             var loaded = SaveLoadService.LoadProfile(path);
-            Assert.That(loaded.Name, Is.EqualTo(profile.Name));
+            Assert.That(loaded.PlayerName, Is.EqualTo(profile.PlayerName));
             Assert.That(loaded.Gold, Is.EqualTo(profile.Gold));
             File.Delete(path);
         }
@@ -25,7 +27,9 @@ namespace AutoGladiators.Tests.Services
         {
             var db = new SQLite.SQLiteConnection(":memory:");
             db.CreateTable<PlayerProfile>();
-            db.Insert(new PlayerProfile { Name = "SqliteTest", Gold = 1 });
+            var testProfile = new PlayerProfile { PlayerName = "SqliteTest" };
+            testProfile.AddItem("Gold", 1);
+            db.Insert(testProfile);
             var result = db.Table<PlayerProfile>().FirstOrDefault();
             Assert.That(result, Is.Not.Null);
         }

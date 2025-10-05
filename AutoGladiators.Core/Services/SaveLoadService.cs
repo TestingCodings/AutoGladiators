@@ -1,6 +1,7 @@
 ﻿using AutoGladiators.Core.Services.Logging;
 using Microsoft.Extensions.Logging;
 using AutoGladiators.Core.Models;
+using AutoGladiators.Core.Core;
 using System.IO;
 using System.Text.Json;
 

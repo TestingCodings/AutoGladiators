@@ -113,7 +113,7 @@ namespace AutoGladiators.Client.ViewModels
                 // Give player some gold
                 if (gameState.CurrentPlayer != null)
                 {
-                    gameState.CurrentPlayer.Gold += 100;
+                    gameState.CurrentPlayer.AddItem("Gold", 100);
                 }
                 break;
                 

@@ -38,7 +38,16 @@ namespace AutoGladiators.Client
                 });
 
                 // Set the root of the app to the Main Menu wrapped in a navigation stack
-                MainPage = new NavigationPage(new MainMenuPage());
+                // Get the PlayerProfileService from the DI container
+                var profileService = Handler?.MauiContext?.Services?.GetService<PlayerProfileService>();
+                if (profileService != null)
+                {
+                    MainPage = new NavigationPage(new MainMenuPage(profileService));
+                }
+                else
+                {
+                    throw new InvalidOperationException("PlayerProfileService not found in DI container");
+                }
             }
             catch (Exception ex)
             {

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AutoGladiators.Client.Pages.StarterSelectionPage"
+             Title="Choose Your Starter Bot"
+             BackgroundColor="#0A0A0F">
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto">
+        
+        <!-- Header -->
+        <Frame Grid.Row="0" BackgroundColor="#1A1A2E" CornerRadius="15" HasShadow="True" Margin="15,15,15,10">
+            <StackLayout>
+                <Label Text="CHOOSE YOUR STARTER BOT" 
+                       FontSize="24" 
+                       FontAttributes="Bold"
+                       TextColor="#FFD700"
+                       HorizontalTextAlignment="Center"/>
+                <Label Text="Select your first companion for your journey as a Gladiator Bot trainer!" 
+                       FontSize="14"
+                       TextColor="#B0B0B0"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,5,0,0"/>
+            </StackLayout>
+        </Frame>
+
+        <!-- Starter Bot Options -->
+        <CollectionView Grid.Row="1" x:Name="StarterBotList" Margin="15,0">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="10"/>
+            </CollectionView.ItemsLayout>
+            
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame BackgroundColor="#1A1A2E" 
+                           CornerRadius="15" 
+                           HasShadow="True" 
+                           Padding="15"
+                           BorderColor="{Binding BorderColor}">
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnStarterBotTapped" />
+                        </Frame.GestureRecognizers>
+                        
+                        <Grid ColumnDefinitions="80,*,Auto">
+                            
+                            <!-- Bot Avatar -->
+                            <Frame Grid.Column="0"
+                                   BackgroundColor="{Binding ElementColor}"
+                                   CornerRadius="10"
+                                   WidthRequest="70"
+                                   HeightRequest="70"
+                                   Padding="0"
+                                   HasShadow="True">
+                                <Label Text="{Binding ElementIcon}" 
+                                       FontSize="30"
+                                       TextColor="White"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center"
+                                       FontAttributes="Bold"/>
+                            </Frame>
+                            
+                            <!-- Bot Info -->
+                            <StackLayout Grid.Column="1" Margin="15,0,0,0" VerticalOptions="Center">
+                                <Label Text="{Binding Name}" 
+                                       FontSize="18" 
+                                       FontAttributes="Bold"
+                                       TextColor="#FFFFFF"/>
+                                <Label Text="{Binding ElementalCore}" 
+                                       FontSize="14" 
+                                       TextColor="{Binding ElementColor}"/>
+                                <Label Text="{Binding Description}" 
+                                       FontSize="12" 
+                                       TextColor="#B0B0B0"
+                                       MaxLines="2"/>
+                                
+                                <!-- Stats Preview -->
+                                <Grid ColumnDefinitions="*,*,*" Margin="0,5,0,0">
+                                    <StackLayout Grid.Column="0">
+                                        <Label Text="ATK" FontSize="10" TextColor="#B0B0B0" HorizontalTextAlignment="Center"/>
+                                        <Label Text="{Binding AttackPower}" FontSize="12" TextColor="#FF6B6B" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                                    </StackLayout>
+                                    <StackLayout Grid.Column="1">
+                                        <Label Text="DEF" FontSize="10" TextColor="#B0B0B0" HorizontalTextAlignment="Center"/>
+                                        <Label Text="{Binding Defense}" FontSize="12" TextColor="#4ECDC4" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                                    </StackLayout>
+                                    <StackLayout Grid.Column="2">
+                                        <Label Text="SPD" FontSize="10" TextColor="#B0B0B0" HorizontalTextAlignment="Center"/>
+                                        <Label Text="{Binding Speed}" FontSize="12" TextColor="#45B7D1" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                                    </StackLayout>
+                                </Grid>
+                            </StackLayout>
+                            
+                            <!-- Selection Indicator -->
+                            <Frame Grid.Column="2" 
+                                   BackgroundColor="{Binding SelectionColor}"
+                                   WidthRequest="30"
+                                   HeightRequest="30"
+                                   CornerRadius="15"
+                                   HasShadow="False"
+                                   VerticalOptions="Center"
+                                   IsVisible="{Binding IsSelected}">
+                                <Label Text="✓" 
+                                       FontSize="16" 
+                                       TextColor="White"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center"
+                                       FontAttributes="Bold"/>
+                            </Frame>
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Nickname Input -->
+        <Frame Grid.Row="2" BackgroundColor="#2A2A3E" CornerRadius="12" Margin="15,10,15,10" Padding="15">
+            <StackLayout>
+                <Label Text="Give your bot a nickname:" FontSize="14" TextColor="#FFD700" FontAttributes="Bold"/>
+                <Entry x:Name="NicknameEntry" 
+                       Placeholder="Enter a nickname for your bot..."
+                       PlaceholderColor="#6C757D"
+                       TextColor="#FFFFFF"
+                       BackgroundColor="#1A1A2E"
+                       FontSize="16"
+                       MaxLength="20"
+                       Margin="0,5,0,0"/>
+                <Label x:Name="NicknameHint" 
+                       Text="Choose a unique name that represents your bot's personality!"
+                       FontSize="12" 
+                       TextColor="#B0B0B0"
+                       Margin="0,5,0,0"/>
+            </StackLayout>
+        </Frame>
+
+        <!-- Action Buttons -->
+        <Grid Grid.Row="3" ColumnDefinitions="*,*" ColumnSpacing="15" Margin="15,0,15,20">
+            <Button Grid.Column="0" 
+                    Text="Back"
+                    BackgroundColor="#6C757D"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    FontAttributes="Bold"
+                    Clicked="OnBackClicked"/>
+                    
+            <Button Grid.Column="1" 
+                    x:Name="StartGameButton"
+                    Text="Start Adventure!"
+                    BackgroundColor="#28A745"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    FontAttributes="Bold"
+                    IsEnabled="False"
+                    Clicked="OnStartGameClicked"/>
+        </Grid>
+    </Grid>
+</ContentPage>
