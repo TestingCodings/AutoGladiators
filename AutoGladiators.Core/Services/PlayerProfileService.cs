@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using AutoGladiators.Core.Core;
@@ -36,7 +37,64 @@ namespace AutoGladiators.Core.Services
         }
 
         public PlayerProfile? GetCurrentProfile() => _currentProfile;
-        public void SetCurrentProfile(PlayerProfile? profile) => _currentProfile = profile;
+        public void SetCurrentProfile(PlayerProfile? profile) 
+        {
+            _currentProfile = profile;
+            
+            // Synchronize GameStateService with the loaded profile
+            if (profile != null)
+            {
+                SyncGameStateWithProfile(profile);
+            }
+        }
+        
+        private void SyncGameStateWithProfile(PlayerProfile profile)
+        {
+            try
+            {
+                var gameState = GameStateService.Instance;
+                
+                // Set the current player in GameStateService using reflection to access private setter
+                var gameStateType = typeof(GameStateService);
+                var currentPlayerProperty = gameStateType.GetProperty("CurrentPlayer", BindingFlags.Public | BindingFlags.Instance);
+                
+                if (currentPlayerProperty != null && currentPlayerProperty.CanWrite)
+                {
+                    currentPlayerProperty.SetValue(gameState, profile);
+                    Log.Info($"Set CurrentPlayer to {profile.PlayerName}");
+                }
+                else
+                {
+                    // Try using a private field if property setter is private
+                    var currentPlayerField = gameStateType.GetField("_currentPlayer", BindingFlags.NonPublic | BindingFlags.Instance)
+                                           ?? gameStateType.GetField("<CurrentPlayer>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance);
+                    
+                    if (currentPlayerField != null)
+                    {
+                        currentPlayerField.SetValue(gameState, profile);
+                        Log.Info($"Set CurrentPlayer field to {profile.PlayerName}");
+                    }
+                    else
+                    {
+                        Log.Error($"Failed to find CurrentPlayer property or backing field");
+                    }
+                }
+                
+                // Sync the bot roster
+                gameState.BotRoster.Clear();
+                foreach (var bot in profile.BotRoster)
+                {
+                    gameState.BotRoster.Add(bot);
+                }
+                
+                Log.Info($"Successfully synchronized GameStateService with profile: {profile.PlayerName}. BotRoster count: {gameState.BotRoster.Count}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to synchronize GameStateService with profile: {ex.Message}", ex);
+                throw; // Re-throw to make tests fail clearly if sync fails
+            }
+        }
         public PlayerProfile? CurrentProfile => _currentProfile;
         public bool HasActiveProfile => _currentProfile != null;
 
@@ -116,7 +174,12 @@ namespace AutoGladiators.Core.Services
                 }
 
                 string json = await File.ReadAllTextAsync(filePath);
-                var profile = JsonSerializer.Deserialize<PlayerProfile>(json);
+                var options = new JsonSerializerOptions 
+                { 
+                    // Use consistent property naming - no camel case conversion
+                    PropertyNameCaseInsensitive = true
+                };
+                var profile = JsonSerializer.Deserialize<PlayerProfile>(json, options);
                 
                 if (profile != null)
                 {
@@ -150,7 +213,11 @@ namespace AutoGladiators.Core.Services
                     try
                     {
                         string json = await File.ReadAllTextAsync(file);
-                        var profile = JsonSerializer.Deserialize<PlayerProfile>(json);
+                        var options = new JsonSerializerOptions 
+                        { 
+                            PropertyNameCaseInsensitive = true
+                        };
+                        var profile = JsonSerializer.Deserialize<PlayerProfile>(json, options);
                         
                         if (profile != null)
                         {
@@ -218,8 +285,8 @@ namespace AutoGladiators.Core.Services
                 
                 var options = new JsonSerializerOptions 
                 { 
-                    WriteIndented = true,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    WriteIndented = true
+                    // Removed PropertyNamingPolicy to use original property names and avoid serialization conflicts
                 };
                 
                 string json = JsonSerializer.Serialize(profile, options);

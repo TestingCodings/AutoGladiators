@@ -58,9 +58,7 @@ namespace AutoGladiators.Core.Core
         public int ItemsUsed { get; set; }
         public int ExplorationPoints { get; set; }
 
-        // Legacy compatibility properties
-        [Ignore]
-        public string playerName => PlayerName;
+        // Legacy compatibility properties - playerName property removed to avoid JSON serialization conflicts
         
         [Ignore]
         public int Level => PlayerLevel;

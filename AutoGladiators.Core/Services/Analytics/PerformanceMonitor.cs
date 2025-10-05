@@ -76,7 +76,7 @@ namespace AutoGladiators.Core.Services.Analytics
                 if (!_disposed)
                 {
                     _stopwatch.Stop();
-                                        var readOnlyContext = _context as IReadOnlyDictionary<string, object?> ?? new Dictionary<string, object?>(_context);
+                                        var readOnlyContext = _context as IReadOnlyDictionary<string, object?> ?? new Dictionary<string, object?>(_context ?? new Dictionary<string, object?>());
                     _logger.LogPerformance(_operationName, _stopwatch.ElapsedMilliseconds, readOnlyContext);
                     _disposed = true;
                 }

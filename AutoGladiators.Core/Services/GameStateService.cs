@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoGladiators.Core.Core;
@@ -136,6 +137,15 @@ namespace AutoGladiators.Core.Services
         // ------------------------------
         public GladiatorBot? GetCurrentBot()
         {
+            // First try to use the active bot from the current profile
+            if (CurrentPlayer?.ActiveBotId != null)
+            {
+                var activeBot = BotRoster.FirstOrDefault(bot => bot.Id == CurrentPlayer.ActiveBotId.Value);
+                if (activeBot != null)
+                    return activeBot;
+            }
+            
+            // Fallback to first bot in roster
             return BotRoster.Count > 0 ? BotRoster[0] : null;
         }
 

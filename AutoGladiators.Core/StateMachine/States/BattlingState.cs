@@ -40,11 +40,13 @@ namespace AutoGladiators.Core.StateMachine.States
 
             if (_player is null || _enemy is null)
             {
-                _logger.LogError("BattleState", "MissingBattleBots", null, new Dictionary<string, object?>
+                var errorData = new Dictionary<string, object?>
                 {
                     ["PlayerPresent"] = _player != null,
                     ["EnemyPresent"] = _enemy != null
-                });
+                };
+                
+                _logger.LogError("BattleState", "MissingBattleBots", null, errorData);
                 
                 _pending = new StateTransition(
                     GameStateId.Exploring,
@@ -61,11 +63,13 @@ namespace AutoGladiators.Core.StateMachine.States
             ctx.Ui?.SetStatus($"Battle started: {_player.Name} vs {_enemy.Name}");
 
             // Run one-turn battle
-            using var battlePerf = _performance.StartOperation("BattleExecution", new Dictionary<string, object?>
+            var perfData = new Dictionary<string, object?>
             {
-                ["PlayerLevel"] = _player.Level,
-                ["EnemyLevel"] = _enemy.Level
-            });
+                ["PlayerLevel"] = _player?.Level ?? 0,
+                ["EnemyLevel"] = _enemy?.Level ?? 0
+            };
+            
+            using var battlePerf = _performance.StartOperation("BattleExecution", perfData);
             
             var battleManager = new AutoGladiators.Core.Logic.BattleManager(_player, _enemy);
             var battleLog = await battleManager.RunOneTurnBattleAsync();
@@ -122,18 +126,20 @@ namespace AutoGladiators.Core.StateMachine.States
                     _analytics.LogPlayerLevelUp(_player.Id.ToString(), levelUpResult.NewLevel, _player.Experience);
                 }
                 
-                _logger.LogBattleEvent("Victory", _player.Id.ToString(), _enemy.Id.ToString(), new Dictionary<string, object?>
+                var victoryData = new Dictionary<string, object?>
                 {
                     ["XpEarned"] = totalXp,
                     ["BaseXp"] = baseXp,
                     ["XpBonus"] = xpBonus,
                     ["GoldEarned"] = totalGold,
                     ["BaseGold"] = baseGold,
-                    ["LevelsGained"] = levelUpResult.LevelsGained,
-                    ["NewLevel"] = levelUpResult.NewLevel,
-                    ["StatGrowth"] = levelUpResult.StatGrowth.ToString(),
+                    ["LevelsGained"] = levelUpResult?.LevelsGained ?? 0,
+                    ["NewLevel"] = levelUpResult?.NewLevel ?? _player.Level,
+                    ["StatGrowth"] = levelUpResult?.StatGrowth?.ToString() ?? "None",
                     ["BattleDurationSeconds"] = battleDuration.TotalSeconds
-                });
+                };
+                
+                _logger.LogBattleEvent("Victory", _player.Id.ToString(), _enemy.Id.ToString(), victoryData);
                 
                 _pending = new StateTransition(
                     GameStateId.Victory,
@@ -142,9 +148,9 @@ namespace AutoGladiators.Core.StateMachine.States
                         Payload = new { 
                             xp = totalXp, 
                             gold = totalGold, 
-                            enemyId = _enemy.Id,
-                            enemyName = _enemy.Name,
-                            enemyLevel = _enemy.Level 
+                            enemyId = _enemy?.Id ?? 0,
+                            enemyName = _enemy?.Name ?? "Unknown",
+                            enemyLevel = _enemy?.Level ?? 1 
                         } 
                     }
                 );
@@ -155,7 +161,7 @@ namespace AutoGladiators.Core.StateMachine.States
                 _game.SetFlag("LastBattleOutcome", false);
                 _pending = new StateTransition(
                     GameStateId.Defeat,
-                    new StateArgs { Reason = "BattleLost", Payload = new { enemyId = _enemy.Id } }
+                    new StateArgs { Reason = "BattleLost", Payload = new { enemyId = _enemy?.Id ?? 0 } }
                 );
             }
             else
@@ -165,7 +171,7 @@ namespace AutoGladiators.Core.StateMachine.States
                 _game.SetFlag("LastBattleOutcome", false);
                 _pending = new StateTransition(
                     GameStateId.Defeat,
-                    new StateArgs { Reason = "BattleDraw", Payload = new { enemyId = _enemy.Id } }
+                    new StateArgs { Reason = "BattleDraw", Payload = new { enemyId = _enemy?.Id ?? 0 } }
                 );
             }
 
