@@ -184,7 +184,7 @@ namespace AutoGladiators.Client.Pages
                     var botCount = _gameState.BotRoster.Count;
                     var currentBot = _gameState.GetCurrentBot();
                     
-                    var statusText = $"Player: {player.playerName} (Lv.{player.Level})  |  ";
+                    var statusText = $"Player: {player.PlayerName} (Lv.{player.Level})  |  ";
                     statusText += $"XP: {player.Experience}  |  Gold: {player.Gold}  |  Bots: {botCount}";
                     
                     if (currentBot != null)

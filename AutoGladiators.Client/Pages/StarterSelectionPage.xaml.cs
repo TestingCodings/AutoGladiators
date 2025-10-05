@@ -197,21 +197,21 @@ namespace AutoGladiators.Client.Pages
                 var profile = await _profileService.CreateNewProfile(
                     _playerName, 
                     _difficulty,
-                    _selectedBot.ElementalCore, 
+                    _selectedBot.BotId, 
                     NicknameEntry.Text.Trim()
                 );
 
                 if (profile != null)
                 {
-                    // Set as current profile
+                    // Set as current profile (this will sync GameStateService)
                     _profileService.SetCurrentProfile(profile);
                     
                     // Navigate to main game
                     await DisplayAlert("Adventure Begins!", 
                         $"Welcome, {_playerName}! Your journey with {NicknameEntry.Text} starts now!", "Let's Go!");
 
-                    // Navigate back to main menu which will now show the quick play option
-                    await Navigation.PopToRootAsync();
+                    // Navigate directly to adventure page to start exploring
+                    await Shell.Current.GoToAsync("//AdventurePage");
                 }
                 else
                 {
