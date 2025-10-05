@@ -22,7 +22,7 @@ namespace AutoGladiators.Core.Services
         private GameStateService() { }
 
         // Core state
-        public PlayerProfile? CurrentPlayer { get; private set; }
+        public AutoGladiators.Core.Core.PlayerProfile? CurrentPlayer { get; private set; }
         public List<GladiatorBot> BotRoster { get; private set; } = new();
         public Inventory Inventory { get; private set; } = new();
         public PlayerLocation PlayerLocation { get; set; } = new PlayerLocation();
@@ -53,7 +53,6 @@ namespace AutoGladiators.Core.Services
             {
                 if (CurrentPlayer != null)
                 {
-                    CurrentPlayer.StoryFlags ??= new Dictionary<string, bool>();
                     return CurrentPlayer.StoryFlags;
                 }
                 return _storyFlagsFallback ??= new Dictionary<string, bool>();
@@ -67,12 +66,11 @@ namespace AutoGladiators.Core.Services
         {
             CurrentPlayer = new PlayerProfile
             {
-                playerName = playerName,
-                Level = 1,
-                Experience = 0,
-                Gold = 100, // Starting gold
-                StoryFlags = new Dictionary<string, bool>()
+                PlayerName = playerName
             };
+            
+            // Add starting gold
+            CurrentPlayer.AddItem("Gold", 100);
             
             BotRoster.Clear();
             
@@ -254,12 +252,23 @@ namespace AutoGladiators.Core.Services
 
         public void SetPlayerLevel(int level)
         {
-            if (CurrentPlayer != null) CurrentPlayer.Level = level;
+            // Level is computed from ExplorationPoints, so we adjust ExplorationPoints instead
+            if (CurrentPlayer != null)
+            {
+                int targetExperience = (level - 1) * 100;
+                CurrentPlayer.ExplorationPoints = Math.Max(0, targetExperience);
+            }
         }
 
         public void SetPlayerName(string name)
         {
-            if (CurrentPlayer != null) CurrentPlayer.playerName = name;
+            // PlayerName is set at creation and should not be changed during gameplay
+            // If name change is needed, create a new profile
+            if (CurrentPlayer != null)
+            {
+                // Log warning about attempting to change immutable player name
+                Log.Warn($"Attempted to change player name from {CurrentPlayer.PlayerName} to {name}. Player name is immutable.");
+            }
         }
 
         public string GetPlayerLocationId()
@@ -279,8 +288,8 @@ namespace AutoGladiators.Core.Services
         {
             if (CurrentPlayer != null)
             {
-                CurrentPlayer.Experience += xp;
-                CurrentPlayer.Gold += gold;
+                CurrentPlayer.ExplorationPoints += xp;
+                CurrentPlayer.AddItem("Gold", gold);
             }
             SetQuestFlag?.Invoke("BattleRewardsApplied", true);
         }
@@ -290,17 +299,13 @@ namespace AutoGladiators.Core.Services
         // ------------------------------
         public bool HasFlag(string key)
         {
-            return CurrentPlayer != null
-                   && (CurrentPlayer.StoryFlags ??= new Dictionary<string, bool>())
-                          .TryGetValue(key, out var value)
-                   && value;
+            return CurrentPlayer?.GetGameFlag(key) ?? false;
         }
 
         public void SetFlag(string key, bool value)
         {
             if (CurrentPlayer == null) return;
-            CurrentPlayer.StoryFlags ??= new Dictionary<string, bool>();
-            CurrentPlayer.StoryFlags[key] = value;
+            CurrentPlayer.SetGameFlag(key, value);
         }
 
         // Session flags (string) â€” used by revised states (DialogueState, InventoryState, etc.)

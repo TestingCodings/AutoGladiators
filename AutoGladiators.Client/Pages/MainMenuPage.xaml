@@ -24,74 +24,87 @@
             <!-- Main Menu Cards -->
             <StackLayout Grid.Row="1" Spacing="15">
                 
-                <!-- Adventure Card -->
+                <!-- New Game Card -->
                 <Frame BackgroundColor="#1A1A2E" 
                        CornerRadius="12" 
                        HasShadow="True"
                        Padding="0">
-                    <Button Text="🗺️ ADVENTURE" 
+                    <Button Text="🆕 NEW GAME" 
                             FontSize="18" 
                             FontAttributes="Bold"
                             TextColor="#00FF88"
                             BackgroundColor="Transparent"
                             HeightRequest="60"
-                            Clicked="OnAdventureClicked"/>
+                            Clicked="OnNewGameClicked"/>
                 </Frame>
                 
-                <!-- Bot Roster Card -->
+                <!-- Continue Game Card -->
                 <Frame BackgroundColor="#1A1A2E" 
                        CornerRadius="12" 
                        HasShadow="True"
                        Padding="0">
-                    <Button Text="🤖 BOT ROSTER" 
+                    <Button Text="📁 CONTINUE GAME" 
                             FontSize="18" 
                             FontAttributes="Bold"
                             TextColor="#4A9EFF"
                             BackgroundColor="Transparent"
                             HeightRequest="60"
-                            Clicked="OnBotRosterClicked"/>
+                            Clicked="OnContinueGameClicked"/>
                 </Frame>
                 
-                <!-- Inventory Card -->
-                <Frame BackgroundColor="#1A1A2E" 
+                <!-- Quick Play Adventure (for current profile) -->
+                <Frame x:Name="QuickPlayFrame"
+                       BackgroundColor="#1A1A2E" 
                        CornerRadius="12" 
                        HasShadow="True"
-                       Padding="0">
-                    <Button Text="🎒 INVENTORY" 
+                       Padding="0"
+                       IsVisible="False">
+                    <Button x:Name="QuickPlayButton"
+                            Text="🗺️ QUICK ADVENTURE" 
                             FontSize="18" 
                             FontAttributes="Bold"
-                            TextColor="#FF6B35"
+                            TextColor="#FFD700"
                             BackgroundColor="Transparent"
                             HeightRequest="60"
-                            Clicked="OnInventoryClicked"/>
-                </Frame>
-                
-                <!-- Battle Arena Card -->
-                <Frame BackgroundColor="#1A1A2E" 
-                       CornerRadius="12" 
-                       HasShadow="True"
-                       Padding="0">
-                    <Button Text="⚡ BATTLE ARENA" 
-                            FontSize="18" 
-                            FontAttributes="Bold"
-                            TextColor="#FF4757"
-                            BackgroundColor="Transparent"
-                            HeightRequest="60"
-                            Clicked="OnBattleArenaClicked"/>
+                            Clicked="OnQuickAdventureClicked"/>
                 </Frame>
                 
             </StackLayout>
             
             <!-- Footer Section -->
             <StackLayout Grid.Row="2" Spacing="10" Margin="0,40,0,20">
-                <Button Text="⚙️ Settings" 
-                        FontSize="14" 
-                        TextColor="#B0B0B0"
-                        BackgroundColor="#2A2A3E"
-                        CornerRadius="8"
-                        HeightRequest="45"
-                        Clicked="OnSettingsClicked"/>
-                        
+                <!-- Current Profile Display -->
+                <Frame x:Name="CurrentProfileFrame" 
+                       BackgroundColor="#2A2A3E" 
+                       CornerRadius="8" 
+                       Padding="15"
+                       IsVisible="False">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Label Grid.Column="0" 
+                               x:Name="ProfileInitialLabel"
+                               Text="T"
+                               FontSize="16" 
+                               FontAttributes="Bold"
+                               TextColor="#FFD700"
+                               VerticalOptions="Center"/>
+                        <StackLayout Grid.Column="1" Margin="10,0">
+                            <Label x:Name="CurrentProfileLabel" 
+                                   Text="Trainer Name - Level 1"
+                                   FontSize="12" 
+                                   TextColor="#FFFFFF"/>
+                        </StackLayout>
+                        <Button Grid.Column="2" 
+                                Text="⚙️"
+                                BackgroundColor="Transparent"
+                                TextColor="#B0B0B0"
+                                WidthRequest="30"
+                                HeightRequest="30"
+                                CornerRadius="15"
+                                FontSize="12"
+                                Clicked="OnProfileSettingsClicked"/>
+                    </Grid>
+                </Frame>
+                
                 <Button Text="🐛 Debug Menu" 
                         FontSize="14" 
                         TextColor="#B0B0B0"

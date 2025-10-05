@@ -15,6 +15,10 @@ namespace AutoGladiators.Core.Core
         public string Name { get; set; } = string.Empty;
         public ElementalCore ElementalCore { get; set; } = ElementalCore.None;
         public string Description { get; set; } = "A mysterious bot with unknown capabilities.";
+        
+        // New properties for starter selection system
+        public string Nickname { get; set; } = string.Empty;
+        public bool IsStarter { get; set; } = false;
 
 
         // Stats

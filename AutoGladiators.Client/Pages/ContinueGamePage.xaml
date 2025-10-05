@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AutoGladiators.Client.Pages.ContinueGamePage"
+             Title="Continue Game"
+             BackgroundColor="#0A0A0F">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        
+        <!-- Header -->
+        <Frame Grid.Row="0" BackgroundColor="#1A1A2E" CornerRadius="15" HasShadow="True" Margin="15,15,15,10">
+            <StackLayout>
+                <Label Text="CONTINUE YOUR ADVENTURE" 
+                       FontSize="24" 
+                       FontAttributes="Bold"
+                       TextColor="#FFD700"
+                       HorizontalTextAlignment="Center"/>
+                <Label Text="Select a saved profile to resume your journey!" 
+                       FontSize="14"
+                       TextColor="#B0B0B0"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,5,0,0"/>
+            </StackLayout>
+        </Frame>
+
+        <!-- Saved Profiles List -->
+        <Grid Grid.Row="1">
+            <!-- Loading Indicator -->
+            <ActivityIndicator x:Name="LoadingIndicator"
+                             IsRunning="True"
+                             Color="#FFD700"
+                             VerticalOptions="Center"
+                             HorizontalOptions="Center"/>
+
+            <!-- No Profiles Message -->
+            <Frame x:Name="NoProfilesFrame"
+                   BackgroundColor="#2A2A3E" 
+                   CornerRadius="12" 
+                   Margin="15"
+                   VerticalOptions="Center"
+                   IsVisible="False">
+                <StackLayout Spacing="20" Padding="30">
+                    <Label Text="📁" FontSize="60" HorizontalTextAlignment="Center"/>
+                    <Label Text="No Saved Games Found" 
+                           FontSize="20" 
+                           FontAttributes="Bold"
+                           TextColor="#FFD700"
+                           HorizontalTextAlignment="Center"/>
+                    <Label Text="You haven't created any trainer profiles yet. Start a new game to begin your adventure!" 
+                           FontSize="14"
+                           TextColor="#B0B0B0"
+                           HorizontalTextAlignment="Center"/>
+                    <Button Text="Start New Game"
+                            BackgroundColor="#28A745"
+                            TextColor="White"
+                            CornerRadius="8"
+                            HeightRequest="45"
+                            FontAttributes="Bold"
+                            Clicked="OnNewGameClicked"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- Profiles Collection -->
+            <CollectionView x:Name="ProfilesCollectionView" 
+                          ItemsSource="{Binding SavedProfiles}"
+                          IsVisible="False"
+                          Margin="15,0">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame BackgroundColor="#2A2A3E" 
+                               CornerRadius="12" 
+                               Margin="0,5" 
+                               Padding="0"
+                               HasShadow="True">
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnProfileTapped" />
+                            </Frame.GestureRecognizers>
+                            
+                            <Grid ColumnDefinitions="Auto,*,Auto" Padding="20">
+                                
+                                <!-- Profile Avatar/Icon -->
+                                <Frame Grid.Column="0" 
+                                       BackgroundColor="#FFD700" 
+                                       CornerRadius="30" 
+                                       WidthRequest="60" 
+                                       HeightRequest="60"
+                                       VerticalOptions="Center"
+                                       Padding="0">
+                                    <Label Text="{Binding PlayerNameInitial}" 
+                                           FontSize="24" 
+                                           FontAttributes="Bold"
+                                           TextColor="#1A1A2E"
+                                           VerticalOptions="Center"
+                                           HorizontalOptions="Center"/>
+                                </Frame>
+
+                                <!-- Profile Info -->
+                                <StackLayout Grid.Column="1" 
+                                           Margin="15,0" 
+                                           VerticalOptions="Center">
+                                    <Label Text="{Binding PlayerName}" 
+                                           FontSize="18" 
+                                           FontAttributes="Bold"
+                                           TextColor="#FFFFFF"/>
+                                    
+                                    <Label Text="{Binding DifficultyDisplay}" 
+                                           FontSize="12" 
+                                           TextColor="{Binding DifficultyColor}"/>
+                                    
+                                    <StackLayout Orientation="Horizontal" Spacing="15">
+                                        <Label Text="{Binding LevelDisplay}" 
+                                               FontSize="12" 
+                                               TextColor="#B0B0B0"/>
+                                        <Label Text="{Binding BotsCollectedDisplay}" 
+                                               FontSize="12" 
+                                               TextColor="#B0B0B0"/>
+                                    </StackLayout>
+                                    
+                                    <Label Text="{Binding LastPlayedDisplay}" 
+                                           FontSize="10" 
+                                           TextColor="#6C757D"/>
+                                </StackLayout>
+
+                                <!-- Actions -->
+                                <StackLayout Grid.Column="2" VerticalOptions="Center">
+                                    <Button Text="▶"
+                                            BackgroundColor="#28A745"
+                                            TextColor="White"
+                                            CornerRadius="20"
+                                            WidthRequest="40"
+                                            HeightRequest="40"
+                                            FontSize="16"
+                                            CommandParameter="{Binding .}"
+                                            Clicked="OnLoadProfileClicked"/>
+                                    
+                                    <Button Text="🗑"
+                                            BackgroundColor="#DC3545"
+                                            TextColor="White"
+                                            CornerRadius="20"
+                                            WidthRequest="40"
+                                            HeightRequest="40"
+                                            FontSize="14"
+                                            Margin="0,5,0,0"
+                                            CommandParameter="{Binding .}"
+                                            Clicked="OnDeleteProfileClicked"/>
+                                </StackLayout>
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+
+        <!-- Action Buttons -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="15" Margin="15,10,15,20">
+            <Button Grid.Column="0" 
+                    Text="Back to Menu"
+                    BackgroundColor="#6C757D"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    FontAttributes="Bold"
+                    Clicked="OnBackClicked"/>
+                    
+            <Button Grid.Column="1" 
+                    Text="New Game"
+                    BackgroundColor="#28A745"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    FontAttributes="Bold"
+                    Clicked="OnNewGameClicked"/>
+        </Grid>
+    </Grid>
+</ContentPage>

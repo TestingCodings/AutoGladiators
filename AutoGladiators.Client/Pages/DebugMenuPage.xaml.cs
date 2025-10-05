@@ -76,17 +76,15 @@ namespace AutoGladiators.Client.Pages
             {
                 Log.Info("Adding control chips to inventory");
                 
-                for (int i = 0; i < 5; i++)
+                // Use modern inventory system that properly stacks items
+                var captureDevice = new AutoGladiators.Core.Services.CaptureDevice
                 {
-                    var chip = new AutoGladiators.Core.Models.Item
-                    {
-                        Name = "ControlChip",
-                        Description = "A high-tech chip used to capture and control wild bots.",
-                        Type = AutoGladiators.Core.Enums.ItemType.Capture.ToString(),
-                        Effect = "Allows you to capture wild bots during battle"
-                    };
-                    GameStateService.Instance.AddItem(chip);
-                }
+                    Name = "Control Chip",
+                    Description = "A high-tech chip used to capture and control wild bots.",
+                    CaptureRate = 0.75f
+                };
+                
+                AutoGladiators.Core.Services.InventoryService.Instance.AddItem(captureDevice, 5);
                 
                 Log.Info("Successfully added 5 control chips");
                 await DisplayAlert("Inventory Updated", "Added 5 Control Chips to your inventory!\n\nUse these during battles to capture wild bots and add them to your collection.", "OK");
@@ -104,17 +102,15 @@ namespace AutoGladiators.Client.Pages
             {
                 Log.Info("Adding energy packs to inventory");
                 
-                for (int i = 0; i < 3; i++)
+                // Use modern inventory system that properly stacks items
+                var energyPotion = new AutoGladiators.Core.Services.EnergyPotion
                 {
-                    var energyPack = new AutoGladiators.Core.Models.Item
-                    {
-                        Name = "EnergyPack",
-                        Description = "Restores energy to tired bots.",
-                        Type = AutoGladiators.Core.Services.ItemType.Consumable.ToString(),
-                        Effect = "Restores 50 energy points to a bot"
-                    };
-                    GameStateService.Instance.AddItem(energyPack);
-                }
+                    Name = "Energy Pack",
+                    Description = "Restores energy to tired bots.",
+                    EnergyAmount = 50
+                };
+                
+                AutoGladiators.Core.Services.InventoryService.Instance.AddItem(energyPotion, 3);
                 
                 await DisplayAlert("Inventory Updated", "Added 3 Energy Packs to your inventory!\n\nUse these to restore energy to your bots during long battles.", "OK");
             }

@@ -7,6 +7,9 @@ using Microsoft.Maui.Hosting;
 using AutoGladiators.Core.Services.Storage;
 using AutoGladiators.Client.Services.Storage;
 using AutoGladiators.Core.Services;
+using AutoGladiators.Core.Services.Exploration;
+using AutoGladiators.Core.Rng;
+using AutoGladiators.Client.Pages;
 
 namespace AutoGladiators.Client
 {
@@ -38,6 +41,18 @@ namespace AutoGladiators.Client
             builder.Services.AddSingleton<NPCDialogueLoader>();
             builder.Services.AddSingleton<DatabaseService>();
             builder.Services.AddSingleton<GameStateService>();
+            builder.Services.AddSingleton<PlayerProfileService>();
+            
+            // Register Core Dependencies
+            builder.Services.AddSingleton<IRng, DefaultRng>();
+            
+            // Register Exploration Services (Pokemon-style exploration system)
+            builder.Services.AddSingleton<WorldManager>();
+            builder.Services.AddSingleton<MovementManager>();
+            builder.Services.AddSingleton<AutoGladiators.Core.Services.Exploration.EncounterService>();
+            
+            // Register Pages for dependency injection
+            builder.Services.AddTransient<ExplorationPage>();
             
             // Register Visual Asset Services (Sprint 4)
             builder.Services.AddSingleton<AutoGladiators.Client.Services.SpriteManager>();

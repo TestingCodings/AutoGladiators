@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AutoGladiators.Client.Pages.NewGamePage"
+             Title="New Game"
+             BackgroundColor="#0A0A0F">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        
+        <!-- Header -->
+        <Frame Grid.Row="0" BackgroundColor="#1A1A2E" CornerRadius="15" HasShadow="True" Margin="15,15,15,10">
+            <StackLayout>
+                <Label Text="START YOUR ADVENTURE" 
+                       FontSize="24" 
+                       FontAttributes="Bold"
+                       TextColor="#FFD700"
+                       HorizontalTextAlignment="Center"/>
+                <Label Text="Create your trainer profile to begin your journey in the AutoGladiators world!" 
+                       FontSize="14"
+                       TextColor="#B0B0B0"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,5,0,0"/>
+            </StackLayout>
+        </Frame>
+
+        <!-- Profile Creation Form -->
+        <ScrollView Grid.Row="1">
+            <StackLayout Margin="15,0">
+                
+                <!-- Player Name Section -->
+                <Frame BackgroundColor="#2A2A3E" CornerRadius="12" Padding="20" Margin="0,10">
+                    <StackLayout>
+                        <Label Text="Trainer Name" FontSize="18" FontAttributes="Bold" TextColor="#FFD700"/>
+                        <Label Text="Choose your trainer name (this cannot be changed later)" 
+                               FontSize="12" TextColor="#B0B0B0" Margin="0,5,0,10"/>
+                        
+                        <Entry x:Name="PlayerNameEntry" 
+                               Placeholder="Enter your trainer name..."
+                               PlaceholderColor="#6C757D"
+                               TextColor="#FFFFFF"
+                               BackgroundColor="#1A1A2E"
+                               FontSize="16"
+                               MaxLength="25"
+                               TextChanged="OnPlayerNameChanged"/>
+                        
+                        <Label x:Name="NameValidationLabel" 
+                               Text=""
+                               FontSize="12" 
+                               TextColor="#FF6B6B"
+                               IsVisible="False"
+                               Margin="0,5,0,0"/>
+                    </StackLayout>
+                </Frame>
+
+                <!-- Difficulty Selection -->
+                <Frame BackgroundColor="#2A2A3E" CornerRadius="12" Padding="20" Margin="0,10">
+                    <StackLayout>
+                        <Label Text="Difficulty Level" FontSize="18" FontAttributes="Bold" TextColor="#FFD700"/>
+                        <Label Text="Choose your preferred challenge level" 
+                               FontSize="12" TextColor="#B0B0B0" Margin="0,5,0,15"/>
+
+                        <StackLayout x:Name="DifficultyOptions" RadioButtonGroup.GroupName="Difficulty">
+                            
+                            <Frame BackgroundColor="#1A1A2E" CornerRadius="8" Padding="15" Margin="0,5">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnDifficultyTapped" />
+                                </Frame.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <RadioButton Grid.Column="0" x:Name="EasyRadio" Value="Easy" GroupName="Difficulty" CheckedChanged="OnDifficultyChanged"/>
+                                    <StackLayout Grid.Column="1" Margin="10,0,0,0">
+                                        <Label Text="Explorer Mode" FontSize="16" FontAttributes="Bold" TextColor="#00FF88"/>
+                                        <Label Text="Perfect for new trainers. More forgiving battles and extra resources." 
+                                               FontSize="12" TextColor="#B0B0B0"/>
+                                    </StackLayout>
+                                </Grid>
+                            </Frame>
+
+                            <Frame BackgroundColor="#1A1A2E" CornerRadius="8" Padding="15" Margin="0,5">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnDifficultyTapped" />
+                                </Frame.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <RadioButton Grid.Column="0" x:Name="NormalRadio" Value="Normal" GroupName="Difficulty" CheckedChanged="OnDifficultyChanged" IsChecked="True"/>
+                                    <StackLayout Grid.Column="1" Margin="10,0,0,0">
+                                        <Label Text="Trainer Mode" FontSize="16" FontAttributes="Bold" TextColor="#4A9EFF"/>
+                                        <Label Text="Balanced gameplay with standard battle difficulty and resource management." 
+                                               FontSize="12" TextColor="#B0B0B0"/>
+                                    </StackLayout>
+                                </Grid>
+                            </Frame>
+
+                            <Frame BackgroundColor="#1A1A2E" CornerRadius="8" Padding="15" Margin="0,5">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnDifficultyTapped" />
+                                </Frame.GestureRecognizers>
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <RadioButton Grid.Column="0" x:Name="HardRadio" Value="Hard" GroupName="Difficulty" CheckedChanged="OnDifficultyChanged"/>
+                                    <StackLayout Grid.Column="1" Margin="10,0,0,0">
+                                        <Label Text="Champion Mode" FontSize="16" FontAttributes="Bold" TextColor="#FF4444"/>
+                                        <Label Text="For experienced trainers. Tougher battles and limited resources." 
+                                               FontSize="12" TextColor="#B0B0B0"/>
+                                    </StackLayout>
+                                </Grid>
+                            </Frame>
+                        </StackLayout>
+                    </StackLayout>
+                </Frame>
+
+                <!-- Game Features Preview -->
+                <Frame BackgroundColor="#2A2A3E" CornerRadius="12" Padding="20" Margin="0,10">
+                    <StackLayout>
+                        <Label Text="What Awaits You" FontSize="18" FontAttributes="Bold" TextColor="#FFD700"/>
+                        
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10" Margin="0,15,0,0">
+                            <Label Grid.Row="0" Grid.Column="0" Text="🤖" FontSize="20" VerticalOptions="Center"/>
+                            <Label Grid.Row="0" Grid.Column="1" Text="Collect and train unique Gladiator Bots" FontSize="14" TextColor="#B0B0B0" VerticalOptions="Center" Margin="10,0,0,0"/>
+                            
+                            <Label Grid.Row="1" Grid.Column="0" Text="🗺️" FontSize="20" VerticalOptions="Center"/>
+                            <Label Grid.Row="1" Grid.Column="1" Text="Explore vast regions with hidden treasures" FontSize="14" TextColor="#B0B0B0" VerticalOptions="Center" Margin="10,0,0,0"/>
+                            
+                            <Label Grid.Row="2" Grid.Column="0" Text="⚔️" FontSize="20" VerticalOptions="Center"/>
+                            <Label Grid.Row="2" Grid.Column="1" Text="Engage in tactical turn-based battles" FontSize="14" TextColor="#B0B0B0" VerticalOptions="Center" Margin="10,0,0,0"/>
+                            
+                            <Label Grid.Row="3" Grid.Column="0" Text="🏆" FontSize="20" VerticalOptions="Center"/>
+                            <Label Grid.Row="3" Grid.Column="1" Text="Become the ultimate Gladiator Bot champion" FontSize="14" TextColor="#B0B0B0" VerticalOptions="Center" Margin="10,0,0,0"/>
+                        </Grid>
+                    </StackLayout>
+                </Frame>
+            </StackLayout>
+        </ScrollView>
+
+        <!-- Action Buttons -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="15" Margin="15,10,15,20">
+            <Button Grid.Column="0" 
+                    Text="Back to Menu"
+                    BackgroundColor="#6C757D"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    FontAttributes="Bold"
+                    Clicked="OnBackClicked"/>
+                    
+            <Button Grid.Column="1" 
+                    x:Name="NextButton"
+                    Text="Choose Starter Bot"
+                    BackgroundColor="#28A745"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="50"
+                    FontAttributes="Bold"
+                    IsEnabled="False"
+                    Clicked="OnNextClicked"/>
+        </Grid>
+    </Grid>
+</ContentPage>

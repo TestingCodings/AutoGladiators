@@ -253,7 +253,7 @@ namespace AutoGladiators.Core.Services {
 
         private readonly Dictionary<Guid, (InventoryItem Item, int Quantity)> _modernInventory = new();
 
-        private PlayerProfile _profile => GameStateService.Instance.CurrentPlayer;
+        private AutoGladiators.Core.Core.PlayerProfile _profile => GameStateService.Instance.CurrentPlayer;
 
         public List<ItemDisplay> GetInventory()
         {
