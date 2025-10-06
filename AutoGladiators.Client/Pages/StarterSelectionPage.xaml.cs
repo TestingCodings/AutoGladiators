@@ -211,8 +211,16 @@ namespace AutoGladiators.Client.Pages
                     await DisplayAlert("Adventure Begins!", 
                         $"Welcome, {_playerName}! Your journey with {NicknameEntry.Text} starts now!", "Let's Go!");
 
-                    // Navigate directly to adventure page to start exploring
-                    await Navigation.PushAsync(new AdventurePage());
+                    // Navigate directly to exploration page to start exploring the open world
+                    var explorationPage = Handler?.MauiContext?.Services?.GetService<ExplorationPage>();
+                    if (explorationPage != null)
+                    {
+                        await Navigation.PushAsync(explorationPage);
+                    }
+                    else
+                    {
+                        await DisplayAlert("Error", "Could not access exploration system.", "OK");
+                    }
                 }
                 else
                 {

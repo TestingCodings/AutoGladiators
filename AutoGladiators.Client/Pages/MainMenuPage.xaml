@@ -60,7 +60,7 @@
                        Padding="0"
                        IsVisible="False">
                     <Button x:Name="QuickPlayButton"
-                            Text="🗺️ QUICK ADVENTURE" 
+                            Text="🌍 EXPLORE OPEN WORLD" 
                             FontSize="18" 
                             FontAttributes="Bold"
                             TextColor="#FFD700"

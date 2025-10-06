@@ -86,15 +86,31 @@ namespace AutoGladiators.Client.Pages
                 {
                     button.IsEnabled = false;
                     
+                    // Get the profile ID safely
+                    Guid profileId = profileDisplay.Profile?.Id ?? profileDisplay.Summary?.Id ?? Guid.Empty;
+                    if (profileId == Guid.Empty)
+                    {
+                        await DisplayAlert("Error", "Invalid profile data.", "OK");
+                        return;
+                    }
+                    
                     // Load the full profile
-                    var profile = await _profileService.LoadProfile(profileDisplay.Profile.Id);
+                    var profile = await _profileService.LoadProfile(profileId);
                     if (profile != null)
                     {
                         // Set as current profile and navigate to main game
                         _profileService.SetCurrentProfile(profile);
                         
-                        // Navigate to adventure page or main game screen
-                        await Navigation.PushAsync(new AdventurePage());
+                        // Navigate to exploration page (open world system)
+                        var explorationPage = Handler?.MauiContext?.Services?.GetService<ExplorationPage>();
+                        if (explorationPage != null)
+                        {
+                            await Navigation.PushAsync(explorationPage);
+                        }
+                        else
+                        {
+                            await DisplayAlert("Error", "Could not access exploration system.", "OK");
+                        }
                     }
                     else
                     {
@@ -124,7 +140,15 @@ namespace AutoGladiators.Client.Pages
                 {
                     try
                     {
-                        await _profileService.DeleteProfile(profileDisplay.Profile.Id);
+                        // Get the profile ID safely
+                        Guid profileId = profileDisplay.Profile?.Id ?? profileDisplay.Summary?.Id ?? Guid.Empty;
+                        if (profileId == Guid.Empty)
+                        {
+                            await DisplayAlert("Error", "Invalid profile data.", "OK");
+                            return;
+                        }
+                        
+                        await _profileService.DeleteProfile(profileId);
                         SavedProfiles.Remove(profileDisplay);
                         
                         // Show no profiles message if list is empty
