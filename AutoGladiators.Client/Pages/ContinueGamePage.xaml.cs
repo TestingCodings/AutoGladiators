@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoGladiators.Client.Pages;
 
 namespace AutoGladiators.Client.Pages
 {
@@ -93,7 +94,7 @@ namespace AutoGladiators.Client.Pages
                         _profileService.SetCurrentProfile(profile);
                         
                         // Navigate to adventure page or main game screen
-                        await Shell.Current.GoToAsync("//AdventurePage");
+                        await Navigation.PushAsync(new AdventurePage());
                     }
                     else
                     {
@@ -162,8 +163,8 @@ namespace AutoGladiators.Client.Pages
             await Navigation.PopAsync();
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+        public new event PropertyChangedEventHandler? PropertyChanged;
+        protected new void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
