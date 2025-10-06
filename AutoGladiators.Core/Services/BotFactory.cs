@@ -33,6 +33,7 @@ namespace AutoGladiators.Core.Services
         public static GladiatorBot GenerateWildBot(string region, int playerLevel)
         {
             var level = Math.Max(1, playerLevel + _rand.Next(-1, 2));
+            var element = ParseElement(Elements[_rand.Next(Elements.Count)]);
 
             var bot = new GladiatorBot
             {
@@ -43,10 +44,13 @@ namespace AutoGladiators.Core.Services
                 Energy = 100,
                 Endurance = 10,
                 Luck = 10,
-                // FIX 1: use parser
-                ElementalCore = ParseElement(Elements[_rand.Next(Elements.Count)]),
+                ElementalCore = element,
                 CriticalHitChance = 1,
                 HasOwner = false,
+                AttackPower = 10 * level,
+                Defense = 5 * level,
+                Speed = 5 * level,
+                Moveset = GetBasicMovesetForElement(element)
             };
 
             return bot;
@@ -54,6 +58,8 @@ namespace AutoGladiators.Core.Services
 
         public static GladiatorBot CreateBot(string botId, int level)
         {
+            var element = ParseElement(Elements[_rand.Next(Elements.Count)]);
+            
             return new GladiatorBot
             {
                 Name = botId,
@@ -63,13 +69,24 @@ namespace AutoGladiators.Core.Services
                 Energy = 100 + level * 5,
                 Endurance = 10 + level,
                 Luck = 10 + level,
-                // FIX 2: use parser
-                ElementalCore = ParseElement(Elements[_rand.Next(Elements.Count)]),
+                ElementalCore = element,
                 CriticalHitChance = 1,
                 HasOwner = false,
                 AttackPower = 10 * level,
                 Defense = 5 * level,
                 Speed = 5 * level,
+                Moveset = GetBasicMovesetForElement(element)
+            };
+        }
+
+        private static List<string> GetBasicMovesetForElement(ElementalCore element)
+        {
+            // For now, use only moves that exist in MoveDatabase
+            // TODO: Expand MoveDatabase with element-specific moves
+            return element switch
+            {
+                ElementalCore.Metal => new List<string> { "Tackle", "Metal Strike", "Guard" },
+                _ => new List<string> { "Tackle", "Metal Strike", "Guard" }
             };
         }
 

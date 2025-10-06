@@ -23,12 +23,6 @@ namespace AutoGladiators.Client.Pages
             _mapService = WorldMapService.Instance;
             _mapButtons = new Button[WorldMapService.MAP_SIZE, WorldMapService.MAP_SIZE];
             
-            // Initialize game state if needed
-            if (_gameState.CurrentPlayer == null)
-            {
-                _gameState.InitializeNewGame("Adventurer");
-            }
-            
             CreateInteractiveMap();
             UpdateStatusDisplay();
             UpdateLocationInfo();

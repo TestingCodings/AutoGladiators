@@ -6,6 +6,7 @@ using AutoGladiators.Core.Services.Logging;
 using System;
 using System.Linq;
 using System.ComponentModel;
+using AutoGladiators.Client.Pages;
 
 namespace AutoGladiators.Client.Pages
 {
@@ -211,7 +212,7 @@ namespace AutoGladiators.Client.Pages
                         $"Welcome, {_playerName}! Your journey with {NicknameEntry.Text} starts now!", "Let's Go!");
 
                     // Navigate directly to adventure page to start exploring
-                    await Shell.Current.GoToAsync("//AdventurePage");
+                    await Navigation.PushAsync(new AdventurePage());
                 }
                 else
                 {
