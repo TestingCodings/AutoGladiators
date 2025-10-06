@@ -53,6 +53,9 @@ namespace AutoGladiators.Client
             
             // Register Pages for dependency injection
             builder.Services.AddTransient<ExplorationPage>();
+            builder.Services.AddTransient<AdventurePage>();
+            builder.Services.AddTransient<BotRosterPage>();
+            builder.Services.AddTransient<InventoryPage>();
             
             // Register Visual Asset Services (Sprint 4)
             builder.Services.AddSingleton<AutoGladiators.Client.Services.SpriteManager>();
@@ -69,6 +72,14 @@ namespace AutoGladiators.Client
                 // Test logging to ensure it's working
                 var logger = AppLog.For("MauiProgram");
                 logger.Info("AutoGladiators MAUI app initialized successfully");
+                
+                // Register Shell routes for navigation
+                Routing.RegisterRoute("ExplorationPage", typeof(ExplorationPage));
+                Routing.RegisterRoute("AdventurePage", typeof(AdventurePage)); // Keep old route for compatibility
+                Routing.RegisterRoute("BotRosterPage", typeof(BotRosterPage));
+                Routing.RegisterRoute("InventoryPage", typeof(InventoryPage));
+                
+                logger.Info("Shell routes registered successfully");
             }
             catch (Exception ex)
             {

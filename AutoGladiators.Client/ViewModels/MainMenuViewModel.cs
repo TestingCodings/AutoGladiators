@@ -19,7 +19,7 @@ namespace AutoGladiators.Client.ViewModels
 
         private void OnStartAdventure()
         {
-            Shell.Current.GoToAsync("AdventurePage");
+            Shell.Current.GoToAsync("ExplorationPage");
         }
 
         private void OnViewBots()
