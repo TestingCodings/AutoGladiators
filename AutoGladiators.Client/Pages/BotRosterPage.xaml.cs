@@ -12,10 +12,10 @@ namespace AutoGladiators.Client.Pages
 {
     public partial class BotRosterPage : ContentPage, INotifyPropertyChanged
     {
-        private readonly SpriteManager _spriteManager;
-        private readonly AnimationManager _animationManager;
-        private ObservableCollection<BotSummary> _allBots;
-        private ObservableCollection<BotSummary> _filteredBots;
+        private readonly SpriteManager? _spriteManager;
+        private readonly AnimationManager? _animationManager;
+        private ObservableCollection<BotSummary> _allBots = new();
+        private ObservableCollection<BotSummary> _filteredBots = new();
         private string _totalBots = "0";
         private string _avgLevel = "0";
         private string _rarePlusCount = "0";
@@ -61,8 +61,9 @@ namespace AutoGladiators.Client.Pages
         }
 
         // Parameterless constructor for direct instantiation (temporarily)
-        public BotRosterPage() : this(null, null)
+        public BotRosterPage()
         {
+            InitializeComponent();
         }
 
         public BotRosterPage(SpriteManager spriteManager, AnimationManager animationManager)
@@ -295,18 +296,18 @@ namespace AutoGladiators.Client.Pages
 
     public class BotSummary
     {
-        public string Name { get; set; }
-        public string ElementalCore { get; set; }
-        public string BotClass { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string ElementalCore { get; set; } = string.Empty;
+        public string BotClass { get; set; } = string.Empty;
         public int Level { get; set; }
         public int MaxHealth { get; set; }
         public int AttackPower { get; set; }
         public int Defense { get; set; }
-        public string Rarity { get; set; }
-        public string Description { get; set; }
+        public string Rarity { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
         public double ExpProgress { get; set; }
         public int PowerRating { get; set; }
-        public string StatusText { get; set; }
+        public string StatusText { get; set; } = string.Empty;
         public bool HasWeapon { get; set; }
         public bool HasArmor { get; set; }
         public bool HasAccessory { get; set; }

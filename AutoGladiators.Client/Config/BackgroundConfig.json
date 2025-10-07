@@ -1,0 +1,24 @@
+{
+  "backgroundSettings": {
+    "defaultBackground": "DarkGreen",
+    "customBackgroundPath": null,
+    "enableCustomBackground": false,
+    "backgroundOpacity": 0.8,
+    "overlayColor": "rgba(0,0,0,0.3)"
+  },
+  "zoneBackgrounds": {
+    "starter_town": {
+      "color": "LightGreen",
+      "pattern": "grass"
+    },
+    "route_1": {
+      "color": "ForestGreen", 
+      "pattern": "nature"
+    }
+  },
+  "instructions": {
+    "customBackground": "To use a custom background, set 'enableCustomBackground' to true and provide the path to your image file in 'customBackgroundPath'. Supported formats: JPG, PNG, GIF",
+    "zoneBackgrounds": "Each zone can have its own background color and pattern. Available patterns: grass, nature, cave, desert, water, mountain",
+    "backgroundOpacity": "Value between 0.0 (transparent) and 1.0 (fully opaque)"
+  }
+}

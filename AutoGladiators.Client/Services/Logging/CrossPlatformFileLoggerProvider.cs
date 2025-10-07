@@ -5,6 +5,11 @@ using Microsoft.Extensions.Logging;
 
 namespace AutoGladiators.Client.Services.Logging
 {
+    internal sealed class EmptyDisposable : IDisposable
+    {
+        public void Dispose() { }
+    }
+
     public sealed class CrossPlatformFileLoggerProvider : ILoggerProvider
     {
         private readonly string _logDirectory;
@@ -87,7 +92,7 @@ namespace AutoGladiators.Client.Services.Logging
             info.AppendLine();
             info.AppendLine("Method 1 - ADB Command Line (Debug Build):");
             info.AppendLine("  adb shell");
-            info.AppendLine("  run-as com.cortexa.autogladiators");
+            info.AppendLine("  run-as com.companyname.autogladiators_maui");
             info.AppendLine("  cd files/AutoGladiators/Logs");
             info.AppendLine("  ls -la");
             info.AppendLine("  cat app_YYYY-MM-DD.log | head -50");
@@ -96,11 +101,11 @@ namespace AutoGladiators.Client.Services.Logging
             info.AppendLine("Method 2 - Android Studio Device File Explorer:");
             info.AppendLine("  1. Open Android Studio");
             info.AppendLine("  2. View → Tool Windows → Device File Explorer");
-            info.AppendLine("  3. Navigate to data/data/com.cortexa.autogladiators/files/AutoGladiators/Logs");
+            info.AppendLine("  3. Navigate to data/data/com.companyname.autogladiators_maui/files/AutoGladiators/Logs");
             info.AppendLine("  4. Right-click files → Save As");
             info.AppendLine();
             info.AppendLine("Method 3 - ADB Pull (may require root):");
-            info.AppendLine("  adb shell run-as com.cortexa.autogladiators cp files/AutoGladiators/Logs/*.log /sdcard/");
+            info.AppendLine("  adb shell run-as com.companyname.autogladiators_maui cp files/AutoGladiators/Logs/*.log /sdcard/");
             info.AppendLine("  adb pull /sdcard/app_*.log .");
             info.AppendLine();
             info.AppendLine("Note: App-specific storage doesn't require external storage permissions");
@@ -158,7 +163,7 @@ namespace AutoGladiators.Client.Services.Logging
             _lock = lockObject;
         }
 
-        public IDisposable BeginScope<TState>(TState state) => null!;
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull => new EmptyDisposable();
 
         public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Debug;
 

@@ -36,8 +36,13 @@ namespace AutoGladiators.Client.Pages
         private Button _menuButton;
         
         // Map rendering
-        private const int TILE_SIZE = 40;
+        private const int TILE_SIZE = 45;
         private const int VISIBLE_RANGE = 5;
+        
+        // Animation support
+        private bool _isAnimating = false;
+        private Frame? _playerTileFrame = null;
+        private readonly Dictionary<string, Animation> _activeAnimations = new();
         
         public ExplorationPage(PlayerProfileService playerProfileService, 
                              WorldManager worldManager, 
@@ -85,15 +90,17 @@ namespace AutoGladiators.Client.Pages
             {
                 Text = "Loading...",
                 TextColor = Colors.White,
-                FontSize = 16,
-                FontAttributes = FontAttributes.Bold
+                FontSize = 18,
+                FontAttributes = FontAttributes.Bold,
+                FontFamily = "Arial"
             };
             
             _playerInfoLabel = new Label
             {
                 Text = "Player Info",
                 TextColor = Colors.LightGray,
-                FontSize = 12
+                FontSize = 14,
+                FontFamily = "Arial"
             };
             
             infoStack.Children.Add(_locationLabel);
@@ -128,7 +135,7 @@ namespace AutoGladiators.Client.Pages
             for (int i = 0; i < 5; i++)
                 controlGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
             for (int i = 0; i < 3; i++)
-                controlGrid.RowDefinitions.Add(new RowDefinition { Height = 30 });
+                controlGrid.RowDefinitions.Add(new RowDefinition { Height = 60 });
             
             // Movement buttons
             _northButton = CreateMovementButton("↑", Colors.DarkBlue);
@@ -178,9 +185,12 @@ namespace AutoGladiators.Client.Pages
                 Text = text,
                 BackgroundColor = backgroundColor,
                 TextColor = Colors.White,
-                FontSize = 20,
+                FontSize = 24,
                 FontAttributes = FontAttributes.Bold,
-                CornerRadius = 5
+                CornerRadius = 8,
+                FontFamily = "Arial",
+                HeightRequest = 50,
+                WidthRequest = 50
             };
         }
         
@@ -191,17 +201,33 @@ namespace AutoGladiators.Client.Pages
                 Text = text,
                 BackgroundColor = backgroundColor,
                 TextColor = Colors.White,
-                FontSize = 14,
-                CornerRadius = 5
+                FontSize = 16,
+                FontAttributes = FontAttributes.Bold,
+                CornerRadius = 8,
+                FontFamily = "Arial",
+                HeightRequest = 50,
+                Padding = new Thickness(5)
             };
         }
         
         private void SetupEventHandlers()
         {
-            _northButton.Clicked += async (s, e) => await MovePlayer(MovementDirection.North);
-            _southButton.Clicked += async (s, e) => await MovePlayer(MovementDirection.South);
-            _eastButton.Clicked += async (s, e) => await MovePlayer(MovementDirection.East);
-            _westButton.Clicked += async (s, e) => await MovePlayer(MovementDirection.West);
+            _northButton.Clicked += async (s, e) => { 
+                try { await AnimateButtonPress(_northButton); await MovePlayer(MovementDirection.North); } 
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"North button error: {ex}"); } 
+            };
+            _southButton.Clicked += async (s, e) => { 
+                try { await AnimateButtonPress(_southButton); await MovePlayer(MovementDirection.South); } 
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"South button error: {ex}"); } 
+            };
+            _eastButton.Clicked += async (s, e) => { 
+                try { await AnimateButtonPress(_eastButton); await MovePlayer(MovementDirection.East); } 
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"East button error: {ex}"); } 
+            };
+            _westButton.Clicked += async (s, e) => { 
+                try { await AnimateButtonPress(_westButton); await MovePlayer(MovementDirection.West); } 
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"West button error: {ex}"); } 
+            };
             
             _interactButton.Clicked += OnInteractClicked;
             _menuButton.Clicked += OnMenuClicked;
@@ -229,6 +255,7 @@ namespace AutoGladiators.Client.Pages
                     {
                         var latestProfile = profiles.OrderByDescending(p => p.LastPlayedDate).First();
                         _currentPlayer = await _playerProfileService.LoadProfile(latestProfile.Id);
+                        _playerProfileService.SetCurrentProfile(_currentPlayer);
                     }
                 }
                 
@@ -246,6 +273,12 @@ namespace AutoGladiators.Client.Pages
                     _encounterService.InitializeEncounterTables(_worldManager);
                 }
                 
+                // Ensure player has valid world position
+                if (string.IsNullOrEmpty(_currentPlayer.WorldPosition.ZoneId))
+                {
+                    _currentPlayer.WorldPosition = new WorldPosition("starter_town", 10, 10);
+                }
+                
                 // Load current zone
                 _currentZone = _worldManager.GetZone(_currentPlayer.WorldPosition.ZoneId);
                 if (_currentZone == null)
@@ -255,11 +288,29 @@ namespace AutoGladiators.Client.Pages
                     _currentZone = _worldManager.GetZone("starter_town");
                 }
                 
-                _worldManager.ChangeZone(_currentPlayer.WorldPosition.ZoneId);
+                if (_currentZone != null)
+                {
+                    _worldManager.ChangeZone(_currentPlayer.WorldPosition.ZoneId);
+                }
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"LoadPlayerAndWorld error: {ex}");
                 await DisplayAlert("Error", $"Failed to load world: {ex.Message}", "OK");
+                // Provide fallback
+                try
+                {
+                    _worldManager.InitializeDefaultWorld();
+                    if (_currentPlayer != null)
+                    {
+                        _currentPlayer.WorldPosition = new WorldPosition("starter_town", 10, 10);
+                        _currentZone = _worldManager.GetZone("starter_town");
+                    }
+                }
+                catch (Exception fallbackEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Fallback failed: {fallbackEx}");
+                }
             }
         }
         
@@ -267,15 +318,38 @@ namespace AutoGladiators.Client.Pages
         {
             if (_currentPlayer == null || _currentZone == null) return;
             
-            // Update info labels
-            _locationLabel.Text = $"{_currentZone.Name} ({_currentPlayer.WorldPosition.X}, {_currentPlayer.WorldPosition.Y})";
-            _playerInfoLabel.Text = $"{_currentPlayer.PlayerName} | Bots: {_currentPlayer.TotalBots} | Gold: {_currentPlayer.Gold}";
+            // Update info labels with smooth text transition
+            var newLocationText = $"{_currentZone.Name} ({_currentPlayer.WorldPosition.X}, {_currentPlayer.WorldPosition.Y})";
+            _locationLabel.Text = newLocationText;
+            
+            var newPlayerInfo = $"{_currentPlayer.PlayerName} | Bots: {_currentPlayer.TotalBots} | Gold: {_currentPlayer.Gold}";
+            _playerInfoLabel.Text = newPlayerInfo;
             
             // Update map display
             RenderMap();
             
             // Update button states
             UpdateMovementButtons();
+        }
+        
+        private async Task UpdateDisplayWithAnimation()
+        {
+            if (_currentPlayer == null || _currentZone == null) return;
+            
+            // Fade out old info
+            await Task.WhenAll(
+                _locationLabel.FadeTo(0.5, 150),
+                _playerInfoLabel.FadeTo(0.5, 150)
+            );
+            
+            // Update content
+            UpdateDisplay();
+            
+            // Fade back in
+            await Task.WhenAll(
+                _locationLabel.FadeTo(1.0, 150),
+                _playerInfoLabel.FadeTo(1.0, 150)
+            );
         }
         
         private void RenderMap()
@@ -328,27 +402,55 @@ namespace AutoGladiators.Client.Pages
             
             Color tileColor = GetTileColor(tile?.Type ?? TileType.Grass);
             
+            // Check for interactive objects
+            var objects = _currentZone?.GetObjectsAt(worldX, worldY);
+            bool hasInteractableObject = objects?.Any() == true;
+            bool isBuilding = objects?.Any(o => o.Type == WorldObjectType.Shop || 
+                                               o.Type == WorldObjectType.HealingCenter ||
+                                               o.Type == WorldObjectType.Gym) == true;
+            
             var frame = new Frame
             {
                 BackgroundColor = tileColor,
-                BorderColor = isPlayerPosition ? Colors.Red : Colors.Black,
-                CornerRadius = 2,
-                Padding = 2,
-                HasShadow = false
+                BorderColor = isPlayerPosition ? Colors.Gold : 
+                             hasInteractableObject ? Colors.Orange : Colors.Gray,
+                CornerRadius = 6,
+                Padding = new Thickness(2),
+                HasShadow = isPlayerPosition || isBuilding,
+                WidthRequest = TILE_SIZE,
+                HeightRequest = TILE_SIZE,
+                // Add subtle animation-ready properties
+                Opacity = 1.0,
+                Scale = isPlayerPosition ? 1.05 : 1.0
             };
+            
+            // Store reference to player tile for animations
+            if (isPlayerPosition)
+            {
+                _playerTileFrame = frame;
+            }
             
             // Add content based on what's on the tile
             var content = new Label
             {
                 Text = GetTileSymbol(worldX, worldY, isPlayerPosition),
-                TextColor = isPlayerPosition ? Colors.White : Colors.Black,
-                FontSize = 12,
+                TextColor = isPlayerPosition ? Colors.White : 
+                           isBuilding ? Colors.DarkBlue : Colors.Black,
+                FontSize = isBuilding ? 18 : (isPlayerPosition ? 16 : 14),
                 FontAttributes = FontAttributes.Bold,
+                FontFamily = "Arial",
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center
             };
             
             frame.Content = content;
+            
+            // Add subtle pulse animation for interactive objects
+            if (hasInteractableObject && !isPlayerPosition)
+            {
+                _ = StartInteractableObjectAnimation(frame);
+            }
+            
             return frame;
         }
         
@@ -373,7 +475,7 @@ namespace AutoGladiators.Client.Pages
         private string GetTileSymbol(int worldX, int worldY, bool isPlayerPosition)
         {
             if (isPlayerPosition)
-                return "@";
+                return "🚶";
                 
             // Check for objects on this tile
             var objects = _currentZone?.GetObjectsAt(worldX, worldY);
@@ -382,47 +484,64 @@ namespace AutoGladiators.Client.Pages
                 var obj = objects.First();
                 return obj.Type switch
                 {
-                    WorldObjectType.NPC => "N",
-                    WorldObjectType.Trainer => "T",
-                    WorldObjectType.Item => "I",
-                    WorldObjectType.Shop => "$",
-                    WorldObjectType.HealingCenter => "H",
-                    WorldObjectType.Obstacle => "#",
-                    WorldObjectType.Gym => "G",
-                    _ => "?"
+                    WorldObjectType.NPC => "👤",
+                    WorldObjectType.Trainer => "⚔️",
+                    WorldObjectType.Item => "📦",
+                    WorldObjectType.Shop => "🏪",
+                    WorldObjectType.HealingCenter => "🏥",
+                    WorldObjectType.Obstacle => "🚧",
+                    WorldObjectType.Gym => "🏛️",
+                    _ => "❓"
                 };
             }
             
             var tile = _currentZone?.GetTile(worldX, worldY);
             return tile?.Type switch
             {
-                TileType.Water => "~",
-                TileType.Mountain => "^",
-                TileType.Forest => "T",
-                TileType.Desert => ".",
-                TileType.Cave => "C",
-                TileType.Building => "B",
-                TileType.Road => "=",
-                TileType.Obstacle => "X",
+                TileType.Water => "🌊",
+                TileType.Mountain => "⛰️",
+                TileType.Forest => "🌲",
+                TileType.Desert => "🏜️",
+                TileType.Cave => "🕳️",
+                TileType.Building => "🏢",
+                TileType.Road => "🛤️",
+                TileType.Obstacle => "🚫",
                 _ => " "
             };
         }
         
         private async Task MovePlayer(MovementDirection direction)
         {
-            if (_currentPlayer == null) return;
+            if (_currentPlayer == null || _isAnimating) return;
             
-            var success = await _movementManager.MovePlayerAsync(_currentPlayer, direction);
-            if (success)
+            _isAnimating = true;
+            
+            try
             {
-                // Check for random encounters after movement
-                await _encounterService.CheckForWildEncounterAsync(_currentPlayer);
+                // Animate movement start
+                await AnimatePlayerMovement(direction);
                 
-                // Update display
-                UpdateDisplay();
-                
-                // Save player position
-                await _playerProfileService.SaveCurrentProfile();
+                var success = await _movementManager.MovePlayerAsync(_currentPlayer, direction);
+                if (success)
+                {
+                    // Update display with smooth transition
+                    await UpdateDisplayWithAnimation();
+                    
+                    // Check for random encounters after movement
+                    await _encounterService.CheckForWildEncounterAsync(_currentPlayer);
+                    
+                    // Save player position
+                    await _playerProfileService.SaveCurrentProfile();
+                }
+                else
+                {
+                    // Animate blocked movement feedback
+                    await AnimateBlockedMovement(direction);
+                }
+            }
+            finally
+            {
+                _isAnimating = false;
             }
         }
         
@@ -539,31 +658,211 @@ namespace AutoGladiators.Client.Pages
         
         private async void OnMenuClicked(object? sender, EventArgs e)
         {
-            var action = await DisplayActionSheet("Menu", "Cancel", null, 
-                "Gladiator Roster", "Inventory", "Save Game", "Return to Main Menu");
-                
-            switch (action)
+            try
             {
-                case "Gladiator Roster":
-                    await Shell.Current.GoToAsync("//BotRoster");
-                    break;
+                var action = await DisplayActionSheet("Menu", "Cancel", null, 
+                    "Gladiator Roster", "Inventory", "Save Game", "Return to Main Menu");
                     
-                case "Inventory":
-                    await Shell.Current.GoToAsync("//Inventory");
-                    break;
-                    
-                case "Save Game":
-                    if (_currentPlayer != null)
-                    {
-                        await _playerProfileService.SaveCurrentProfile();
-                        await DisplayAlert("Saved", "Game saved successfully!", "OK");
-                    }
-                    break;
-                    
-                case "Return to Main Menu":
-                    await Shell.Current.GoToAsync("//MainMenu");
-                    break;
+                switch (action)
+                {
+                    case "Gladiator Roster":
+                        try
+                        {
+                            var botRosterPage = new BotRosterPage();
+                            await Navigation.PushAsync(botRosterPage);
+                        }
+                        catch (Exception ex)
+                        {
+                            await DisplayAlert("Error", $"Failed to open Bot Roster: {ex.Message}", "OK");
+                        }
+                        break;
+                        
+                    case "Inventory":
+                        try
+                        {
+                            var inventoryPage = new InventoryPage();
+                            await Navigation.PushAsync(inventoryPage);
+                        }
+                        catch (Exception ex)
+                        {
+                            await DisplayAlert("Error", $"Failed to open Inventory: {ex.Message}", "OK");
+                        }
+                        break;
+                        
+                    case "Save Game":
+                        if (_currentPlayer != null)
+                        {
+                            await _playerProfileService.SaveCurrentProfile();
+                            await DisplayAlert("Saved", "Game saved successfully!", "OK");
+                        }
+                        else
+                        {
+                            await DisplayAlert("Error", "No player profile to save", "OK");
+                        }
+                        break;
+                        
+                    case "Return to Main Menu":
+                        try
+                        {
+                            // Pop all pages back to main menu
+                            while (Navigation.NavigationStack.Count > 1)
+                            {
+                                await Navigation.PopAsync();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            await DisplayAlert("Error", $"Failed to return to main menu: {ex.Message}", "OK");
+                        }
+                        break;
+                }
             }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Menu error: {ex}");
+                await DisplayAlert("Error", "Menu operation failed", "OK");
+            }
+        }
+        
+        // ==================== Animation Methods ====================
+        
+        private async Task AnimatePlayerMovement(MovementDirection direction)
+        {
+            if (_playerTileFrame == null) return;
+            
+            try
+            {
+                // Quick scale and color pulse to indicate movement
+                await Task.WhenAll(
+                    _playerTileFrame.ScaleTo(1.2, 100, Easing.CubicOut),
+                    _playerTileFrame.FadeTo(0.8, 100)
+                );
+                
+                await Task.WhenAll(
+                    _playerTileFrame.ScaleTo(1.05, 100, Easing.CubicIn),
+                    _playerTileFrame.FadeTo(1.0, 100)
+                );
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Animation error: {ex}");
+            }
+        }
+        
+        private async Task AnimateBlockedMovement(MovementDirection direction)
+        {
+            if (_playerTileFrame == null) return;
+            
+            try
+            {
+                // Shake animation for blocked movement
+                var originalTranslation = _playerTileFrame.TranslationX;
+                var shakeDistance = direction switch
+                {
+                    MovementDirection.North => (0, -5),
+                    MovementDirection.South => (0, 5),
+                    MovementDirection.East => (5, 0),
+                    MovementDirection.West => (-5, 0),
+                    _ => (0, 0)
+                };
+                
+                // Quick shake animation
+                await _playerTileFrame.TranslateTo(shakeDistance.Item1, shakeDistance.Item2, 100);
+                await _playerTileFrame.TranslateTo(originalTranslation, 0, 100, Easing.BounceOut);
+                
+                // Flash border red briefly
+                var originalBorderColor = _playerTileFrame.BorderColor;
+                _playerTileFrame.BorderColor = Colors.Red;
+                await Task.Delay(200);
+                _playerTileFrame.BorderColor = originalBorderColor;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Blocked animation error: {ex}");
+            }
+        }
+        
+        private Task StartInteractableObjectAnimation(Frame frame)
+        {
+            try
+            {
+                var animationKey = frame.GetHashCode().ToString();
+                if (_activeAnimations.ContainsKey(animationKey)) return Task.CompletedTask;
+                
+                var pulseAnimation = new Animation();
+                
+                // Subtle pulse effect for interactive objects
+                pulseAnimation.Add(0, 1, new Animation(v => frame.Scale = v, 1.0, 1.1, Easing.SinInOut));
+                pulseAnimation.Add(0, 1, new Animation(v => frame.Opacity = v, 1.0, 0.7, Easing.SinInOut));
+                
+                _activeAnimations[animationKey] = pulseAnimation;
+                
+                // Start continuous pulse
+                _ = Task.Run(async () =>
+                {
+                    while (_activeAnimations.ContainsKey(animationKey))
+                    {
+                        try
+                        {
+                            await MainThread.InvokeOnMainThreadAsync(() =>
+                            {
+                                pulseAnimation.Commit(frame, "Pulse", 16, 2000, Easing.SinInOut, null, () => true);
+                            });
+                            await Task.Delay(2000);
+                        }
+                        catch
+                        {
+                            break;
+                        }
+                    }
+                });
+                
+                // Auto-cleanup after 30 seconds
+                _ = Task.Delay(30000).ContinueWith(t => _activeAnimations.Remove(animationKey));
+                
+                return Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Interactive animation error: {ex}");
+                return Task.CompletedTask;
+            }
+        }
+        
+        private void StopAllAnimations()
+        {
+            try
+            {
+                foreach (var animation in _activeAnimations.Values)
+                {
+                    animation?.Dispose();
+                }
+                _activeAnimations.Clear();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Stop animations error: {ex}");
+            }
+        }
+        
+        private async Task AnimateButtonPress(Button button)
+        {
+            try
+            {
+                // Quick scale down and up for button press feedback
+                await button.ScaleTo(0.9, 50, Easing.CubicOut);
+                await button.ScaleTo(1.0, 50, Easing.CubicIn);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Button animation error: {ex}");
+            }
+        }
+        
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            StopAllAnimations();
         }
     }
 }

@@ -12,7 +12,7 @@ namespace AutoGladiators.Client.Pages
 {
     public partial class BotDetailPage : ContentPage, INotifyPropertyChanged
     {
-        private GladiatorBot _bot;
+        private GladiatorBot _bot = null!;
         private readonly DatabaseService? _databaseService;
         private int _currentExp = 850;
         private int _expToNext = 1000;
