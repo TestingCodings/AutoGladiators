@@ -270,6 +270,20 @@ namespace AutoGladiators.Client.Pages
             }
         }
 
+        private async void OnAccessLogsClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                Log.Info("Accessing debug logs from debug menu");
+                await Navigation.PushAsync(new LogAccessPage());
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to open log access page: {ex.Message}", ex);
+                await DisplayAlert("Error", $"Failed to open log access: {ex.Message}", "OK");
+            }
+        }
+
         private async void OnBackClicked(object sender, EventArgs e)
         {
             try

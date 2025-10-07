@@ -9,15 +9,11 @@ namespace AutoGladiators.Client.Pages
     public partial class NewGamePage : ContentPage
     {
         private readonly PlayerProfileService _profileService;
-        private string _selectedDifficulty = "Normal";
 
         public NewGamePage(PlayerProfileService profileService)
         {
             InitializeComponent();
             _profileService = profileService;
-            
-            // Default to Normal difficulty
-            NormalRadio.IsChecked = true;
         }
 
         private async void OnPlayerNameChanged(object sender, TextChangedEventArgs e)
@@ -73,33 +69,6 @@ namespace AutoGladiators.Client.Pages
             return true;
         }
 
-        private void OnDifficultyChanged(object sender, CheckedChangedEventArgs e)
-        {
-            if (e.Value && sender is RadioButton radioButton)
-            {
-                _selectedDifficulty = radioButton.Value?.ToString() ?? "Normal";
-            }
-        }
-
-        private void OnDifficultyTapped(object sender, EventArgs e)
-        {
-            if (sender is Frame frame)
-            {
-                // Find the RadioButton within this frame and check it
-                if (frame.Content is Grid grid)
-                {
-                    foreach (var child in grid.Children)
-                    {
-                        if (child is RadioButton radioButton)
-                        {
-                            radioButton.IsChecked = true;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
         private async void OnNextClicked(object sender, EventArgs e)
         {
             if (!await ValidatePlayerName(PlayerNameEntry.Text))
@@ -110,8 +79,8 @@ namespace AutoGladiators.Client.Pages
                 // Disable the button to prevent double-clicks
                 NextButton.IsEnabled = false;
 
-                // Navigate to starter selection with the player info
-                await Navigation.PushAsync(new StarterSelectionPage(PlayerNameEntry.Text.Trim(), _selectedDifficulty, _profileService));
+                // Navigate to starter selection with simplified parameters (no difficulty)
+                await Navigation.PushAsync(new StarterSelectionPage(PlayerNameEntry.Text.Trim(), _profileService));
             }
             catch (Exception ex)
             {
@@ -132,8 +101,6 @@ namespace AutoGladiators.Client.Pages
             
             // Clear form when returning to this page
             PlayerNameEntry.Text = "";
-            NormalRadio.IsChecked = true;
-            _selectedDifficulty = "Normal";
             NameValidationLabel.IsVisible = false;
             NextButton.IsEnabled = false;
         }
