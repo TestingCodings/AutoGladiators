@@ -32,10 +32,10 @@ namespace AutoGladiators.Client
             // Configure file logging for debug builds - accessible via ADB/Android Studio
             builder.Logging.ClearProviders();
             builder.Logging.AddProvider(new AutoGladiators.Client.Services.Logging.CrossPlatformFileLoggerProvider());
-            builder.Logging.SetMinimumLevel(LogLevel.Debug);
+            builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Debug);
 #else
             // Production builds - minimal logging
-            builder.Logging.SetMinimumLevel(LogLevel.Warning);
+            builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Warning);
 #endif
 
             // Register DI services here as needed

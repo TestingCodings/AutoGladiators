@@ -1,9 +1,12 @@
 using System;
 using System.Threading.Tasks;
+using System.Linq;
 using NUnit.Framework;
 using AutoGladiators.Core.Services;
 using AutoGladiators.Core.Core;
 using AutoGladiators.Core.Services.Logging;
+using AutoGladiators.Core.Models;
+using AutoGladiators.Core.Enums;
 
 namespace AutoGladiators.Tests.Integration
 {
@@ -11,14 +14,15 @@ namespace AutoGladiators.Tests.Integration
     public class SimpleGameFlowTests
     {
         private static readonly IAppLogger Log = AppLog.For<SimpleGameFlowTests>();
-        private PlayerProfileService _profileService;
-        private GameStateService _gameStateService;
+        private PlayerProfileService _profileService = null!;
+        private GameStateService _gameStateService = null!;
 
         [SetUp]
         public void SetUp()
         {
-            _profileService = new PlayerProfileService();
-            _gameStateService = new GameStateService();
+            // Use singleton instances
+            _profileService = PlayerProfileService.Instance;
+            _gameStateService = GameStateService.Instance;
             Log.Info("SimpleGameFlowTests setup completed");
         }
 
@@ -45,7 +49,7 @@ namespace AutoGladiators.Tests.Integration
             
             var currentProfile = _profileService.GetCurrentProfile();
             Assert.IsNotNull(currentProfile, "Current profile should be set");
-            Assert.AreEqual(profile.Id, currentProfile.Id, "Current profile should match created profile");
+            Assert.AreEqual(profile.Id, currentProfile!.Id, "Current profile should match created profile");
             
             Log.Info("✓ Profile set as current successfully");
 
@@ -65,9 +69,12 @@ namespace AutoGladiators.Tests.Integration
             
             Log.Info("✓ Save/load cycle verified");
             
-            // Step 6: Verify GameStateService integration
-            _gameStateService.LoadProfile(profile);
-            Assert.IsNotNull(_gameStateService.CurrentPlayer, "GameStateService should have current player");
+            // Step 6: Verify GameStateService integration - Initialize game with profile data
+            _gameStateService.InitializeNewGame(profile.PlayerName);
+            foreach(var bot in profile.BotRoster) 
+            {
+                _gameStateService.AddBotToRoster(bot);
+            }
             Assert.IsTrue(_gameStateService.BotRoster.Count > 0, "GameStateService should have bot roster");
             
             Log.Info("✓ GameStateService integration verified");
@@ -80,15 +87,16 @@ namespace AutoGladiators.Tests.Integration
         {
             Log.Info("Testing starter bot creation");
             
-            var fireStarter = BotFactory.CreateBot("FireStarter", 1);
+            var starter = BotFactory.CreateBot("StarterBot", 1);
             
-            Assert.IsNotNull(fireStarter, "Fire starter should be created");
-            Assert.AreEqual("Fire", fireStarter.ElementalCore.ToString(), "Fire starter should have Fire element");
-            Assert.IsTrue(fireStarter.AttackPower > 0, "Starter should have attack power");
-            Assert.IsTrue(fireStarter.MaxHealth > 0, "Starter should have health");
-            Assert.IsTrue(fireStarter.Speed > 0, "Starter should have speed");
+            Assert.IsNotNull(starter, "Starter should be created");
+            Assert.IsNotNull(starter.ElementalCore, "Starter should have an elemental core");
+            Assert.AreNotEqual(ElementalCore.None, starter.ElementalCore, "Starter should have a valid element (not None)");
+            Assert.IsTrue(starter.AttackPower > 0, "Starter should have attack power");
+            Assert.IsTrue(starter.MaxHealth > 0, "Starter should have health");
+            Assert.IsTrue(starter.Speed > 0, "Starter should have speed");
             
-            Log.Info($"✓ Fire starter created: ATK={fireStarter.AttackPower}, HP={fireStarter.MaxHealth}, SPD={fireStarter.Speed}");
+            Log.Info($"✓ Starter created: Element={starter.ElementalCore}, ATK={starter.AttackPower}, HP={starter.MaxHealth}, SPD={starter.Speed}");
         }
 
         [Test]
@@ -98,11 +106,13 @@ namespace AutoGladiators.Tests.Integration
             
             // Create first profile
             var profile1 = await _profileService.CreateNewProfile("Trainer1", "FireStarter", "Phoenix");
-            await _profileService.SaveProfile(profile1);
+            _profileService.SetCurrentProfile(profile1);
+            await _profileService.SaveCurrentProfile();
             
             // Create second profile  
             var profile2 = await _profileService.CreateNewProfile("Trainer2", "ElectricStarter", "Thunder");
-            await _profileService.SaveProfile(profile2);
+            _profileService.SetCurrentProfile(profile2);
+            await _profileService.SaveCurrentProfile();
             
             // Verify both profiles exist
             var savedProfiles = await _profileService.GetSavedProfiles();

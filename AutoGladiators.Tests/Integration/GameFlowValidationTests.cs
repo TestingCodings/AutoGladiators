@@ -25,8 +25,10 @@ namespace AutoGladiators.Tests.Integration
         {
             // Setup service collection like in MauiProgram.cs
             _services = new ServiceCollection();
-            _services.AddSingleton<PlayerProfileService>();
-            _services.AddSingleton<GameStateService>();
+            
+            // Use singleton instances for services that have private constructors
+            _services.AddSingleton(PlayerProfileService.Instance);
+            _services.AddSingleton(GameStateService.Instance);
             _services.AddSingleton<IRng, DefaultRng>();
             _services.AddSingleton<WorldManager>();
             _services.AddSingleton<MovementManager>();
@@ -74,13 +76,13 @@ namespace AutoGladiators.Tests.Integration
             
             var currentProfile = _profileService.GetCurrentProfile();
             Assert.IsNotNull(currentProfile, "Current profile should be set");
-            Assert.AreEqual(profile.Id, currentProfile.Id, "Current profile should match created profile");
+            Assert.AreEqual(profile.Id, currentProfile!.Id, "Current profile should match created profile");
             
             Log.Info("✓ Profile set as current");
 
             // Step 3: Verify GameStateService integration
             Assert.IsNotNull(_gameStateService.CurrentPlayer, "GameStateService should have current player");
-            Assert.AreEqual(profile.Id, _gameStateService.CurrentPlayer.Id, "GameStateService player should match");
+            Assert.AreEqual(profile.Id, _gameStateService.CurrentPlayer!.Id, "GameStateService player should match");
             Assert.IsTrue(_gameStateService.BotRoster.Count > 0, "GameStateService should have bot roster");
             
             Log.Info("✓ GameStateService integration verified");
@@ -147,7 +149,7 @@ namespace AutoGladiators.Tests.Integration
             
             var starterBot = profile.BotRoster.FirstOrDefault();
             Assert.IsNotNull(starterBot, "Should have starter bot");
-            Assert.AreEqual(nickname, starterBot.Nickname, "Bot should have correct nickname");
+            Assert.AreEqual(nickname, starterBot!.Nickname, "Bot should have correct nickname");
             
             Log.Info("✓ Simplified profile creation works");
         }
