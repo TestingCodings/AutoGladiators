@@ -35,15 +35,32 @@ namespace AutoGladiators.Client.Services.Logging
         private string GetLogDirectory()
         {
 #if ANDROID
-            // Android: Use external storage accessible via ADB
-            var externalStorageDir = Android.OS.Environment.ExternalStorageDirectory?.AbsolutePath;
-            if (string.IsNullOrEmpty(externalStorageDir))
+            try
             {
-                // Fallback to app-specific external directory
-                externalStorageDir = Platform.CurrentActivity?.GetExternalFilesDir(null)?.AbsolutePath 
-                    ?? "/sdcard/Android/data/com.testingcodings.autogladiators/files";
+                // Use app-specific external directory that doesn't require MANAGE_EXTERNAL_STORAGE permission
+                var context = Platform.CurrentActivity ?? Android.App.Application.Context;
+                var externalFilesDir = context.GetExternalFilesDir(null)?.AbsolutePath;
+                
+                if (!string.IsNullOrEmpty(externalFilesDir))
+                {
+                    return Path.Combine(externalFilesDir, "AutoGladiators", "Logs");
+                }
+                
+                // Fallback to app's private cache directory
+                var cacheDir = context.CacheDir?.AbsolutePath;
+                if (!string.IsNullOrEmpty(cacheDir))
+                {
+                    return Path.Combine(cacheDir, "AutoGladiators", "Logs");
+                }
+                
+                // Final fallback
+                return Path.Combine("/data/data/com.cortexa.autogladiators", "AutoGladiators", "Logs");
             }
-            return Path.Combine(externalStorageDir, "AutoGladiators", "Logs");
+            catch (Exception)
+            {
+                // Emergency fallback to app data
+                return Path.Combine(Path.GetTempPath(), "AutoGladiators", "Logs");
+            }
 #elif WINDOWS
             // Windows: Use Documents folder for easy access
             var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
@@ -68,26 +85,25 @@ namespace AutoGladiators.Client.Services.Logging
             info.AppendLine("ANDROID ACCESS METHODS:");
             info.AppendLine("======================");
             info.AppendLine();
-            info.AppendLine("Method 1 - ADB Command Line:");
+            info.AppendLine("Method 1 - ADB Command Line (Debug Build):");
             info.AppendLine("  adb shell");
-            info.AppendLine("  cd /sdcard/AutoGladiators/Logs");
+            info.AppendLine("  run-as com.cortexa.autogladiators");
+            info.AppendLine("  cd files/AutoGladiators/Logs");
             info.AppendLine("  ls -la");
             info.AppendLine("  cat app_YYYY-MM-DD.log | head -50");
             info.AppendLine("  exit");
             info.AppendLine();
-            info.AppendLine("Method 2 - Pull to PC:");
-            info.AppendLine("  adb pull /sdcard/AutoGladiators/Logs ./AutoGladiators_Logs");
-            info.AppendLine();
-            info.AppendLine("Method 3 - Android Studio Device File Explorer:");
+            info.AppendLine("Method 2 - Android Studio Device File Explorer:");
             info.AppendLine("  1. Open Android Studio");
             info.AppendLine("  2. View → Tool Windows → Device File Explorer");
-            info.AppendLine("  3. Navigate to sdcard/AutoGladiators/Logs");
+            info.AppendLine("  3. Navigate to data/data/com.cortexa.autogladiators/files/AutoGladiators/Logs");
             info.AppendLine("  4. Right-click files → Save As");
             info.AppendLine();
-            info.AppendLine("Method 4 - SCRCPY + File Manager:");
-            info.AppendLine("  1. Install scrcpy for screen mirroring");
-            info.AppendLine("  2. Use any Android file manager app");
-            info.AppendLine("  3. Navigate to /sdcard/AutoGladiators/Logs");
+            info.AppendLine("Method 3 - ADB Pull (may require root):");
+            info.AppendLine("  adb shell run-as com.cortexa.autogladiators cp files/AutoGladiators/Logs/*.log /sdcard/");
+            info.AppendLine("  adb pull /sdcard/app_*.log .");
+            info.AppendLine();
+            info.AppendLine("Note: App-specific storage doesn't require external storage permissions");
 #elif WINDOWS
             info.AppendLine("WINDOWS ACCESS METHODS:");
             info.AppendLine("======================");
