@@ -18,7 +18,8 @@ namespace AutoGladiators.Client.Converters
 
         public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            // This converter is not intended to be used in TwoWay binding
+            return null;
         }
     }
 }

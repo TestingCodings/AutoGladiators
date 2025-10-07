@@ -3,6 +3,13 @@ using System.IO;
 using System.Text;
 using Microsoft.Extensions.Logging;
 
+// Helper class for logger scope
+internal sealed class NoOpDisposable : IDisposable
+{
+    public static NoOpDisposable Instance { get; } = new();
+    public void Dispose() { }
+}
+
 namespace AutoGladiators.Client.Services.Logging
 {
     public sealed class AndroidFileLoggerProvider : ILoggerProvider
@@ -13,16 +20,38 @@ namespace AutoGladiators.Client.Services.Logging
 
         public AndroidFileLoggerProvider()
         {
-            // Use Android external storage directory - accessible via ADB
-            var externalStorageDir = Android.OS.Environment.ExternalStorageDirectory?.AbsolutePath;
-            if (string.IsNullOrEmpty(externalStorageDir))
+            // Use public accessible directory - no permissions needed
+            var publicDir = "/sdcard/AutoGladiators/Logs";
+            
+            // Try alternative accessible paths if primary fails
+            var alternativePaths = new[]
             {
-                // Fallback to app-specific external directory
-                externalStorageDir = Platform.CurrentActivity?.GetExternalFilesDir(null)?.AbsolutePath 
-                    ?? "/sdcard/Android/data/com.testingcodings.autogladiators/files";
-            }
+                "/storage/emulated/0/AutoGladiators/Logs",
+                "/mnt/sdcard/AutoGladiators/Logs", 
+                Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath + "/AutoGladiators/Logs",
+                Platform.CurrentActivity?.GetExternalFilesDir(null)?.AbsolutePath + "/Logs"
+            };
 
-            _logDirectory = Path.Combine(externalStorageDir, "AutoGladiators", "Logs");
+            _logDirectory = publicDir;
+            
+            // Try each path until one works
+            foreach (var path in alternativePaths)
+            {
+                if (!string.IsNullOrEmpty(path))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(path);
+                        _logDirectory = path;
+                        break;
+                    }
+                    catch
+                    {
+                        // Try next path
+                        continue;
+                    }
+                }
+            }
             
             try
             {
@@ -81,7 +110,7 @@ namespace AutoGladiators.Client.Services.Logging
             _lock = lockObject;
         }
 
-        public IDisposable BeginScope<TState>(TState state) => null!;
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull => NoOpDisposable.Instance;
 
         public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Debug;
 
