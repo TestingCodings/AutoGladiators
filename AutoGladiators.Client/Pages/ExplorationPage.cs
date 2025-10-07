@@ -460,8 +460,27 @@ namespace AutoGladiators.Client.Pages
                 
             if (result)
             {
-                // Navigate to battle page with the wild gladiator
-                await DisplayAlert("Battle", "Battle system integration needed here!", "OK");
+                // Get player's current battle bot
+                var playerBot = player.BotRoster.FirstOrDefault(b => b.CurrentHealth > 0);
+                if (playerBot == null)
+                {
+                    await DisplayAlert("No Battle-Ready Bots", "All your Gladiators are defeated! Visit a Healing Center.", "OK");
+                    return;
+                }
+                
+                try
+                {
+                    // Navigate to battle page with the encounter
+                    var battlePage = new BattlePage(playerBot, wildGladiator);
+                    await Navigation.PushAsync(battlePage);
+                    
+                    // When returning from battle, refresh the display
+                    UpdateDisplay();
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlert("Battle Error", $"Failed to start battle: {ex.Message}", "OK");
+                }
             }
         }
         

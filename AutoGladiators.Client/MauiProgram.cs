@@ -46,8 +46,10 @@ namespace AutoGladiators.Client
             builder.Services.AddSingleton<NPCDialogueService>();
             builder.Services.AddSingleton<NPCDialogueLoader>();
             builder.Services.AddSingleton<DatabaseService>();
-            builder.Services.AddSingleton<GameStateService>();
-            builder.Services.AddSingleton<PlayerProfileService>();
+            
+            // Register singleton instances for services with private constructors
+            builder.Services.AddSingleton(GameStateService.Instance);
+            builder.Services.AddSingleton(PlayerProfileService.Instance);
             
             // Register Core Dependencies
             builder.Services.AddSingleton<IRng, DefaultRng>();
@@ -62,6 +64,11 @@ namespace AutoGladiators.Client
             builder.Services.AddTransient<AdventurePage>();
             builder.Services.AddTransient<BotRosterPage>();
             builder.Services.AddTransient<InventoryPage>();
+            builder.Services.AddTransient<BattlePage>();
+            builder.Services.AddTransient<MainMenuPage>();
+            builder.Services.AddTransient<NewGamePage>();
+            builder.Services.AddTransient<ContinueGamePage>();
+            builder.Services.AddTransient<StarterSelectionPage>();
             
             // Register Visual Asset Services (Sprint 4)
             builder.Services.AddSingleton<AutoGladiators.Client.Services.SpriteManager>();
