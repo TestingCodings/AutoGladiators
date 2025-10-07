@@ -67,14 +67,12 @@ namespace AutoGladiators.Client.Pages
         private readonly ObservableCollection<StarterBotViewModel> _starterBots = new();
         private StarterBotViewModel? _selectedBot;
         private readonly string _playerName;
-        private readonly string _difficulty;
         private readonly PlayerProfileService _profileService;
 
-        public StarterSelectionPage(string playerName, string difficulty, PlayerProfileService profileService)
+        public StarterSelectionPage(string playerName, PlayerProfileService profileService)
         {
             InitializeComponent();
             _playerName = playerName;
-            _difficulty = difficulty;
             _profileService = profileService;
             LoadStarterBots();
             
@@ -194,10 +192,9 @@ namespace AutoGladiators.Client.Pages
             {
                 Log.Info($"Starting new game for {_playerName} with {_selectedBot.Name}");
 
-                // Create new player profile with selected starter
+                // Create new player profile with selected starter (simplified without difficulty)
                 var profile = await _profileService.CreateNewProfile(
-                    _playerName, 
-                    _difficulty,
+                    _playerName,
                     _selectedBot.BotId, 
                     NicknameEntry.Text.Trim()
                 );
@@ -207,19 +204,28 @@ namespace AutoGladiators.Client.Pages
                     // Set as current profile (this will sync GameStateService)
                     _profileService.SetCurrentProfile(profile);
                     
-                    // Navigate to main game
-                    await DisplayAlert("Adventure Begins!", 
-                        $"Welcome, {_playerName}! Your journey with {NicknameEntry.Text} starts now!", "Let's Go!");
-
-                    // Navigate directly to exploration page to start exploring the open world
-                    var explorationPage = Handler?.MauiContext?.Services?.GetService<ExplorationPage>();
-                    if (explorationPage != null)
+                    // Save the profile
+                    await _profileService.SaveCurrentProfile();
+                    
+                    Log.Info($"Profile saved successfully for {_playerName}");
+                    
+                    // Navigate to exploration page (get from DI container with proper error handling)
+                    var services = Handler?.MauiContext?.Services;
+                    if (services != null)
                     {
-                        await Navigation.PushAsync(explorationPage);
+                        var explorationPage = services.GetService<ExplorationPage>();
+                        if (explorationPage != null)
+                        {
+                            await Navigation.PushAsync(explorationPage);
+                        }
+                        else
+                        {
+                            await DisplayAlert("Error", "Could not initialize exploration system.", "OK");
+                        }
                     }
                     else
                     {
-                        await DisplayAlert("Error", "Could not access exploration system.", "OK");
+                        await DisplayAlert("Error", "Could not access game services.", "OK");
                     }
                 }
                 else
@@ -230,7 +236,7 @@ namespace AutoGladiators.Client.Pages
             catch (Exception ex)
             {
                 Log.Error($"Failed to start new game: {ex.Message}", ex);
-                await DisplayAlert("Error", "Failed to start the game. Please try again.", "OK");
+                await DisplayAlert("Error", $"Failed to start the game: {ex.Message}", "OK");
             }
         }
     }

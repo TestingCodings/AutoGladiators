@@ -52,57 +52,26 @@
                     </StackLayout>
                 </Frame>
 
-                <!-- Difficulty Selection -->
+                <!-- Character Creation Tips -->
                 <Frame BackgroundColor="#2A2A3E" CornerRadius="12" Padding="20" Margin="0,10">
                     <StackLayout>
-                        <Label Text="Difficulty Level" FontSize="18" FontAttributes="Bold" TextColor="#FFD700"/>
-                        <Label Text="Choose your preferred challenge level" 
+                        <Label Text="Getting Started" FontSize="18" FontAttributes="Bold" TextColor="#FFD700"/>
+                        <Label Text="Tips for new trainers starting their journey" 
                                FontSize="12" TextColor="#B0B0B0" Margin="0,5,0,15"/>
 
-                        <StackLayout x:Name="DifficultyOptions" RadioButtonGroup.GroupName="Difficulty">
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
+                            <Label Grid.Row="0" Grid.Column="0" Text="💡" FontSize="20" VerticalOptions="Center"/>
+                            <Label Grid.Row="0" Grid.Column="1" Text="Choose a memorable name - you'll be known by it throughout your adventure!" 
+                                   FontSize="14" TextColor="#B0B0B0" VerticalOptions="Center" Margin="10,0,0,0"/>
                             
-                            <Frame BackgroundColor="#1A1A2E" CornerRadius="8" Padding="15" Margin="0,5">
-                                <Frame.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnDifficultyTapped" />
-                                </Frame.GestureRecognizers>
-                                <Grid ColumnDefinitions="Auto,*">
-                                    <RadioButton Grid.Column="0" x:Name="EasyRadio" Value="Easy" GroupName="Difficulty" CheckedChanged="OnDifficultyChanged"/>
-                                    <StackLayout Grid.Column="1" Margin="10,0,0,0">
-                                        <Label Text="Explorer Mode" FontSize="16" FontAttributes="Bold" TextColor="#00FF88"/>
-                                        <Label Text="Perfect for new trainers. More forgiving battles and extra resources." 
-                                               FontSize="12" TextColor="#B0B0B0"/>
-                                    </StackLayout>
-                                </Grid>
-                            </Frame>
-
-                            <Frame BackgroundColor="#1A1A2E" CornerRadius="8" Padding="15" Margin="0,5">
-                                <Frame.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnDifficultyTapped" />
-                                </Frame.GestureRecognizers>
-                                <Grid ColumnDefinitions="Auto,*">
-                                    <RadioButton Grid.Column="0" x:Name="NormalRadio" Value="Normal" GroupName="Difficulty" CheckedChanged="OnDifficultyChanged" IsChecked="True"/>
-                                    <StackLayout Grid.Column="1" Margin="10,0,0,0">
-                                        <Label Text="Trainer Mode" FontSize="16" FontAttributes="Bold" TextColor="#4A9EFF"/>
-                                        <Label Text="Balanced gameplay with standard battle difficulty and resource management." 
-                                               FontSize="12" TextColor="#B0B0B0"/>
-                                    </StackLayout>
-                                </Grid>
-                            </Frame>
-
-                            <Frame BackgroundColor="#1A1A2E" CornerRadius="8" Padding="15" Margin="0,5">
-                                <Frame.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnDifficultyTapped" />
-                                </Frame.GestureRecognizers>
-                                <Grid ColumnDefinitions="Auto,*">
-                                    <RadioButton Grid.Column="0" x:Name="HardRadio" Value="Hard" GroupName="Difficulty" CheckedChanged="OnDifficultyChanged"/>
-                                    <StackLayout Grid.Column="1" Margin="10,0,0,0">
-                                        <Label Text="Champion Mode" FontSize="16" FontAttributes="Bold" TextColor="#FF4444"/>
-                                        <Label Text="For experienced trainers. Tougher battles and limited resources." 
-                                               FontSize="12" TextColor="#B0B0B0"/>
-                                    </StackLayout>
-                                </Grid>
-                            </Frame>
-                        </StackLayout>
+                            <Label Grid.Row="1" Grid.Column="0" Text="🎯" FontSize="20" VerticalOptions="Center"/>
+                            <Label Grid.Row="1" Grid.Column="1" Text="Each starter bot has unique strengths - pick one that matches your play style!" 
+                                   FontSize="14" TextColor="#B0B0B0" VerticalOptions="Center" Margin="10,0,0,0"/>
+                            
+                            <Label Grid.Row="2" Grid.Column="0" Text="🚀" FontSize="20" VerticalOptions="Center"/>
+                            <Label Grid.Row="2" Grid.Column="1" Text="Your first bot will be your trusted companion - give it a special nickname!" 
+                                   FontSize="14" TextColor="#B0B0B0" VerticalOptions="Center" Margin="10,0,0,0"/>
+                        </Grid>
                     </StackLayout>
                 </Frame>
 

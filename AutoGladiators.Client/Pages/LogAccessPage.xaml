@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AutoGladiators.Client.Pages.LogAccessPage"
+             Title="Debug Logs"
+             BackgroundColor="#0A0A0F">
+
+    <ScrollView>
+        <StackLayout Margin="15" Spacing="15">
+            
+            <!-- Header -->
+            <Frame BackgroundColor="#1A1A2E" CornerRadius="12" Padding="20">
+                <StackLayout>
+                    <Label Text="🔧 DEBUG LOG ACCESS" 
+                           FontSize="20" 
+                           FontAttributes="Bold"
+                           TextColor="#FFD700"
+                           HorizontalTextAlignment="Center"/>
+                    <Label Text="Access debug logs for troubleshooting game issues" 
+                           FontSize="14"
+                           TextColor="#B0B0B0"
+                           HorizontalTextAlignment="Center"
+                           Margin="0,5,0,0"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- Log Directory Info -->
+            <Frame BackgroundColor="#2A2A3E" CornerRadius="12" Padding="15">
+                <StackLayout>
+                    <Label Text="📁 Log Location" FontSize="16" FontAttributes="Bold" TextColor="#4A9EFF"/>
+                    <Label x:Name="LogDirectoryLabel" 
+                           Text="Loading..." 
+                           FontSize="12" 
+                           TextColor="#B0B0B0"
+                           FontFamily="Courier"
+                           Margin="0,5,0,0"/>
+                    
+                    <Button Text="📋 Copy Path to Clipboard" 
+                            x:Name="CopyPathButton"
+                            BackgroundColor="#28A745"
+                            TextColor="White"
+                            FontSize="12"
+                            CornerRadius="6"
+                            HeightRequest="35"
+                            Margin="0,10,0,0"
+                            Clicked="OnCopyPathClicked"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- ADB Commands -->
+            <Frame BackgroundColor="#2A2A3E" CornerRadius="12" Padding="15">
+                <StackLayout>
+                    <Label Text="💻 ADB Commands" FontSize="16" FontAttributes="Bold" TextColor="#4A9EFF"/>
+                    
+                    <Label Text="View logs in terminal:" FontSize="13" TextColor="#FFD700" Margin="0,10,0,0"/>
+                    <Label x:Name="AdbViewCommand" 
+                           Text="adb shell\ncd /sdcard/AutoGladiators/Logs\nls -la\ncat app_2024-10-07.log | tail -50" 
+                           FontSize="11" 
+                           TextColor="#00FF88"
+                           FontFamily="Courier"
+                           Margin="5,0,0,0"/>
+                    
+                    <Label Text="Pull logs to PC:" FontSize="13" TextColor="#FFD700" Margin="0,10,0,0"/>
+                    <Label x:Name="AdbPullCommand" 
+                           Text="adb pull /sdcard/AutoGladiators/Logs ./AutoGladiators_Logs" 
+                           FontSize="11" 
+                           TextColor="#00FF88"
+                           FontFamily="Courier"
+                           Margin="5,0,0,0"/>
+
+                    <Button Text="📋 Copy ADB Commands" 
+                            x:Name="CopyAdbButton"
+                            BackgroundColor="#17A2B8"
+                            TextColor="White"
+                            FontSize="12"
+                            CornerRadius="6"
+                            HeightRequest="35"
+                            Margin="0,10,0,0"
+                            Clicked="OnCopyAdbClicked"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- Android Studio Method -->
+            <Frame BackgroundColor="#2A2A3E" CornerRadius="12" Padding="15">
+                <StackLayout>
+                    <Label Text="🎯 Android Studio Method" FontSize="16" FontAttributes="Bold" TextColor="#4A9EFF"/>
+                    
+                    <Label Text="1. Open Android Studio" FontSize="12" TextColor="#B0B0B0"/>
+                    <Label Text="2. View → Tool Windows → Device File Explorer" FontSize="12" TextColor="#B0B0B0"/>
+                    <Label Text="3. Navigate to: sdcard/AutoGladiators/Logs" FontSize="12" TextColor="#B0B0B0"/>
+                    <Label Text="4. Right-click log files → Save As" FontSize="12" TextColor="#B0B0B0"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- Available Log Files -->
+            <Frame BackgroundColor="#2A2A3E" CornerRadius="12" Padding="15">
+                <StackLayout>
+                    <Label Text="📄 Available Log Files" FontSize="16" FontAttributes="Bold" TextColor="#4A9EFF"/>
+                    <Label x:Name="LogFilesLabel" 
+                           Text="Loading..." 
+                           FontSize="12" 
+                           TextColor="#B0B0B0"
+                           Margin="0,10,0,0"/>
+                           
+                    <Button Text="🔄 Refresh File List" 
+                            x:Name="RefreshButton"
+                            BackgroundColor="#6C757D"
+                            TextColor="White"
+                            FontSize="12"
+                            CornerRadius="6"
+                            HeightRequest="35"
+                            Margin="0,10,0,0"
+                            Clicked="OnRefreshClicked"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- Log Generation -->
+            <Frame BackgroundColor="#2A2A3E" CornerRadius="12" Padding="15">
+                <StackLayout>
+                    <Label Text="🧪 Generate Test Logs" FontSize="16" FontAttributes="Bold" TextColor="#4A9EFF"/>
+                    <Label Text="Generate sample log entries to verify logging is working" FontSize="12" TextColor="#B0B0B0"/>
+                    
+                    <Button Text="📝 Generate Test Logs" 
+                            x:Name="GenerateTestLogsButton"
+                            BackgroundColor="#FD7E14"
+                            TextColor="White"
+                            FontSize="12"
+                            CornerRadius="6"
+                            HeightRequest="35"
+                            Margin="0,10,0,0"
+                            Clicked="OnGenerateTestLogsClicked"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- Back Button -->
+            <Button Text="← Back to Main Menu"
+                    BackgroundColor="#6C757D"
+                    TextColor="White"
+                    CornerRadius="8"
+                    HeightRequest="45"
+                    FontAttributes="Bold"
+                    Margin="0,20,0,0"
+                    Clicked="OnBackClicked"/>
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

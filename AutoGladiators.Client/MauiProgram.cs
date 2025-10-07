@@ -29,7 +29,13 @@ namespace AutoGladiators.Client
                 });
 
 #if DEBUG
-            // builder.Logging.AddConsole(); // Remove or comment out this line; not supported on MAUI/Android by default
+            // Configure file logging for debug builds - accessible via ADB/Android Studio
+            builder.Logging.ClearProviders();
+            builder.Logging.AddProvider(new AutoGladiators.Client.Services.Logging.CrossPlatformFileLoggerProvider());
+            builder.Logging.SetMinimumLevel(LogLevel.Debug);
+#else
+            // Production builds - minimal logging
+            builder.Logging.SetMinimumLevel(LogLevel.Warning);
 #endif
 
             // Register DI services here as needed
