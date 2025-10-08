@@ -76,7 +76,7 @@ namespace AutoGladiators.Client.Pages
             var mainLayout = new Grid();
             mainLayout.RowDefinitions.Add(new RowDefinition { Height = 60 });
             mainLayout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Star });
-            mainLayout.RowDefinitions.Add(new RowDefinition { Height = 120 });
+            mainLayout.RowDefinitions.Add(new RowDefinition { Height = 180 });
             
             // Info bar
             var infoStack = new StackLayout
@@ -135,7 +135,7 @@ namespace AutoGladiators.Client.Pages
             for (int i = 0; i < 5; i++)
                 controlGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
             for (int i = 0; i < 3; i++)
-                controlGrid.RowDefinitions.Add(new RowDefinition { Height = 60 });
+                controlGrid.RowDefinitions.Add(new RowDefinition { Height = 55 });
             
             // Movement buttons
             _northButton = CreateMovementButton("↑", Colors.DarkBlue);
@@ -185,12 +185,13 @@ namespace AutoGladiators.Client.Pages
                 Text = text,
                 BackgroundColor = backgroundColor,
                 TextColor = Colors.White,
-                FontSize = 24,
+                FontSize = 20,
                 FontAttributes = FontAttributes.Bold,
                 CornerRadius = 8,
                 FontFamily = "Arial",
-                HeightRequest = 50,
-                WidthRequest = 50
+                HeightRequest = 45,
+                WidthRequest = 60,
+                Margin = new Thickness(2)
             };
         }
         
@@ -201,12 +202,12 @@ namespace AutoGladiators.Client.Pages
                 Text = text,
                 BackgroundColor = backgroundColor,
                 TextColor = Colors.White,
-                FontSize = 16,
+                FontSize = 14,
                 FontAttributes = FontAttributes.Bold,
                 CornerRadius = 8,
                 FontFamily = "Arial",
-                HeightRequest = 50,
-                Padding = new Thickness(5)
+                HeightRequest = 45,
+                Margin = new Thickness(2)
             };
         }
         
@@ -393,6 +394,46 @@ namespace AutoGladiators.Client.Pages
                     _mapGrid.Children.Add(tileFrame);
                 }
             }
+            
+            // Update interact button state
+            UpdateInteractButton();
+        }
+        
+        private void UpdateInteractButton()
+        {
+            if (_currentPlayer == null || _currentZone == null) return;
+            
+            var playerX = _currentPlayer.WorldPosition.X;
+            var playerY = _currentPlayer.WorldPosition.Y;
+            var hasNearbyInteractables = false;
+            
+            // Check adjacent tiles for interactable objects
+            var adjacentPositions = new[]
+            {
+                (playerX, playerY - 1), // North
+                (playerX, playerY + 1), // South  
+                (playerX - 1, playerY), // West
+                (playerX + 1, playerY), // East
+                (playerX, playerY)      // Current position
+            };
+            
+            foreach (var (x, y) in adjacentPositions)
+            {
+                // Check bounds to avoid out-of-range queries
+                if (x < 0 || y < 0 || x >= _currentZone.Width || y >= _currentZone.Height)
+                    continue;
+                    
+                var objects = _currentZone.GetObjectsAt(x, y);
+                if (objects.Any(obj => obj.IsInteractable && obj.CanInteract(_currentPlayer)))
+                {
+                    hasNearbyInteractables = true;
+                    break;
+                }
+            }
+            
+            // Update button appearance based on nearby interactables
+            _interactButton.BackgroundColor = hasNearbyInteractables ? Colors.Orange : Colors.DarkRed;
+            _interactButton.Text = hasNearbyInteractables ? "Interact!" : "Interact";
         }
         
         private Frame CreateTileFrame(int worldX, int worldY)
@@ -607,13 +648,34 @@ namespace AutoGladiators.Client.Pages
         {
             if (_currentPlayer == null || _currentZone == null) return;
             
-            // Check for interactable objects at current position
-            var objects = _currentZone.GetObjectsAt(_currentPlayer.WorldPosition.X, _currentPlayer.WorldPosition.Y);
-            var interactableObjects = objects.Where(obj => obj.IsInteractable && obj.CanInteract(_currentPlayer)).ToList();
+            var playerX = _currentPlayer.WorldPosition.X;
+            var playerY = _currentPlayer.WorldPosition.Y;
+            var interactableObjects = new List<WorldObject>();
+            
+            // Check adjacent tiles (up, down, left, right) for interactable objects
+            var adjacentPositions = new[]
+            {
+                (playerX, playerY - 1), // North
+                (playerX, playerY + 1), // South  
+                (playerX - 1, playerY), // West
+                (playerX + 1, playerY), // East
+                (playerX, playerY)      // Current position (for items on ground)
+            };
+            
+            foreach (var (x, y) in adjacentPositions)
+            {
+                // Check bounds to avoid out-of-range queries
+                if (x < 0 || y < 0 || x >= _currentZone.Width || y >= _currentZone.Height)
+                    continue;
+                    
+                var objects = _currentZone.GetObjectsAt(x, y);
+                var validObjects = objects.Where(obj => obj.IsInteractable && obj.CanInteract(_currentPlayer));
+                interactableObjects.AddRange(validObjects);
+            }
             
             if (!interactableObjects.Any())
             {
-                await DisplayAlert("Interact", "There's nothing to interact with here.", "OK");
+                await DisplayAlert("Interact", "There's nothing to interact with nearby.", "OK");
                 return;
             }
             
@@ -623,6 +685,23 @@ namespace AutoGladiators.Client.Pages
         
         private async Task HandleObjectInteraction(WorldObject obj)
         {
+            if (_currentPlayer == null)
+            {
+                await DisplayAlert("Error", "No active player found.", "OK");
+                return;
+            }
+            
+            try
+            {
+                // Trigger the object's interaction event
+                obj.Interact(_currentPlayer);
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Interaction Error", $"Failed to interact with {obj.Name}: {ex.Message}", "OK");
+                return;
+            }
+            
             switch (obj.Type)
             {
                 case WorldObjectType.NPC:
@@ -630,14 +709,24 @@ namespace AutoGladiators.Client.Pages
                     break;
                     
                 case WorldObjectType.HealingCenter:
-                    if (_currentPlayer != null)
+                    if (_currentPlayer?.BotRoster != null)
                     {
                         // Heal all bots
+                        var healedCount = 0;
                         foreach (var bot in _currentPlayer.BotRoster)
                         {
-                            bot.CurrentHealth = bot.MaxHealth;
+                            if (bot != null && bot.CurrentHealth < bot.MaxHealth)
+                            {
+                                bot.CurrentHealth = bot.MaxHealth;
+                                healedCount++;
+                            }
                         }
-                        await DisplayAlert("Healing Center", "Your Gladiators have been fully healed!", "OK");
+                        
+                        var message = healedCount > 0 
+                            ? $"Your {healedCount} Gladiator(s) have been fully healed!" 
+                            : "Your Gladiators are already at full health!";
+                            
+                        await DisplayAlert("Healing Center", message, "OK");
                         await _playerProfileService.SaveCurrentProfile();
                     }
                     break;
