@@ -17,7 +17,7 @@ namespace AutoGladiators.Core.Services.Exploration
     /// </summary>
     public class EncounterService
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<EncounterService>();
+        private static readonly IAppLogger Log = AppLog.For<EncounterService>();
 
         private readonly Dictionary<string, BiomeData> _biomes;
         private readonly Random _rng = new();
@@ -188,7 +188,7 @@ namespace AutoGladiators.Core.Services.Exploration
             int playerLevel = GetPlayerLevel();
             encounteredBot = GenerateWildBot(selectedEncounter, playerLevel);
             
-            Log.LogInformation($"Wild encounter triggered: {encounteredBot?.Name} in {biome.Name}");
+            Log.Info($"Wild encounter triggered: {encounteredBot?.Name} in {biome.Name}");
             return encounteredBot != null;
         }
         
@@ -415,7 +415,7 @@ namespace AutoGladiators.Core.Services.Exploration
 
     public class WildBotEncounter
     {
-        private static readonly Microsoft.Extensions.Logging.ILogger Log = (Microsoft.Extensions.Logging.ILogger)AppLog.For<EncounterService>();
+        private static readonly IAppLogger Log = AppLog.For<WildBotEncounter>();
 
         public string BotId { get; }
         public Rarity Rarity { get; }
