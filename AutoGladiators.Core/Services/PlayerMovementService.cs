@@ -1,4 +1,5 @@
 ﻿using AutoGladiators.Core.Services.Logging;
+using AutoGladiators.Core.Services.Exploration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Timers;
@@ -49,8 +50,10 @@ namespace AutoGladiators.Core.Services
 
             if (!isTeleport)
             {
-                AutoGladiators.Core.Core.GladiatorBot encounterTriggered;
-                _encounterService?.TryTriggerEncounter(_currentLocation, out encounterTriggered);
+                AutoGladiators.Core.Core.GladiatorBot? encounterTriggered;
+                // Convert PlayerLocation to WorldPosition (Region -> ZoneId)
+                var worldPos = new WorldPosition(_currentLocation.Region, _currentLocation.X, _currentLocation.Y);
+                _encounterService?.TryTriggerEncounter(worldPos, out encounterTriggered);
             }
         }
 
