@@ -7,25 +7,41 @@ using AutoGladiators.Core.Models.Exploration;
 using AutoGladiators.Core.Services;
 using AutoGladiators.Core.Core;
 using AutoGladiators.Core.Rng;
+using AutoGladiators.Core.Enums;
 
 namespace AutoGladiators.Core.Services.Exploration
 {
     /// <summary>
-    /// Manages the game world, zones, and navigation between them
+    /// Enhanced world manager supporting Pokemon-style exploration with time/weather systems
+    /// Manages the game world, zones, NPCs, shops, and dynamic encounters
     /// </summary>
     public class WorldManager
     {
         private readonly Dictionary<string, WorldZone> _zones = new();
+        private readonly Dictionary<string, NPC> _npcs = new();
+        private readonly Dictionary<string, Shop> _shops = new();
         private readonly IRng _rng;
+        private readonly EncounterService _encounterService;
         
         public WorldZone? CurrentZone { get; private set; }
+        
+        // Enhanced world state
+        public TimeOfDay CurrentTimeOfDay { get; private set; } = TimeOfDay.Day;
+        public WeatherCondition CurrentWeather { get; private set; } = WeatherCondition.Clear;
+        public Dictionary<string, bool> GlobalFlags { get; } = new();
+        
+        // Enhanced events
         public event Action<WorldZone, WorldZone>? OnZoneChanged;
         public event Action<WorldPosition>? OnPlayerMoved;
         public event Action<PlayerProfile, string>? OnWildEncounter;
+        public event Action<TimeOfDay>? OnTimeChanged;
+        public event Action<WeatherCondition>? OnWeatherChanged;
+        public event Action<string>? OnWorldEvent;
         
         public WorldManager(IRng rng)
         {
             _rng = rng ?? throw new ArgumentNullException(nameof(rng));
+            _encounterService = new EncounterService();
         }
         
         /// <summary>
@@ -139,11 +155,12 @@ namespace AutoGladiators.Core.Services.Exploration
         /// <summary>
         /// Triggers a wild gladiator encounter
         /// </summary>
-        private async Task TriggerWildEncounter(PlayerProfile player, string gladiatorId)
+        private Task TriggerWildEncounter(PlayerProfile player, string gladiatorId)
         {
             // This will be implemented when we add the encounter system
             // For now, just raise an event
             OnWildEncounter?.Invoke(player, gladiatorId);
+            return Task.CompletedTask;
         }
         
         /// <summary>
@@ -213,6 +230,129 @@ namespace AutoGladiators.Core.Services.Exploration
             
             // Set starter town as current zone
             ChangeZone("starter_town");
+        }
+        
+        /// <summary>
+        /// Gets an NPC by ID
+        /// </summary>
+        public NPC? GetNPC(string npcId)
+        {
+            return _npcs.TryGetValue(npcId, out var npc) ? npc : null;
+        }
+        
+        /// <summary>
+        /// Gets a shop by ID
+        /// </summary>
+        public Shop? GetShop(string shopId)
+        {
+            return _shops.TryGetValue(shopId, out var shop) ? shop : null;
+        }
+        
+        /// <summary>
+        /// Updates the time of day and triggers related events
+        /// </summary>
+        public void UpdateTimeOfDay(TimeOfDay newTime)
+        {
+            if (CurrentTimeOfDay != newTime)
+            {
+                CurrentTimeOfDay = newTime;
+                _encounterService.UpdateConditions(CurrentTimeOfDay.ToString(), CurrentWeather.ToString());
+                OnTimeChanged?.Invoke(newTime);
+            }
+        }
+        
+        /// <summary>
+        /// Updates weather and triggers related events
+        /// </summary>
+        public void UpdateWeather(WeatherCondition newWeather)
+        {
+            if (CurrentWeather != newWeather)
+            {
+                CurrentWeather = newWeather;
+                _encounterService.UpdateConditions(CurrentTimeOfDay.ToString(), CurrentWeather.ToString());
+                OnWeatherChanged?.Invoke(newWeather);
+            }
+        }
+        
+        /// <summary>
+        /// Sets a global flag
+        /// </summary>
+        public void SetGlobalFlag(string flag, bool value)
+        {
+            GlobalFlags[flag] = value;
+        }
+        
+        /// <summary>
+        /// Gets a global flag value
+        /// </summary>
+        public bool GetGlobalFlag(string flag)
+        {
+            return GlobalFlags.TryGetValue(flag, out var value) && value;
+        }
+    }
+    
+    /// <summary>
+    /// Represents an NPC in the world
+    /// </summary>
+    public class NPC
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public WorldPosition Position { get; set; }
+        public List<Dialogue> Dialogues { get; set; } = new();
+        public List<string> QuestsAvailable { get; set; } = new();
+        public string? ShopId { get; set; }
+        public bool IsTrainer { get; set; } = false;
+        public List<GladiatorBot> TrainerTeam { get; set; } = new();
+    }
+    
+    /// <summary>
+    /// Represents a dialogue option
+    /// </summary>
+    public class Dialogue
+    {
+        public string Id { get; }
+        public string Text { get; }
+        public List<string> RequiredFlags { get; }
+        public Dictionary<string, bool> FlagsToSet { get; }
+        
+        public Dialogue(string id, string text)
+        {
+            Id = id;
+            Text = text;
+            RequiredFlags = new List<string>();
+            FlagsToSet = new Dictionary<string, bool>();
+        }
+    }
+    
+    /// <summary>
+    /// Represents a shop in the world
+    /// </summary>
+    public class Shop
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public WorldPosition Position { get; set; }
+        public Dictionary<string, ShopItem> Items { get; set; } = new();
+        public string? RequiredFlag { get; set; }
+    }
+    
+    /// <summary>
+    /// Represents an item for sale in a shop
+    /// </summary>
+    public class ShopItem
+    {
+        public string ItemId { get; }
+        public string DisplayName { get; }
+        public int Price { get; }
+        public int Stock { get; set; }
+        
+        public ShopItem(string itemId, string displayName, int price, int stock)
+        {
+            ItemId = itemId;
+            DisplayName = displayName;
+            Price = price;
+            Stock = stock;
         }
     }
 }
