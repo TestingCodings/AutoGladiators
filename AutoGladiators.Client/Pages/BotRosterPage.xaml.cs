@@ -82,6 +82,9 @@ namespace AutoGladiators.Client.Pages
         {
             base.OnAppearing();
             
+            // Reload bots whenever the page appears to ensure fresh data
+            LoadBots();
+            
             if (_animationManager != null)
             {
                 await _animationManager.AnimatePageEntry(this);
@@ -95,6 +98,8 @@ namespace AutoGladiators.Client.Pages
                 // Get real bot data from GameStateService
                 var gameState = GameStateService.Instance;
                 var realBots = gameState.BotRoster ?? new List<GladiatorBot>();
+                
+                System.Diagnostics.Debug.WriteLine($"BotRosterPage: Loading bots. Found {realBots.Count} bots in GameStateService");
 
                 _allBots = new ObservableCollection<BotSummary>();
                 

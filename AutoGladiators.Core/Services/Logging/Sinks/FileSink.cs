@@ -1,6 +1,9 @@
 ﻿using System;
 using System.IO;
 using AutoGladiators.Core.Services.Storage;
+#if ANDROID
+using Android.OS;
+#endif
 
 namespace AutoGladiators.Core.Services.Logging;
 
@@ -37,19 +40,37 @@ public sealed class FileSink : ILogSink
 #if ANDROID
         try
         {
-            // Try to use external storage directory accessible via file manager
-            var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            if (!string.IsNullOrEmpty(documentsPath))
+            // Use multiple accessible locations for Android
+            var possiblePaths = new string[]
             {
-                return Path.Combine(documentsPath, "AutoGladiators", "logs");
+                // Public Downloads folder - easily accessible
+                Path.Combine("/storage/emulated/0/Download", "AutoGladiators", "logs"),
+                // Documents folder
+                Path.Combine("/storage/emulated/0/Documents", "AutoGladiators", "logs"),
+                // External files dir (app-specific but accessible via file manager)
+                Path.Combine("/sdcard", "AutoGladiators", "logs"),
+                // Fallback to basic external storage
+                Path.Combine("/sdcard", "AutoGladiators", "logs")
+            };
+            
+            foreach (var path in possiblePaths)
+            {
+                try
+                {
+                    if (Directory.Exists(Path.GetDirectoryName(path)) || path.StartsWith("/storage/emulated/0/"))
+                    {
+                        return path;
+                    }
+                }
+                catch { /* Continue to next path */ }
             }
             
-            // Fallback to a simple external path
+            // Final fallback
             return Path.Combine("/sdcard", "AutoGladiators", "logs");
         }
         catch
         {
-            // Final fallback to app directory
+            // System fallback
             return Path.Combine(Path.GetTempPath(), "AutoGladiators", "logs");
         }
 #else
