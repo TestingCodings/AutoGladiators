@@ -9,14 +9,16 @@ using AutoGladiators.Core.Core;
 using AutoGladiators.Core.Models;
 using AutoGladiators.Core.Services;
 using AutoGladiators.Core.Enums;
+using AutoGladiators.Client.Services;
 
 namespace AutoGladiators.Client.ViewModels
 {
     public class EnhancedBattleViewModel : INotifyPropertyChanged
     {
         private readonly EnhancedInventoryService _inventoryService = new();
-        private GladiatorBot _playerBot;
-        private GladiatorBot _enemyBot;
+        private readonly IFileLogger _fileLogger;
+        private GladiatorBot? _playerBot;
+        private GladiatorBot? _enemyBot;
         private bool _isBattleActive = false;
         private bool _isPlayerTurn = true;
         private string _battleLog = "";
@@ -26,7 +28,7 @@ namespace AutoGladiators.Client.ViewModels
         private string _lastUsedComboMove = "";
         private int _turnCounter = 0;
 
-        public GladiatorBot PlayerBot
+        public GladiatorBot? PlayerBot
         {
             get => _playerBot;
             set
@@ -40,7 +42,7 @@ namespace AutoGladiators.Client.ViewModels
             }
         }
 
-        public GladiatorBot EnemyBot
+        public GladiatorBot? EnemyBot
         {
             get => _enemyBot;
             set
@@ -115,20 +117,20 @@ namespace AutoGladiators.Client.ViewModels
 
         public string TurnIndicator => IsPlayerTurn ? "Your Turn" : "Enemy Turn";
 
-        public double PlayerHealthPercentage => PlayerBot != null ? 
-            (double)PlayerBot.CurrentHealth / PlayerBot.MaxHealth * 100 : 0;
+        public double PlayerHealthPercentage => PlayerBot?.MaxHealth > 0 ? 
+            Math.Max(0, Math.Min(100, (double)PlayerBot.CurrentHealth / PlayerBot.MaxHealth * 100)) : 0;
 
-        public double PlayerMPPercentage => PlayerBot != null ? 
-            (double)PlayerBot.CurrentMP / PlayerBot.MaxMP * 100 : 0;
+        public double PlayerMPPercentage => PlayerBot?.MaxMP > 0 ? 
+            Math.Max(0, Math.Min(100, (double)PlayerBot.CurrentMP / PlayerBot.MaxMP * 100)) : 0;
 
-        public double PlayerEnergyPercentage => PlayerBot != null ? 
-            (double)PlayerBot.Energy / PlayerBot.MaxEnergy * 100 : 0;
+        public double PlayerEnergyPercentage => PlayerBot?.MaxEnergy > 0 ? 
+            Math.Max(0, Math.Min(100, (double)PlayerBot.Energy / PlayerBot.MaxEnergy * 100)) : 0;
 
-        public double EnemyHealthPercentage => EnemyBot != null ? 
-            (double)EnemyBot.CurrentHealth / EnemyBot.MaxHealth * 100 : 0;
+        public double EnemyHealthPercentage => EnemyBot?.MaxHealth > 0 ? 
+            Math.Max(0, Math.Min(100, (double)EnemyBot.CurrentHealth / EnemyBot.MaxHealth * 100)) : 0;
 
-        public double EnemyMPPercentage => EnemyBot != null ? 
-            (double)EnemyBot.CurrentMP / EnemyBot.MaxMP * 100 : 0;
+        public double EnemyMPPercentage => EnemyBot?.MaxMP > 0 ? 
+            Math.Max(0, Math.Min(100, (double)EnemyBot.CurrentMP / EnemyBot.MaxMP * 100)) : 0;
 
         public ObservableCollection<EnhancedMove> PlayerMoves { get; } = new();
         public ObservableCollection<BattleItem> AvailableItems { get; } = new();
@@ -140,6 +142,20 @@ namespace AutoGladiators.Client.ViewModels
 
         public EnhancedBattleViewModel()
         {
+            _fileLogger = new FileLogger();
+            
+            MoveCommand = new Command<EnhancedMove>(ExecuteMove);
+            UseItemCommand = new Command<BattleItem>(UseItem);
+            RunAwayCommand = new Command(RunAway);
+            ContinueBattleCommand = new Command(ContinueBattle);
+            
+            LoadAvailableItems();
+        }
+
+        public EnhancedBattleViewModel(IFileLogger fileLogger)
+        {
+            _fileLogger = fileLogger ?? new FileLogger();
+            
             MoveCommand = new Command<EnhancedMove>(ExecuteMove);
             UseItemCommand = new Command<BattleItem>(UseItem);
             RunAwayCommand = new Command(RunAway);
@@ -159,6 +175,21 @@ namespace AutoGladiators.Client.ViewModels
             IsBattleActive = true;
             IsPlayerTurn = true;
             _turnCounter = 0;
+            
+            // Log battle start to system log
+            _ = Task.Run(async () => 
+            {
+                try
+                {
+                    await _fileLogger.LogSystemEvent($"Enhanced Battle Started: {PlayerBot.Name} (Lvl {PlayerBot.Level}) vs {EnemyBot.Name} (Lvl {EnemyBot.Level})");
+                    await _fileLogger.LogSystemEvent($"Player Stats - HP: {PlayerBot.CurrentHealth}/{PlayerBot.MaxHealth}, MP: {PlayerBot.CurrentMP}/{PlayerBot.MaxMP}");
+                    await _fileLogger.LogSystemEvent($"Enemy Stats - HP: {EnemyBot.CurrentHealth}/{EnemyBot.MaxHealth}, MP: {EnemyBot.CurrentMP}/{EnemyBot.MaxMP}");
+                }
+                catch
+                {
+                    // Don't break battle if logging fails
+                }
+            });
             
             AddToBattleLog($"Battle begins! {PlayerBot.Name} vs {EnemyBot.Name}!");
             CurrentBattleMessage = "Choose your move!";
@@ -221,7 +252,7 @@ namespace AutoGladiators.Client.ViewModels
 
         private async void ExecuteMove(EnhancedMove move)
         {
-            if (!IsPlayerTurn || !IsBattleActive || move == null)
+            if (!IsPlayerTurn || !IsBattleActive || move == null || PlayerBot == null || EnemyBot == null)
                 return;
 
             // Check if move can be used
@@ -267,6 +298,9 @@ namespace AutoGladiators.Client.ViewModels
 
         private string GetMoveRestrictionReason(EnhancedMove move)
         {
+            if (move == null || PlayerBot == null)
+                return "Invalid move or player data.";
+                
             if (PlayerBot.CurrentMP < move.MpCost)
                 return $"Not enough MP! Need {move.MpCost} MP (have {PlayerBot.CurrentMP})";
             
@@ -345,7 +379,7 @@ namespace AutoGladiators.Client.ViewModels
 
         private async void UseItem(BattleItem item)
         {
-            if (!IsPlayerTurn || !IsBattleActive || item == null)
+            if (!IsPlayerTurn || !IsBattleActive || item == null || PlayerBot == null || _inventoryService == null)
                 return;
 
             var result = _inventoryService.UseBattleItem(item.BattleType, PlayerBot);
@@ -415,9 +449,21 @@ namespace AutoGladiators.Client.ViewModels
             ShowDefeatOverlay = false;
         }
 
-        private void AddToBattleLog(string message)
+        private async void AddToBattleLog(string message)
         {
+            // Add to in-app log
             BattleLog += $"{message}\n";
+            
+            // Also save to file
+            try
+            {
+                await _fileLogger.LogBattleEvent(message);
+            }
+            catch (Exception ex)
+            {
+                // Don't let logging failures break the game
+                await _fileLogger.LogError($"Failed to log battle event: {message}", ex);
+            }
         }
 
         private void RefreshStats()
@@ -429,7 +475,7 @@ namespace AutoGladiators.Client.ViewModels
             OnPropertyChanged(nameof(EnemyMPPercentage));
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         protected virtual void OnPropertyChanged(string propertyName)
         {

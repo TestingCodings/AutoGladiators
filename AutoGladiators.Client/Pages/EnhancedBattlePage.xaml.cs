@@ -1,6 +1,7 @@
 using Microsoft.Maui.Controls;
 using AutoGladiators.Client.ViewModels;
 using AutoGladiators.Core.Core;
+using AutoGladiators.Client.Services;
 
 namespace AutoGladiators.Client.Pages
 {
@@ -11,6 +12,11 @@ namespace AutoGladiators.Client.Pages
         public EnhancedBattlePage()
         {
             InitializeComponent();
+            Title = "Enhanced Battle";
+            
+            // Initialize FileLogger and ViewModel with it
+            var fileLogger = new FileLogger();
+            BindingContext = new EnhancedBattleViewModel(fileLogger);
         }
 
         public EnhancedBattlePage(GladiatorBot playerBot, GladiatorBot enemyBot) : this()

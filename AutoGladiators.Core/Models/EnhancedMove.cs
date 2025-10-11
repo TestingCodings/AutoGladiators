@@ -313,7 +313,7 @@ namespace AutoGladiators.Core.Models
                     MinLevel = 8,
                     UsesPerBattle = 3,
                     Category = MoveCategory.Attack,
-                    InflictsStatus = StatusEffectType.Stunned,
+                    InflictsStatus = StatusEffectType.Stun,
                     StatusChance = 20.0,
                     AnimationEffect = "elemental_explosion"
                 },
