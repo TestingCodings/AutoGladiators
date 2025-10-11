@@ -180,6 +180,9 @@ namespace AutoGladiators.Core.Services.Exploration
             var starterTown = new WorldZone("starter_town", "New Gladiator Town", 
                 "A peaceful town where new gladiator trainers begin their journey.", 20, 20);
             
+            // Generate town terrain with roads and buildings
+            GenerateStarterTownTerrain(starterTown);
+            
             // Add some buildings and NPCs
             var healingCenter = new WorldObject("healing_center", WorldObjectType.HealingCenter, 
                 "Gladiator Healing Center", new WorldPosition("starter_town", 10, 8), "healing_center");
@@ -199,6 +202,9 @@ namespace AutoGladiators.Core.Services.Exploration
             // Create Route 1
             var route1 = new WorldZone("route_1", "Route 1", 
                 "A grassy route filled with wild gladiators.", 30, 15);
+            
+            // Generate varied route terrain
+            GenerateRoute1Terrain(route1);
             
             // Set encounter gladiators for grass tiles
             for (int x = 0; x < route1.Width; x++)
@@ -288,6 +294,134 @@ namespace AutoGladiators.Core.Services.Exploration
         public bool GetGlobalFlag(string flag)
         {
             return GlobalFlags.TryGetValue(flag, out var value) && value;
+        }
+        
+        /// <summary>
+        /// Generates terrain for starter town with roads and building areas
+        /// </summary>
+        private void GenerateStarterTownTerrain(WorldZone zone)
+        {
+            // Create horizontal road through middle
+            int roadY = zone.Height / 2;
+            for (int x = 0; x < zone.Width; x++)
+            {
+                zone.SetTile(x, roadY, new Models.Exploration.MapTile(TileType.Road, true, false, "road", 0.0));
+            }
+            
+            // Create vertical road through middle
+            int roadX = zone.Width / 2;
+            for (int y = 0; y < zone.Height; y++)
+            {
+                zone.SetTile(roadX, y, new Models.Exploration.MapTile(TileType.Road, true, false, "road", 0.0));
+            }
+            
+            // Add some building tiles around the center
+            for (int x = 5; x < 15; x++)
+            {
+                for (int y = 3; y < 17; y++)
+                {
+                    // Skip roads
+                    if (x == roadX || y == roadY) continue;
+                    
+                    // Random chance for building vs grass
+                    if (_rng.NextDouble() < 0.3) // 30% chance for building
+                    {
+                        zone.SetTile(x, y, new Models.Exploration.MapTile(TileType.Building, false, false, "building", 0.0));
+                    }
+                }
+            }
+            
+            // Add some decorative water features
+            // Small pond in corners
+            for (int x = 2; x < 5; x++)
+            {
+                for (int y = 2; y < 5; y++)
+                {
+                    if (_rng.NextDouble() < 0.7) // 70% chance for water in pond area
+                    {
+                        zone.SetTile(x, y, new Models.Exploration.MapTile(TileType.Water, false, false, "water", 0.0));
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Generates varied terrain for Route 1 with different biomes
+        /// </summary>
+        private void GenerateRoute1Terrain(WorldZone zone)
+        {
+            // Create main path through the route
+            int pathY = zone.Height / 2;
+            for (int x = 0; x < zone.Width; x++)
+            {
+                zone.SetTile(x, pathY, new Models.Exploration.MapTile(TileType.Road, true, false, "path", 0.0));
+                // Also make path tiles above and below for wider road
+                if (pathY > 0)
+                    zone.SetTile(x, pathY - 1, new Models.Exploration.MapTile(TileType.Road, true, false, "path", 0.0));
+                if (pathY < zone.Height - 1)
+                    zone.SetTile(x, pathY + 1, new Models.Exploration.MapTile(TileType.Road, true, false, "path", 0.0));
+            }
+            
+            // Add forest area on the north side
+            for (int x = 5; x < 25; x++)
+            {
+                for (int y = 0; y < pathY - 2; y++)
+                {
+                    if (_rng.NextDouble() < 0.6) // 60% chance for forest
+                    {
+                        zone.SetTile(x, y, new Models.Exploration.MapTile(TileType.Forest, true, true, "forest", 0.08));
+                    }
+                }
+            }
+            
+            // Add water features
+            // River on south side
+            for (int x = 8; x < 22; x++)
+            {
+                for (int y = pathY + 3; y < zone.Height; y++)
+                {
+                    if (_rng.NextDouble() < 0.4) // 40% chance for water
+                    {
+                        zone.SetTile(x, y, new Models.Exploration.MapTile(TileType.Water, false, false, "river", 0.0));
+                    }
+                }
+            }
+            
+            // Add some mountain/hill areas
+            for (int x = 0; x < 8; x++)
+            {
+                for (int y = 0; y < zone.Height; y++)
+                {
+                    if (y >= pathY - 1 && y <= pathY + 1) continue; // Skip main path
+                    
+                    if (_rng.NextDouble() < 0.3) // 30% chance for mountain
+                    {
+                        zone.SetTile(x, y, new Models.Exploration.MapTile(TileType.Mountain, false, false, "mountain", 0.0));
+                    }
+                }
+            }
+            
+            // Add some obstacles and interesting features
+            for (int x = 0; x < zone.Width; x++)
+            {
+                for (int y = 0; y < zone.Height; y++)
+                {
+                    var tile = zone.GetTile(x, y);
+                    if (tile?.Type == TileType.Grass)
+                    {
+                        // Small chance for obstacles or special terrain
+                        double roll = _rng.NextDouble();
+                        if (roll < 0.05) // 5% chance for obstacle
+                        {
+                            zone.SetTile(x, y, new Models.Exploration.MapTile(TileType.Obstacle, false, false, "rock", 0.0));
+                        }
+                        else if (roll < 0.1) // Additional 5% chance for desert patches
+                        {
+                            zone.SetTile(x, y, new Models.Exploration.MapTile(TileType.Desert, true, true, "sand", 0.03));
+                        }
+                    }
+                }
+            }
         }
     }
     

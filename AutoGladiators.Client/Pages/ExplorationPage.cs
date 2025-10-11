@@ -471,18 +471,36 @@ namespace AutoGladiators.Client.Pages
                 _playerTileFrame = frame;
             }
             
-            // Add content based on what's on the tile
-            var content = new Label
+            // Add content based on what's on the tile - support both sprites and text
+            View content;
+            
+            // Check if we have a sprite for this tile
+            var spritePath = GetTileSpritePath(worldX, worldY, isPlayerPosition);
+            if (!string.IsNullOrEmpty(spritePath))
             {
-                Text = GetTileSymbol(worldX, worldY, isPlayerPosition),
-                TextColor = isPlayerPosition ? Colors.White : 
-                           isBuilding ? Colors.DarkBlue : Colors.Black,
-                FontSize = isBuilding ? 18 : (isPlayerPosition ? 16 : 14),
-                FontAttributes = FontAttributes.Bold,
-                FontFamily = "Arial",
-                HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.Center
-            };
+                content = new Image
+                {
+                    Source = ImageSource.FromFile(spritePath),
+                    Aspect = Aspect.AspectFill,
+                    HorizontalOptions = LayoutOptions.Fill,
+                    VerticalOptions = LayoutOptions.Fill
+                };
+            }
+            else
+            {
+                // Fallback to emoji/text
+                content = new Label
+                {
+                    Text = GetTileSymbol(worldX, worldY, isPlayerPosition),
+                    TextColor = isPlayerPosition ? Colors.White : 
+                               isBuilding ? Colors.DarkBlue : Colors.Black,
+                    FontSize = isBuilding ? 18 : (isPlayerPosition ? 16 : 14),
+                    FontAttributes = FontAttributes.Bold,
+                    FontFamily = "Arial",
+                    HorizontalOptions = LayoutOptions.Center,
+                    VerticalOptions = LayoutOptions.Center
+                };
+            }
             
             frame.Content = content;
             
@@ -516,7 +534,7 @@ namespace AutoGladiators.Client.Pages
         private string GetTileSymbol(int worldX, int worldY, bool isPlayerPosition)
         {
             if (isPlayerPosition)
-                return "🚶";
+                return "🚶"; // TODO: Replace with sprite - GetPlayerSprite()
                 
             // Check for objects on this tile
             var objects = _currentZone?.GetObjectsAt(worldX, worldY);
@@ -946,6 +964,46 @@ namespace AutoGladiators.Client.Pages
             {
                 System.Diagnostics.Debug.WriteLine($"Button animation error: {ex}");
             }
+        }
+        
+        /// <summary>
+        /// Gets the sprite path for a tile, returns null if no sprite available
+        /// </summary>
+        private string? GetTileSpritePath(int worldX, int worldY, bool isPlayerPosition)
+        {
+            if (isPlayerPosition)
+            {
+                // Return player sprite path - you can add directional sprites here
+                return "player_avatar.png"; // Will use this when the file exists
+            }
+            
+            // Check for objects first
+            var objects = _currentZone?.GetObjectsAt(worldX, worldY);
+            if (objects?.Any() == true)
+            {
+                var obj = objects.First();
+                return obj.Type switch
+                {
+                    WorldObjectType.NPC => "npc_sprite.png",
+                    WorldObjectType.Trainer => "trainer_sprite.png", 
+                    WorldObjectType.Shop => "shop_building.png",
+                    WorldObjectType.HealingCenter => "healing_center.png",
+                    _ => null // Use emoji fallback
+                };
+            }
+            
+            // Terrain sprites
+            var tile = _currentZone?.GetTile(worldX, worldY);
+            return tile?.Type switch
+            {
+                TileType.Water => "water_tile.png",
+                TileType.Mountain => "mountain_tile.png",
+                TileType.Forest => "forest_tile.png",
+                TileType.Desert => "desert_tile.png",
+                TileType.Road => "road_tile.png",
+                TileType.Building => "building_tile.png",
+                _ => null // Use default grass or emoji
+            };
         }
         
         protected override void OnDisappearing()

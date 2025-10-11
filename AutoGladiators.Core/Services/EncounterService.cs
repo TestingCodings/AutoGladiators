@@ -186,7 +186,7 @@ namespace AutoGladiators.Core.Services.Exploration
             
             // Generate the wild bot
             int playerLevel = GetPlayerLevel();
-            encounteredBot = GenerateWildBot(selectedEncounter, playerLevel);
+            encounteredBot = GenerateWildBot(selectedEncounter, playerLevel, position.ZoneId);
             
             Log.Info($"Wild encounter triggered: {encounteredBot?.Name} in {biome.Name}");
             return encounteredBot != null;
@@ -329,10 +329,11 @@ namespace AutoGladiators.Core.Services.Exploration
             return weightedPool.Any() ? weightedPool[_rng.Next(weightedPool.Count)] : null;
         }
         
-        private GladiatorBot? GenerateWildBot(WildBotEncounter encounter, int playerLevel)
+        private GladiatorBot? GenerateWildBot(WildBotEncounter encounter, int playerLevel, string zoneId = "route_1")
         {
             int botLevel = CalculateBotLevel(playerLevel, encounter);
-            var bot = BotFactory.CreateBot(encounter.BotId, botLevel);
+            // Use new GenerateWildBot method with proper species and rarity system
+            var bot = BotFactory.GenerateWildBot(zoneId, botLevel);
             
             if (bot != null)
             {

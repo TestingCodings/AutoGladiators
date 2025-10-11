@@ -24,13 +24,14 @@ namespace AutoGladiators.Client.Pages
             try
             {
                 Log.Info("Adding random bot to roster");
-                var bot = BotFactory.CreateBot("RustyCharger", 5);
+                // Use new rarity system - generates bot from catalog with proper rarity
+                var bot = BotFactory.CreateBot("scrap_drone", 5); // Uses species from new catalog
                 
                 if (bot != null)
                 {
                     GameStateService.Instance.AddBotToRoster(bot);
                     Log.Info($"Successfully added bot {bot.Name} to roster");
-                    await DisplayAlert("Success", $"Added {bot.Name} (Level {bot.Level}) to your roster!\n\nStats:\n• HP: {bot.MaxHealth}\n• Attack: {bot.AttackPower}\n• Defense: {bot.Defense}\n• Element: {bot.ElementalCore}", "OK");
+                    await DisplayAlert("Success", $"Added {bot.Name} (Level {bot.Level}, {bot.Rarity}) to your roster!\n\nStats:\n• HP: {bot.MaxHealth}\n• Attack: {bot.AttackPower}\n• Defense: {bot.Defense}\n• Element: {bot.ElementalCore}", "OK");
                 }
                 else
                 {
@@ -50,13 +51,14 @@ namespace AutoGladiators.Client.Pages
             try
             {
                 Log.Info("Adding high-level bot to roster");
-                var bot = BotFactory.CreateBot("EliteGuardian", 10);
+                // Use powerful bot from new catalog 
+                var bot = BotFactory.CreateBot("thunder_titan", 10); // Thunder Titan is an uncommon bot
                 
                 if (bot != null)
                 {
                     GameStateService.Instance.AddBotToRoster(bot);
                     Log.Info($"Successfully added high-level bot {bot.Name} to roster");
-                    await DisplayAlert("Success", $"Added {bot.Name} (Level {bot.Level}) to your roster!\n\nPowerful Stats:\n• HP: {bot.MaxHealth}\n• Attack: {bot.AttackPower}\n• Defense: {bot.Defense}\n• Element: {bot.ElementalCore}", "OK");
+                    await DisplayAlert("Success", $"Added {bot.Name} (Level {bot.Level}, {bot.Rarity}) to your roster!\n\nPowerful Stats:\n• HP: {bot.MaxHealth}\n• Attack: {bot.AttackPower}\n• Defense: {bot.Defense}\n• Element: {bot.ElementalCore}", "OK");
                 }
                 else
                 {
@@ -281,6 +283,21 @@ namespace AutoGladiators.Client.Pages
             {
                 Log.Error($"Failed to open log access page: {ex.Message}", ex);
                 await DisplayAlert("Error", $"Failed to open log access: {ex.Message}", "OK");
+            }
+        }
+
+        private async void OnEnhancedBattleTestClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                Log.Info("Starting Enhanced Battle System test");
+                var battlePage = EnhancedBattlePage.CreateTestBattle();
+                await Navigation.PushAsync(battlePage);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to start enhanced battle test: {ex.Message}", ex);
+                await DisplayAlert("Error", $"Failed to start enhanced battle test: {ex.Message}", "OK");
             }
         }
 

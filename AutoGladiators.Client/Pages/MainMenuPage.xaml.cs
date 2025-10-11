@@ -140,7 +140,15 @@ namespace AutoGladiators.Client.Pages
                             }
                             break;
                         case "View Bot Roster":
-                            await Navigation.PushAsync(new BotRosterPage());
+                            // currentProfile is already available from the parent scope
+                            if (currentProfile != null)
+                            {
+                                await Navigation.PushAsync(new BotRosterPage());
+                            }
+                            else
+                            {
+                                await DisplayAlert("No Profile", "Please create a character first before viewing your bot roster.", "OK");
+                            }
                             break;
                         case "View Inventory":
                             await Navigation.PushAsync(new InventoryPage());
