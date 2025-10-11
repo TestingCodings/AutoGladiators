@@ -277,7 +277,7 @@ namespace AutoGladiators.Client.Pages
             try
             {
                 Log.Info("Accessing debug logs from debug menu");
-                await Navigation.PushAsync(new LogAccessPage());
+                await Navigation.PushAsync(new LogViewerPage());
             }
             catch (Exception ex)
             {

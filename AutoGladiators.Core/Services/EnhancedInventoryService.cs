@@ -1,6 +1,7 @@
 using AutoGladiators.Core.Models;
 using AutoGladiators.Core.Enums;
 using AutoGladiators.Core.Rng;
+using AutoGladiators.Core.Core;
 using System;
 
 namespace AutoGladiators.Core.Services

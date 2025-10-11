@@ -3,8 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="AutoGladiators.Client.Pages.EnhancedBattlePage"
              xmlns:viewmodels="clr-namespace:AutoGladiators.Client.ViewModels"
+             xmlns:converters="clr-namespace:AutoGladiators.Client.Converters"
              Title="Enhanced Battle"
              BackgroundColor="#1a1a2e">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:PercentageToDecimalConverter x:Key="PercentageToDecimalConverter"/>
+            <converters:SafeHealthRatioConverter x:Key="SafeHealthRatioConverter"/>
+            <converters:MoveTierToColorConverter x:Key="MoveTierToColorConverter"/>
+            <converters:BoolToOpacityConverter x:Key="BoolToOpacityConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
 
     <ContentPage.BindingContext>
         <viewmodels:EnhancedBattleViewModel />
