@@ -80,18 +80,32 @@
                             Clicked="OnGiveEnergyClicked"/>
                 </Frame>
                 
-                <!-- Test Battle -->
+                <!-- Test Battle (Original) -->
                 <Frame BackgroundColor="#1A1A2E" 
                        CornerRadius="12" 
                        HasShadow="True"
                        Padding="0">
-                    <Button Text="⚔️ Quick Test Battle" 
+                    <Button Text="⚔️ Quick Test Battle (Legacy)" 
                             FontSize="16" 
                             FontAttributes="Bold"
                             TextColor="#FF4757"
                             BackgroundColor="Transparent"
                             HeightRequest="50"
                             Clicked="OnTestBattleClicked"/>
+                </Frame>
+                
+                <!-- Enhanced Battle Test -->
+                <Frame BackgroundColor="#4A1A4A" 
+                       CornerRadius="12" 
+                       HasShadow="True"
+                       Padding="0">
+                    <Button Text="⚔️✨ Enhanced Battle System Test" 
+                            FontSize="16" 
+                            FontAttributes="Bold"
+                            TextColor="#FF69B4"
+                            BackgroundColor="Transparent"
+                            HeightRequest="50"
+                            Clicked="OnEnhancedBattleTestClicked"/>
                 </Frame>
                 
                 <!-- Hard Battle -->

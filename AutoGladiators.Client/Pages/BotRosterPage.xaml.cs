@@ -66,6 +66,8 @@ namespace AutoGladiators.Client.Pages
         public BotRosterPage()
         {
             InitializeComponent();
+            LoadBots();
+            BindingContext = this;
         }
 
         public BotRosterPage(SpriteManager spriteManager, AnimationManager animationManager)
@@ -95,11 +97,29 @@ namespace AutoGladiators.Client.Pages
         {
             try
             {
+                // Check if we have a current profile
+                var currentProfile = PlayerProfileService.Instance.GetCurrentProfile();
+                if (currentProfile == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("BotRosterPage: No current profile found - displaying empty roster");
+                    _allBots = new ObservableCollection<BotSummary>();
+                    FilteredBots = new ObservableCollection<BotSummary>();
+                    UpdateCollectionStats();
+                    return;
+                }
+
                 // Get real bot data from GameStateService
                 var gameState = GameStateService.Instance;
                 var realBots = gameState.BotRoster ?? new List<GladiatorBot>();
                 
-                System.Diagnostics.Debug.WriteLine($"BotRosterPage: Loading bots. Found {realBots.Count} bots in GameStateService");
+                System.Diagnostics.Debug.WriteLine($"BotRosterPage: Loading bots from profile {currentProfile.PlayerName}. Found {realBots.Count} bots in GameStateService");
+                
+                // Debug: List all bots for troubleshooting
+                for (int i = 0; i < realBots.Count; i++)
+                {
+                    var bot = realBots[i];
+                    System.Diagnostics.Debug.WriteLine($"  Bot {i}: {bot.Name}, Level {bot.Level}, Element: {bot.ElementalCore}");
+                }
 
                 _allBots = new ObservableCollection<BotSummary>();
                 
@@ -115,7 +135,7 @@ namespace AutoGladiators.Client.Pages
                         MaxHealth = bot.MaxHealth,
                         AttackPower = bot.AttackPower,
                         Defense = bot.Defense,
-                        Rarity = "Common",
+                        Rarity = CalculateBotRarity(bot),
                         Description = bot.Description ?? "No description available",
                         ExpProgress = bot.Experience / Math.Max(1.0, (bot.Level + 1) * 100.0), // XP progress to next level
                         PowerRating = CalculatePowerRating(bot),
@@ -190,6 +210,28 @@ namespace AutoGladiators.Client.Pages
             return (bot.Level * 100) + bot.AttackPower * 5 + bot.Defense * 3 + bot.MaxHealth;
         }
         
+        private string CalculateBotRarity(GladiatorBot bot)
+        {
+            // Use new rarity system if available
+            if (!string.IsNullOrEmpty(bot.Rarity))
+            {
+                return bot.Rarity;
+            }
+
+            // Fallback calculation for legacy bots without rarity property
+            int totalStats = bot.MaxHealth + bot.AttackPower + bot.Defense + bot.Speed;
+            int avgStat = totalStats / 4;
+            
+            return avgStat switch
+            {
+                <= 50 => "Common",
+                <= 80 => "Uncommon", 
+                <= 120 => "Rare",
+                <= 150 => "Epic",
+                _ => "Legendary"
+            };
+        }
+        
         private string GetStatusText(GladiatorBot bot)
         {
             if (bot.CurrentHealth <= 0)
@@ -206,9 +248,22 @@ namespace AutoGladiators.Client.Pages
 
         private void UpdateCollectionStats()
         {
-            TotalBots = _allBots.Count.ToString();
-            AvgLevel = _allBots.Any() ? ((int)_allBots.Average(b => b.Level)).ToString() : "0";
-            RarePlusCount = _allBots.Count(b => b.Rarity == "Rare" || b.Rarity == "Epic" || b.Rarity == "Legendary").ToString();
+            // Filter out fallback/error entries for accurate statistics
+            var realBots = _allBots.Where(b => 
+                b.Name != "No Bots Found" && 
+                b.Name != "Error Loading Bots" && 
+                b.Level > 0).ToList();
+            
+            TotalBots = realBots.Count.ToString();
+            AvgLevel = realBots.Any() ? realBots.Average(b => b.Level).ToString("F1") : "0";
+            RarePlusCount = realBots.Count(b => b.Rarity == "Rare" || b.Rarity == "Epic" || b.Rarity == "Legendary").ToString();
+            
+            System.Diagnostics.Debug.WriteLine($"UpdateCollectionStats: Total={TotalBots}, AvgLevel={AvgLevel}, Rare+={RarePlusCount}");
+            System.Diagnostics.Debug.WriteLine($"_allBots contains {_allBots.Count} total entries, {realBots.Count} real bots:");
+            foreach (var bot in realBots)
+            {
+                System.Diagnostics.Debug.WriteLine($"  - {bot.Name} (Level {bot.Level}, {bot.Rarity})");
+            }
         }
 
         private void OnSortPickerChanged(object sender, EventArgs e)
@@ -226,7 +281,11 @@ namespace AutoGladiators.Client.Pages
 
         private void ApplyFilters()
         {
-            var filtered = _allBots.AsEnumerable();
+            // Start with real bots only (exclude fallback entries)
+            var filtered = _allBots.Where(b => 
+                b.Name != "No Bots Found" && 
+                b.Name != "Error Loading Bots" && 
+                b.Level > 0);
 
             // TODO: Add filtering when UI controls are connected
             // Apply sorting by level for now
@@ -236,6 +295,12 @@ namespace AutoGladiators.Client.Pages
             foreach (var bot in filtered)
             {
                 FilteredBots.Add(bot);
+            }
+            
+            // If no real bots after filtering, show a placeholder
+            if (FilteredBots.Count == 0 && _allBots.Any(b => b.Name == "No Bots Found"))
+            {
+                FilteredBots.Add(_allBots.First(b => b.Name == "No Bots Found"));
             }
         }
 
