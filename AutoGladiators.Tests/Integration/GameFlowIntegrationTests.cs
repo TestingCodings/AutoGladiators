@@ -16,8 +16,8 @@ namespace AutoGladiators.Tests.Integration
     [TestFixture]
     public class GameFlowIntegrationTests
     {
-        private PlayerProfileService _profileService;
-        private GameStateService _gameStateService;
+        private PlayerProfileService _profileService = null!;
+        private GameStateService _gameStateService = null!;
         private static readonly IAppLogger Log = AppLog.For<GameFlowIntegrationTests>();
 
         [SetUp]

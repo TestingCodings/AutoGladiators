@@ -15,7 +15,7 @@ namespace AutoGladiators.Client.Pages
     public partial class ContinueGamePage : ContentPage, INotifyPropertyChanged
     {
         private readonly PlayerProfileService _profileService;
-        private ObservableCollection<PlayerProfileDisplayModel> _savedProfiles;
+        private ObservableCollection<PlayerProfileDisplayModel> _savedProfiles = null!;
 
         public ObservableCollection<PlayerProfileDisplayModel> SavedProfiles
         {
@@ -168,7 +168,7 @@ namespace AutoGladiators.Client.Pages
             }
         }
 
-        private async void OnProfileTapped(object sender, EventArgs e)
+        private void OnProfileTapped(object sender, EventArgs e)
         {
             if (sender is Frame frame && frame.BindingContext is PlayerProfileDisplayModel profileDisplay)
             {

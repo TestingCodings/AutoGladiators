@@ -5,13 +5,13 @@ namespace AutoGladiators.Client.Config
 {
     public class LevelConfig
     {
-        public string LevelName { get; set; }
-        public string Mode { get; set; } // "Battle", "Race", "Training"
-        public string Environment { get; set; }
+        public string LevelName { get; set; } = string.Empty;
+        public string Mode { get; set; } = string.Empty; // "Battle", "Race", "Training"
+        public string Environment { get; set; } = string.Empty;
 
-        public List<string> Modifiers { get; set; }
-        public BotSettings BotSettings { get; set; }
-        public LevelRules Rules { get; set; }
+        public List<string> Modifiers { get; set; } = new();
+        public BotSettings BotSettings { get; set; } = new();
+        public LevelRules Rules { get; set; } = new();
     }
 
     public class BotSettings
@@ -25,6 +25,6 @@ namespace AutoGladiators.Client.Config
         public bool AllowPowerStrikes { get; set; }
         public bool EnableEvade { get; set; }
         public int MaxTurns { get; set; }
-        public string VictoryCondition { get; set; }
+        public string VictoryCondition { get; set; } = string.Empty;
     }
 }

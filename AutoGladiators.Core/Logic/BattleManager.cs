@@ -258,7 +258,10 @@ namespace AutoGladiators.Core.Logic
             var mvpMoves = Move.CreateMVPMoves();
             foreach (var move in mvpMoves)
             {
-                _moves[move.Name] = move;
+                if (move.Name != null)
+                {
+                    _moves[move.Name] = move;
+                }
             }
         }
         

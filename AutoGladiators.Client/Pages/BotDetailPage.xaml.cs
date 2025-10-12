@@ -281,8 +281,8 @@ namespace AutoGladiators.Client.Pages
 
     public class BotMove
     {
-        public string Name { get; set; }
-        public string Icon { get; set; }
-        public string Power { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
+        public string Power { get; set; } = string.Empty;
     }
 }

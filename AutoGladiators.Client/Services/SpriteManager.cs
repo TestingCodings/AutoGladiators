@@ -163,7 +163,7 @@ namespace AutoGladiators.Client.Services
         /// <summary>
         /// Preloads commonly used sprites for performance
         /// </summary>
-        public async Task PreloadCommonSprites()
+        public Task PreloadCommonSprites()
         {
             var commonElements = new[] { ElementalCore.Fire, ElementalCore.Electric, ElementalCore.Ice };
             var commonRarities = new[] { "Common", "Uncommon", "Rare" };
@@ -178,6 +178,8 @@ namespace AutoGladiators.Client.Services
                     }
                 }
             }
+            
+            return Task.CompletedTask;
         }
 
         /// <summary>

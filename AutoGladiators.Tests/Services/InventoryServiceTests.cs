@@ -8,8 +8,8 @@ namespace AutoGladiators.Tests.Services
     [TestFixture]
     public class InventoryServiceTests
     {
-        private InventoryService _inventoryService;
-        private GladiatorBot _testBot;
+        private InventoryService _inventoryService = null!;
+        private GladiatorBot _testBot = null!;
 
         [SetUp]
         public void Setup()
