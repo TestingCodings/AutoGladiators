@@ -16,9 +16,7 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <ContentPage.BindingContext>
-        <viewmodels:EnhancedBattleViewModel />
-    </ContentPage.BindingContext>
+
 
     <Grid>
         <!-- Main Battle Interface -->
@@ -35,13 +33,20 @@
                 </Frame>
 
                 <!-- Enemy Arena -->
-                <Frame BackgroundColor="#2d1b69" BorderColor="#512da8" HasShadow="True" CornerRadius="15" Padding="15">
+                <Frame x:Name="EnemyArena" BackgroundColor="#2d1b69" BorderColor="#512da8" HasShadow="True" CornerRadius="15" Padding="15">
                     <StackLayout>
                         <Label Text="Enemy" 
                                FontSize="16" 
                                FontAttributes="Bold" 
                                HorizontalTextAlignment="Center"
                                TextColor="#ff6b6b" />
+                        
+                        <!-- Enemy Bot Visual -->
+                        <Image Source="character_battle.png" 
+                               WidthRequest="80" 
+                               HeightRequest="80"
+                               Aspect="AspectFit"
+                               HorizontalOptions="Center" />
                         
                         <Label Text="{Binding EnemyBot.Name}" 
                                FontSize="20" 
@@ -80,7 +85,7 @@
                 </Frame>
 
                 <!-- Battle Effects Area -->
-                <Frame BackgroundColor="#1e3a8a" BorderColor="#3b82f6" HasShadow="True" CornerRadius="10" MinimumHeightRequest="80">
+                <Frame x:Name="BattleEffectsFrame" BackgroundColor="#1e3a8a" BorderColor="#3b82f6" HasShadow="True" CornerRadius="10" MinimumHeightRequest="80">
                     <Label Text="{Binding CurrentBattleMessage}" 
                            FontSize="16"
                            HorizontalTextAlignment="Center"
@@ -90,13 +95,20 @@
                 </Frame>
 
                 <!-- Player Arena -->
-                <Frame BackgroundColor="#1a5f3f" BorderColor="#27ae60" HasShadow="True" CornerRadius="15" Padding="15">
+                <Frame x:Name="PlayerArena" BackgroundColor="#1a5f3f" BorderColor="#27ae60" HasShadow="True" CornerRadius="15" Padding="15">
                     <StackLayout>
                         <Label Text="Your Gladiator" 
                                FontSize="16" 
                                FontAttributes="Bold" 
                                HorizontalTextAlignment="Center"
                                TextColor="#2ecc71" />
+                        
+                        <!-- Player Bot Visual -->
+                        <Image Source="character_idle.png" 
+                               WidthRequest="80" 
+                               HeightRequest="80"
+                               Aspect="AspectFit"
+                               HorizontalOptions="Center" />
                         
                         <Label Text="{Binding PlayerBot.Name}" 
                                FontSize="20" 

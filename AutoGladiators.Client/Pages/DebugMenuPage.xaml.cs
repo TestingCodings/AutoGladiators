@@ -301,6 +301,21 @@ namespace AutoGladiators.Client.Pages
             }
         }
 
+        private async void OnImprovedExplorationClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                Log.Info("Starting Improved Exploration Page with new assets");
+                var explorationPage = new ImprovedExplorationPage();
+                await Navigation.PushAsync(explorationPage);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to start improved exploration: {ex.Message}", ex);
+                await DisplayAlert("Error", $"Failed to start improved exploration: {ex.Message}", "OK");
+            }
+        }
+
         private async void OnBackClicked(object sender, EventArgs e)
         {
             try

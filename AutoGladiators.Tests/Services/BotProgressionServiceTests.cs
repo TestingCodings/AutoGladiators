@@ -8,8 +8,8 @@ namespace AutoGladiators.Tests.Services
     [TestFixture]
     public class BotProgressionServiceTests
     {
-        private BotProgressionService _progressionService;
-        private GladiatorBot _testBot;
+        private BotProgressionService _progressionService = null!;
+        private GladiatorBot _testBot = null!;
 
         [SetUp]
         public void Setup()

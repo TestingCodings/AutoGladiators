@@ -306,7 +306,7 @@ namespace AutoGladiators.Client.Pages
             }
         }
 
-        private async void OnMapTileClicked(object sender, EventArgs e)
+        private async void OnMapTileClicked(object? sender, EventArgs e)
         {
             try
             {

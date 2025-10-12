@@ -8,7 +8,7 @@ namespace AutoGladiators.Tests.Services
     [TestFixture]
     public class EncounterGeneratorTests
     {
-        private EncounterGenerator _generator;
+        private EncounterGenerator _generator = null!;
         
         [SetUp]
         public void Setup()

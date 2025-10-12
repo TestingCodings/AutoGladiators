@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AutoGladiators.Client.Pages.ImprovedExplorationPage"
+             Title="Adventure Map"
+             BackgroundColor="#0f1419">
+
+    <Grid>
+        <!-- Main Content -->
+        <ScrollView>
+            <StackLayout Padding="10" Spacing="15">
+                
+                <!-- Status Bar -->
+                <Frame BackgroundColor="#1a2332" BorderColor="#2d3748" HasShadow="True" CornerRadius="10">
+                    <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto">
+                        <Label Grid.Column="0" Grid.Row="0" 
+                               Text="🏛️ Adventure Mode" 
+                               FontSize="16" 
+                               FontAttributes="Bold"
+                               TextColor="#4fd1c7" 
+                               HorizontalTextAlignment="Center" />
+                        
+                        <Label Grid.Column="1" Grid.Row="0"
+                               x:Name="LocationLabel"
+                               Text="Forest Clearing" 
+                               FontSize="14" 
+                               TextColor="White"
+                               HorizontalTextAlignment="Center" />
+                        
+                        <Label Grid.Column="2" Grid.Row="0"
+                               x:Name="PlayerStatsLabel"
+                               Text="Level 5 | HP: 150/150" 
+                               FontSize="12" 
+                               TextColor="#ffd700"
+                               HorizontalTextAlignment="Center" />
+                               
+                        <ProgressBar Grid.ColumnSpan="3" Grid.Row="1"
+                                   x:Name="PlayerHealthBar"
+                                   Progress="1.0"
+                                   ProgressColor="#27ae60"
+                                   BackgroundColor="#555"
+                                   Margin="0,5,0,0" />
+                    </Grid>
+                </Frame>
+
+                <!-- Map Area -->
+                <Frame BackgroundColor="#2d3748" BorderColor="#4a5568" HasShadow="True" CornerRadius="15" Padding="10">
+                    <StackLayout>
+                        <Label Text="🗺️ Exploration Map" 
+                               FontSize="18" 
+                               FontAttributes="Bold"
+                               HorizontalTextAlignment="Center"
+                               TextColor="#4fd1c7"
+                               Margin="0,0,0,10" />
+                        
+                        <!-- Map Grid with Sprite Assets -->
+                        <Grid x:Name="MapGrid" 
+                              BackgroundColor="#1a202c"
+                              HeightRequest="300"
+                              WidthRequest="300"
+                              HorizontalOptions="Center">
+                            
+                            <!-- Background tiles -->
+                            <Grid.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#2d5016" Offset="0.0" />
+                                    <GradientStop Color="#1a202c" Offset="1.0" />
+                                </LinearGradientBrush>
+                            </Grid.Background>
+                            
+                            <!-- Map tiles will be populated programmatically -->
+                        </Grid>
+                        
+                        <!-- Movement Controls -->
+                        <Grid Margin="0,20,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="50" />
+                                <RowDefinition Height="50" />
+                                <RowDefinition Height="50" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="50" />
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- North Button -->
+                            <Button Grid.Row="0" Grid.Column="1"
+                                    x:Name="NorthButton"
+                                    Text="⬆️"
+                                    FontSize="20"
+                                    BackgroundColor="#4a5568"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    Clicked="OnMoveClicked" />
+                            
+                            <!-- West Button -->
+                            <Button Grid.Row="1" Grid.Column="0"
+                                    x:Name="WestButton"
+                                    Text="⬅️"
+                                    FontSize="20"
+                                    BackgroundColor="#4a5568"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    Clicked="OnMoveClicked" />
+                            
+                            <!-- Interact Button (Center) -->
+                            <Button Grid.Row="1" Grid.Column="1"
+                                    x:Name="InteractButton"
+                                    Text="🔍"
+                                    FontSize="20"
+                                    BackgroundColor="#27ae60"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    Clicked="OnInteractClicked" />
+                            
+                            <!-- East Button -->
+                            <Button Grid.Row="1" Grid.Column="2"
+                                    x:Name="EastButton"
+                                    Text="➡️"
+                                    FontSize="20"
+                                    BackgroundColor="#4a5568"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    Clicked="OnMoveClicked" />
+                            
+                            <!-- South Button -->
+                            <Button Grid.Row="2" Grid.Column="1"
+                                    x:Name="SouthButton"
+                                    Text="⬇️"
+                                    FontSize="20"
+                                    BackgroundColor="#4a5568"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    Clicked="OnMoveClicked" />
+                        </Grid>
+                    </StackLayout>
+                </Frame>
+
+                <!-- Action Buttons -->
+                <Frame BackgroundColor="#2d3748" BorderColor="#4a5568" HasShadow="True" CornerRadius="10">
+                    <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                        
+                        <Button Grid.Column="0" Grid.Row="0"
+                                Text="⚔️ Battle Test"
+                                BackgroundColor="#e74c3c"
+                                TextColor="White"
+                                CornerRadius="8"
+                                Clicked="OnTestBattleClicked" />
+                        
+                        <Button Grid.Column="1" Grid.Row="0"
+                                Text="🎒 Inventory"
+                                BackgroundColor="#3498db"
+                                TextColor="White"
+                                CornerRadius="8"
+                                Clicked="OnInventoryClicked" />
+                        
+                        <Button Grid.Column="2" Grid.Row="0"
+                                Text="🤖 My Bots"
+                                BackgroundColor="#9b59b6"
+                                TextColor="White"
+                                CornerRadius="8"
+                                Clicked="OnBotsClicked" />
+                        
+                        <Button Grid.Column="0" Grid.Row="1"
+                                Text="🏠 Town"
+                                BackgroundColor="#f39c12"
+                                TextColor="White"
+                                CornerRadius="8"
+                                Clicked="OnTownClicked" />
+                        
+                        <Button Grid.Column="1" Grid.Row="1"
+                                Text="💾 Save"
+                                BackgroundColor="#27ae60"
+                                TextColor="White"
+                                CornerRadius="8"
+                                Clicked="OnSaveClicked" />
+                        
+                        <Button Grid.Column="2" Grid.Row="1"
+                                Text="🏠 Main Menu"
+                                BackgroundColor="#34495e"
+                                TextColor="White"
+                                CornerRadius="8"
+                                Clicked="OnMainMenuClicked" />
+                    </Grid>
+                </Frame>
+
+                <!-- Events Log -->
+                <Frame BackgroundColor="#2d3748" BorderColor="#4a5568" HasShadow="True" CornerRadius="10">
+                    <StackLayout>
+                        <Label Text="📜 Adventure Log" 
+                               FontSize="16" 
+                               FontAttributes="Bold"
+                               HorizontalTextAlignment="Center"
+                               TextColor="#4fd1c7" />
+                        
+                        <ScrollView MaximumHeightRequest="150">
+                            <Label x:Name="EventsLabel"
+                                   Text="Welcome to your adventure! Move around to explore and find battles, treasures, and NPCs."
+                                   FontSize="12" 
+                                   TextColor="#e2e8f0"
+                                   Padding="10" />
+                        </ScrollView>
+                    </StackLayout>
+                </Frame>
+                
+            </StackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

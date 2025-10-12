@@ -268,7 +268,7 @@ namespace AutoGladiators.Client.Services
     /// </summary>
     public static class ColorAnimationExtensions
     {
-        public static Task<bool> ColorTo(this VisualElement element, Color targetColor, uint duration, Easing easing = null)
+        public static Task<bool> ColorTo(this VisualElement element, Color targetColor, uint duration, Easing? easing = null)
         {
             var originalColor = element.BackgroundColor;
             var taskCompletionSource = new TaskCompletionSource<bool>();

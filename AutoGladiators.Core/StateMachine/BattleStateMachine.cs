@@ -13,9 +13,9 @@ namespace AutoGladiators.Core.StateMachine
         public GladiatorBot PlayerBot { get; private set; }
         public GladiatorBot EnemyBot { get; private set; }
 
-        public event Action<string> OnBattleLogUpdated;
-        public event Action<BattleState> OnStateChanged;
-        public event Action OnBattleEnded;
+        public event Action<string>? OnBattleLogUpdated;
+        public event Action<BattleState>? OnStateChanged;
+        public event Action? OnBattleEnded;
 
         public BattleStateMachine(GladiatorBot playerBot, GladiatorBot enemyBot, Action<string> onBattleEvent)
         {
