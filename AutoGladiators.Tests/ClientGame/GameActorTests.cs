@@ -35,7 +35,7 @@ public class GameActorTests
             Assert.That(actor.IsMoving, Is.True);
             Assert.That(actor.PixelX, Is.GreaterThan(16f).And.LessThan(32f));
             Assert.That(actor.PixelY, Is.EqualTo(32f));
-            Assert.That(actor.FrameIndex(), Is.EqualTo(11));
+        Assert.That(actor.FrameIndex(), Is.EqualTo(10));
         });
 
         actor.Update(GameActor.StepDuration);

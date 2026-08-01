@@ -527,7 +527,6 @@ public sealed class TileMapView : SKCanvasView, IDisposable
         _vignette = null;
 
         BuildingEntered = null;
-        PlayerStepped = null;
         _zone = null;
         _player = null;
         _disposed = true;
