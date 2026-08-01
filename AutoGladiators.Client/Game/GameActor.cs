@@ -61,18 +61,34 @@ public sealed class GameActor
 
     public GameActor(SpriteSheet? sheet, int tileX, int tileY, int tileSize)
     {
+        if (tileSize <= 0)
+            throw new ArgumentOutOfRangeException(nameof(tileSize), "Tile size must be positive.");
+
         Sheet = sheet;
         _tileSize = tileSize;
         TileX = tileX;
         TileY = tileY;
         PixelX = tileX * tileSize;
         PixelY = tileY * tileSize;
+        _startX = PixelX;
+        _startY = PixelY;
+        _destX = PixelX;
+        _destY = PixelY;
     }
 
     /// <summary>Begin easing to an adjacent tile. Caller has already validated passability.</summary>
     public void StartMoveTo(int tileX, int tileY, Facing facing)
     {
         Facing = facing;
+
+        if (tileX == TileX && tileY == TileY)
+        {
+            IsMoving = false;
+            _moveT = 0f;
+            _animTime = 0f;
+            return;
+        }
+
         TileX = tileX;
         TileY = tileY;
         _startX = PixelX;
@@ -90,6 +106,9 @@ public sealed class GameActor
             _animTime = 0f;
             return;
         }
+
+        if (dt <= 0f)
+            return;
 
         _moveT += dt;
         _animTime += dt;

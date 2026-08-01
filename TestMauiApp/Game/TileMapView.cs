@@ -3,6 +3,7 @@ using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using AutoGladiators.Core.Models.Exploration;
+using AutoGladiators.Core.Utilities;
 
 namespace TestMauiApp.Game;
 
@@ -16,7 +17,7 @@ namespace TestMauiApp.Game;
 /// (walking, camera catching up, ambient water, or active dialogue). At full
 /// rest the loop idles at zero draw cost.
 /// </summary>
-public sealed class TileMapView : SKCanvasView
+public sealed class TileMapView : SKCanvasView, IDisposable
 {
     public int TileSize { get; set; } = 48;
 
@@ -46,7 +47,7 @@ public sealed class TileMapView : SKCanvasView
 
     // Human NPC sprite sheets available in Resources/Raw/sprites.
     private static readonly string[] HumanSprites =
-        { "vince", "chad", "blue", "bradley", "colin", "john", "julian", "maria", "simon" };
+        { "npc_01", "npc_02", "npc_03", "npc_04", "npc_05", "npc_06", "npc_07", "npc_08", "npc_09" };
 
     private static readonly SKPaint ShadowPaint = new()
     { IsAntialias = true, Style = SKPaintStyle.Fill, Color = new SKColor(0, 0, 0, 70) };
@@ -62,9 +63,18 @@ public sealed class TileMapView : SKCanvasView
 
     public async Task InitAsync(WorldZone zone, int playerTileX, int playerTileY)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(zone);
+
+        StopLoop();
         _zone = zone;
         _player = new GameActor(null, playerTileX, playerTileY, TileSize); // procedural robot
         _cameraInitialised = false;
+        _heldDir = null;
+        _particles.Clear();
+        _dialogue.Close();
+        _ambientTime = 0f;
+        _ambientFrame = 0;
         await SpawnNpcsAsync(zone);
         StartLoop();
         InvalidateSurface();
@@ -81,7 +91,6 @@ public sealed class TileMapView : SKCanvasView
             if (obj.Type is WorldObjectType.HealingCenter or WorldObjectType.Shop or WorldObjectType.Gym)
             {
                 _buildings.Add(new Building(obj.Position.X, obj.Position.Y, obj.Type, obj.Name));
-                BlockBuildingFootprint(zone, obj.Position.X, obj.Position.Y);
                 continue;
             }
 
@@ -110,17 +119,8 @@ public sealed class TileMapView : SKCanvasView
         }
     }
 
-    // A 3-wide × 3-tall building; every footprint tile blocks except the door.
-    private static void BlockBuildingFootprint(WorldZone zone, int doorX, int doorY)
-    {
-        for (int cy = doorY - 2; cy <= doorY; cy++)
-            for (int cx = doorX - 1; cx <= doorX + 1; cx++)
-            {
-                if (cx == doorX && cy == doorY) continue;
-                if (cx < 0 || cy < 0 || cx >= zone.Width || cy >= zone.Height) continue;
-                zone.SetTile(cx, cy, new MapTile(TileType.Building, isPassable: false));
-            }
-    }
+    private bool IsBlockedByBuildingFootprint(int x, int y) =>
+        _buildings.Any(building => BuildingFootprint.ContainsBlockingTile(building.DoorX, building.DoorY, x, y));
 
     private async Task<SpriteSheet> GetSheetAsync(string key)
     {
@@ -132,7 +132,7 @@ public sealed class TileMapView : SKCanvasView
 
     // ---- Loop -------------------------------------------------------------
 
-    private void StartLoop()
+    public void StartLoop()
     {
         if (_timer is not null) return;
         _clock.Restart();
@@ -145,8 +145,13 @@ public sealed class TileMapView : SKCanvasView
 
     public void StopLoop()
     {
-        _timer?.Stop();
-        _timer = null;
+        if (_timer is not null)
+        {
+            _timer.Tick -= OnTick;
+            _timer.Stop();
+            _timer = null;
+        }
+
         _clock.Stop();
     }
 
@@ -207,12 +212,14 @@ public sealed class TileMapView : SKCanvasView
 
     private bool IsOccupied(int x, int y)
     {
+        if (IsBlockedByBuildingFootprint(x, y)) return true;
         if (_player is { } p && p.TileX == x && p.TileY == y) return true;
         return _npcs.Any(n => n.TileX == x && n.TileY == y);
     }
 
     private bool IsOccupiedExcept(Npc self, int x, int y)
     {
+        if (IsBlockedByBuildingFootprint(x, y)) return true;
         if (_player is { } p && p.TileX == x && p.TileY == y) return true;
         return _npcs.Any(n => n != self && n.TileX == x && n.TileY == y);
     }
@@ -495,7 +502,34 @@ public sealed class TileMapView : SKCanvasView
             _vignette = new SKPaint { Shader = shader, IsAntialias = false };
             _vignetteFor = new SKSize(w, h);
         }
-        canvas.DrawRect(new SKRect(0, 0, w, h), _vignette);
+        canvas.DrawRect(new SKRect(0, 0, w, h), _vignette!);
+    }
+
+    private bool _disposed;
+
+    public void Dispose()
+    {
+        if (_disposed)
+            return;
+
+        StopLoop();
+        PaintSurface -= OnPaint;
+        _dialogue.Close();
+        _particles.Clear();
+        _buildings.Clear();
+        _npcs.Clear();
+
+        foreach (var sheet in _sheetCache.Values)
+            sheet.Dispose();
+        _sheetCache.Clear();
+
+        _vignette?.Dispose();
+        _vignette = null;
+
+        BuildingEntered = null;
+        _zone = null;
+        _player = null;
+        _disposed = true;
     }
 
     // ---- Dialogue overlay -------------------------------------------------

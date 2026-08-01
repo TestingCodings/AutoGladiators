@@ -23,25 +23,35 @@ public sealed class DialogueBox
 
     public void Open(string speaker, string[] lines, bool robot, SKColor core)
     {
-        if (lines.Length == 0) return;
-        SpeakerName = speaker;
+        ArgumentNullException.ThrowIfNull(lines);
+
+        var sanitizedLines = lines.Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
+        if (sanitizedLines.Length == 0)
+        {
+            Close();
+            return;
+        }
+
+        SpeakerName = speaker ?? string.Empty;
         SpeakerIsRobot = robot;
         SpeakerCore = core;
-        _lines = lines;
+        _lines = sanitizedLines;
         _lineIndex = 0;
         _charsShown = 0;
         _charTimer = 0;
         IsActive = true;
     }
 
-    public string CurrentLine => _lines.Length == 0 ? "" : _lines[_lineIndex];
+    public string CurrentLine => _lines.Length == 0 || _lineIndex >= _lines.Length ? "" : _lines[_lineIndex];
     public bool LineFullyShown => _charsShown >= CurrentLine.Length;
     public bool OnLastLine => _lineIndex >= _lines.Length - 1;
-    public string VisibleText => CurrentLine[.._charsShown];
+    public string VisibleText => CurrentLine[..Math.Min(_charsShown, CurrentLine.Length)];
 
     public void Update(float dt)
     {
-        if (!IsActive || LineFullyShown) return;
+        if (!IsActive || LineFullyShown || dt <= 0f)
+            return;
+
         _charTimer += dt;
         _charsShown = Math.Min(CurrentLine.Length, (int)(_charTimer * CharsPerSecond));
     }
@@ -55,13 +65,27 @@ public sealed class DialogueBox
             _charsShown = CurrentLine.Length;
             return;
         }
+
         if (OnLastLine)
         {
-            IsActive = false;
+            Close();
             return;
         }
+
         _lineIndex++;
         _charsShown = 0;
         _charTimer = 0;
+    }
+
+    public void Close()
+    {
+        IsActive = false;
+        _lines = Array.Empty<string>();
+        _lineIndex = 0;
+        _charsShown = 0;
+        _charTimer = 0f;
+        SpeakerName = string.Empty;
+        SpeakerIsRobot = false;
+        SpeakerCore = default;
     }
 }
