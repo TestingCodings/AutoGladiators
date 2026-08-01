@@ -13,14 +13,19 @@ namespace AutoGladiators.Client.Services.Logging
 
         public AndroidFileLoggerProvider()
         {
+#if ANDROID
             // Use Android external storage directory - accessible via ADB
             var externalStorageDir = Android.OS.Environment.ExternalStorageDirectory?.AbsolutePath;
             if (string.IsNullOrEmpty(externalStorageDir))
             {
                 // Fallback to app-specific external directory
-                externalStorageDir = Platform.CurrentActivity?.GetExternalFilesDir(null)?.AbsolutePath 
+                externalStorageDir = Platform.CurrentActivity?.GetExternalFilesDir(null)?.AbsolutePath
                     ?? "/sdcard/Android/data/com.testingcodings.autogladiators/files";
             }
+#else
+            // Non-Android hosts (e.g. the Windows dev head) log under the app data folder.
+            var externalStorageDir = Microsoft.Maui.Storage.FileSystem.AppDataDirectory;
+#endif
 
             _logDirectory = Path.Combine(externalStorageDir, "AutoGladiators", "Logs");
             
