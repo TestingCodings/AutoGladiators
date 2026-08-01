@@ -10,6 +10,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="NUnit" Version="3.14.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="SkiaSharp" Version="2.88.8" />
     <PackageReference Include="coverlet.collector" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -21,6 +22,11 @@
   <ProjectReference Include="..\SharedLibs\SkillTreeLib\SkillTreeLib.csproj" />
   <ProjectReference Include="..\SharedLibs\StateMachineLib\StateMachineLib.csproj" />
   <ProjectReference Include="..\AutoGladiators.Core\AutoGladiators.Core.csproj" />
+</ItemGroup>
+
+<ItemGroup>
+  <Compile Include="..\AutoGladiators.Client\Game\GameActor.cs" Link="ClientGame\GameActor.cs" />
+  <Compile Include="..\AutoGladiators.Client\Game\DialogueBox.cs" Link="ClientGame\DialogueBox.cs" />
 </ItemGroup>
 
 </Project>

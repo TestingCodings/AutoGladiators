@@ -1,6 +1,7 @@
 global using AutoGladiators.Core.Models;
 global using AutoGladiators.Core.Enums;
 global using AutoGladiators.Core.Core;
+global using NUnit.Framework;
 global using AutoGladiators.Tests.Utils;
 global using AutoGladiators.Core.Logic;
 // Alias if tests refer to MoveCategory without using:

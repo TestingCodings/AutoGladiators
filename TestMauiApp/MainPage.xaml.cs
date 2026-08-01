@@ -7,6 +7,7 @@ namespace TestMauiApp;
 public partial class MainPage : ContentPage
 {
 	private bool _initialised;
+	private bool _disposed;
 
 	public MainPage()
 	{
@@ -19,6 +20,7 @@ public partial class MainPage : ContentPage
 		var action = new TapGestureRecognizer();
 		action.Tapped += (_, _) => MapView.Interact();
 		BtnAction.GestureRecognizers.Add(action);
+		Unloaded += OnUnloaded;
 	}
 
 	protected override async void OnAppearing()
@@ -31,6 +33,22 @@ public partial class MainPage : ContentPage
 		LocationLabel.Text = zone.Name;
 		await MapView.InitAsync(zone, playerTileX: 12, playerTileY: 12);
 		HookKeyboard();
+	}
+
+	protected override void OnDisappearing()
+	{
+		base.OnDisappearing();
+		MapView.StopLoop();
+	}
+
+	private void OnUnloaded(object? sender, EventArgs e)
+	{
+		if (_disposed)
+			return;
+
+		_disposed = true;
+		Unloaded -= OnUnloaded;
+		MapView.Dispose();
 	}
 
 	// Press-and-hold: keep walking while the pad is held, stop on release.

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
@@ -8,6 +9,7 @@ using AutoGladiators.Core.Core;
 using AutoGladiators.Core.Models.Exploration;
 using AutoGladiators.Core.Services;
 using AutoGladiators.Core.Services.Exploration;
+using AutoGladiators.Core.Services.Logging;
 using AutoGladiators.Core.Rng;
 using WorldPosition = AutoGladiators.Core.Models.WorldPosition;
 using EncounterService = AutoGladiators.Core.Services.Exploration.EncounterService;
@@ -23,6 +25,8 @@ namespace AutoGladiators.Client.Pages
     /// </summary>
     public class ExplorationPage : ContentPage
     {
+        private static readonly IAppLogger Log = AppLog.For<ExplorationPage>();
+
         private readonly PlayerProfileService _playerProfileService;
         private readonly WorldManager _worldManager;
         private readonly MovementManager _movementManager;
@@ -33,6 +37,7 @@ namespace AutoGladiators.Client.Pages
         private WorldZone? _zone;
         private bool _initialised;
         private bool _inBattle;
+        private bool _disposed;
 
         private readonly TileMapView _map;
         private readonly Label _locationLabel;
@@ -62,6 +67,7 @@ namespace AutoGladiators.Client.Pages
             _map.PlayerStepped += OnPlayerStepped;
             _map.BuildingEntered += OnBuildingEntered;
             _encounterService.OnWildEncounter += OnWildEncounter;
+            Unloaded += OnUnloaded;
         }
 
         // ---- Layout -------------------------------------------------------
@@ -219,6 +225,19 @@ namespace AutoGladiators.Client.Pages
             _map.StopLoop();
         }
 
+        private void OnUnloaded(object? sender, EventArgs e)
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+            Unloaded -= OnUnloaded;
+            _encounterService.OnWildEncounter -= OnWildEncounter;
+            _map.PlayerStepped -= OnPlayerStepped;
+            _map.BuildingEntered -= OnBuildingEntered;
+            _map.Dispose();
+        }
+
         private async Task<bool> LoadPlayerAndWorld()
         {
             try
@@ -276,9 +295,36 @@ namespace AutoGladiators.Client.Pages
             try
             {
                 await _encounterService.CheckForWildEncounterAsync(_player); // may raise OnWildEncounter
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Failed to process exploration encounter step.", ex, new Dictionary<string, object?>
+                {
+                    ["ZoneId"] = _zone.Id,
+                    ["TileX"] = tileX,
+                    ["TileY"] = tileY
+                });
+
+                if (!_inBattle)
+                    _map.StartLoop();
+            }
+
+            try
+            {
                 await _playerProfileService.SaveCurrentProfile();
             }
-            catch { /* never let a save/encounter hiccup break movement */ }
+            catch (Exception ex)
+            {
+                Log.Warn("Failed to save the player profile after movement.", ex, new Dictionary<string, object?>
+                {
+                    ["ZoneId"] = _zone.Id,
+                    ["TileX"] = tileX,
+                    ["TileY"] = tileY
+                });
+
+                if (!_inBattle)
+                    _map.StartLoop();
+            }
         }
 
         private async void OnWildEncounter(PlayerProfile player, GladiatorBot wild, string zoneName)
@@ -286,34 +332,41 @@ namespace AutoGladiators.Client.Pages
             if (_inBattle) return;
             _inBattle = true;
             _map.StopLoop();
-
-            bool fight = await DisplayAlert("Wild Encounter!",
-                $"A wild {wild.Name} appeared!", "Battle", "Run");
-            if (!fight)
-            {
-                _inBattle = false;
-                _map.StartLoop();
-                return;
-            }
-
-            var bot = player.BotRoster.FirstOrDefault(b => b.CurrentHealth > 0);
-            if (bot == null)
-            {
-                await DisplayAlert("No Battle-Ready Bots", "All your Gladiators are down! Visit the Repair Bay.", "OK");
-                _inBattle = false;
-                _map.StartLoop();
-                return;
-            }
+            bool navigatedToBattle = false;
 
             try
             {
+                bool fight = await DisplayAlert("Wild Encounter!",
+                    $"A wild {wild.Name} appeared!", "Battle", "Run");
+                if (!fight)
+                    return;
+
+                var bot = player.BotRoster.FirstOrDefault(b => b.CurrentHealth > 0);
+                if (bot == null)
+                {
+                    await DisplayAlert("No Battle-Ready Bots", "All your Gladiators are down! Visit the Repair Bay.", "OK");
+                    return;
+                }
+
                 await Navigation.PushAsync(new BattlePage(bot, wild));
+                navigatedToBattle = true;
             }
             catch (Exception ex)
             {
+                Log.Error("Failed to enter battle from exploration.", ex, new Dictionary<string, object?>
+                {
+                    ["ZoneName"] = zoneName,
+                    ["WildBot"] = wild.Name
+                });
                 await DisplayAlert("Battle Error", ex.Message, "OK");
-                _inBattle = false;
-                _map.StartLoop();
+            }
+            finally
+            {
+                if (!navigatedToBattle)
+                {
+                    _inBattle = false;
+                    _map.StartLoop();
+                }
             }
         }
 
@@ -323,7 +376,14 @@ namespace AutoGladiators.Client.Pages
             if (kind == WorldObjectType.HealingCenter)
             {
                 foreach (var bot in _player.BotRoster) bot.CurrentHealth = bot.MaxHealth;
-                await _playerProfileService.SaveCurrentProfile();
+                try
+                {
+                    await _playerProfileService.SaveCurrentProfile();
+                }
+                catch (Exception ex)
+                {
+                    Log.Warn("Failed to save after using the healing center.", ex);
+                }
                 UpdateBanner();
             }
         }
