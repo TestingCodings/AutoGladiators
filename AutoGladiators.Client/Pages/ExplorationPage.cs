@@ -1,1015 +1,384 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
+using AutoGladiators.Client.Game;
 using AutoGladiators.Core.Core;
-using AutoGladiators.Core.Models;
 using AutoGladiators.Core.Models.Exploration;
 using AutoGladiators.Core.Services;
 using AutoGladiators.Core.Services.Exploration;
 using AutoGladiators.Core.Rng;
+using WorldPosition = AutoGladiators.Core.Models.WorldPosition;
+using EncounterService = AutoGladiators.Core.Services.Exploration.EncounterService;
 
 namespace AutoGladiators.Client.Pages
 {
-    public partial class ExplorationPage : ContentPage
+    /// <summary>
+    /// Open-world exploration built on the SkiaSharp tile renderer
+    /// (<see cref="TileMapView"/>). Reads the live <see cref="WorldZone"/> from
+    /// <see cref="WorldManager"/>, moves through the renderer, and closes the
+    /// gameplay loop: steps trigger wild-encounter checks, encounters push the
+    /// battle page, building doors heal/shop, and progress is saved.
+    /// </summary>
+    public class ExplorationPage : ContentPage
     {
         private readonly PlayerProfileService _playerProfileService;
         private readonly WorldManager _worldManager;
         private readonly MovementManager _movementManager;
-        private readonly AutoGladiators.Core.Services.Exploration.EncounterService _encounterService;
-        private readonly IRng _rngService;
-        
-        private PlayerProfile? _currentPlayer;
-        private WorldZone? _currentZone;
-        
-        // UI Elements
-        private Grid _mapGrid;
-        private Label _locationLabel;
-        private Label _playerInfoLabel;
-        private Button _northButton;
-        private Button _southButton;
-        private Button _eastButton;
-        private Button _westButton;
-        private Button _interactButton;
-        private Button _menuButton;
-        
-        // Map rendering
-        private const int TILE_SIZE = 45;
-        private const int VISIBLE_RANGE = 5;
-        
-        // Animation support
-        private bool _isAnimating = false;
-        private Frame? _playerTileFrame = null;
-        private readonly Dictionary<string, Animation> _activeAnimations = new();
-        
-        public ExplorationPage(PlayerProfileService playerProfileService, 
-                             WorldManager worldManager, 
-                             MovementManager movementManager,
-                             AutoGladiators.Core.Services.Exploration.EncounterService encounterService,
-                             IRng rngService)
+        private readonly EncounterService _encounterService;
+        private readonly IRng _rng;
+
+        private PlayerProfile? _player;
+        private WorldZone? _zone;
+        private bool _initialised;
+        private bool _inBattle;
+
+        private readonly TileMapView _map;
+        private readonly Label _locationLabel;
+        private readonly Label _playerInfoLabel;
+
+        public ExplorationPage(PlayerProfileService playerProfileService,
+                               WorldManager worldManager,
+                               MovementManager movementManager,
+                               EncounterService encounterService,
+                               IRng rng)
         {
             _playerProfileService = playerProfileService;
             _worldManager = worldManager;
             _movementManager = movementManager;
             _encounterService = encounterService;
-            _rngService = rngService;
-            
-            InitializeComponent();
-            SetupEventHandlers();
+            _rng = rng;
+
+            Title = "Exploration";
+            BackgroundColor = Color.FromArgb("#0C0E14");
+
+            _map = new TileMapView { TileSize = 44 };
+            _locationLabel = new Label { Text = "", TextColor = Colors.White, FontSize = 15, FontAttributes = FontAttributes.Bold };
+            _playerInfoLabel = new Label { Text = "", TextColor = Color.FromArgb("#AEBAD0"), FontSize = 12 };
+
+            Content = BuildLayout();
+
+            _map.PlayerStepped += OnPlayerStepped;
+            _map.BuildingEntered += OnBuildingEntered;
+            _encounterService.OnWildEncounter += OnWildEncounter;
         }
-        
+
+        // ---- Layout -------------------------------------------------------
+
+        private View BuildLayout()
+        {
+            var root = new Grid
+            {
+                RowDefinitions =
+                {
+                    new RowDefinition { Height = GridLength.Star },
+                    new RowDefinition { Height = GridLength.Auto },
+                },
+            };
+
+            root.Add(_map, 0, 0);
+
+            // Location / info banner overlay.
+            var banner = new Border
+            {
+                Margin = new Thickness(14),
+                Padding = new Thickness(14, 7),
+                HorizontalOptions = LayoutOptions.Start,
+                VerticalOptions = LayoutOptions.Start,
+                BackgroundColor = Color.FromArgb("#D91A1E28"),
+                Stroke = Color.FromArgb("#5AC8FA"),
+                StrokeThickness = 2,
+                StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 10 },
+                Content = new VerticalStackLayout { Children = { _locationLabel, _playerInfoLabel } },
+            };
+            root.Add(banner, 0, 0);
+
+            // Bottom controls: D-pad + action button + menu.
+            var controls = new Grid
+            {
+                Padding = new Thickness(18),
+                ColumnDefinitions =
+                {
+                    new ColumnDefinition { Width = GridLength.Auto },
+                    new ColumnDefinition { Width = GridLength.Star },
+                    new ColumnDefinition { Width = GridLength.Auto },
+                },
+            };
+
+            controls.Add(BuildDpad(), 0, 0);
+            controls.Add(BuildActionColumn(), 2, 0);
+            root.Add(controls, 0, 1);
+
+            return root;
+        }
+
+        private View BuildDpad()
+        {
+            var pad = new Grid
+            {
+                ColumnSpacing = 8,
+                RowSpacing = 8,
+                ColumnDefinitions = { new(GridLength.Auto), new(GridLength.Auto), new(GridLength.Auto) },
+                RowDefinitions = { new(GridLength.Auto), new(GridLength.Auto), new(GridLength.Auto) },
+            };
+            pad.Add(DirButton("▲", Facing.Up), 1, 0);
+            pad.Add(DirButton("◀", Facing.Left), 0, 1);
+            pad.Add(DirButton("▶", Facing.Right), 2, 1);
+            pad.Add(DirButton("▼", Facing.Down), 1, 2);
+            return pad;
+        }
+
+        private Border DirButton(string glyph, Facing facing)
+        {
+            var border = new Border
+            {
+                WidthRequest = 62,
+                HeightRequest = 62,
+                BackgroundColor = Color.FromArgb("#232634"),
+                Stroke = Color.FromArgb("#3A3F52"),
+                StrokeThickness = 2,
+                StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 12 },
+                Content = new Label { Text = glyph, TextColor = Color.FromArgb("#E8ECF5"), FontSize = 24, HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center },
+            };
+
+            var pointer = new PointerGestureRecognizer();
+            pointer.PointerPressed += (_, _) => { border.BackgroundColor = Color.FromArgb("#3A4056"); _map.HoldDirection(facing); };
+            pointer.PointerReleased += (_, _) => { border.BackgroundColor = Color.FromArgb("#232634"); _map.ReleaseDirection(facing); };
+            pointer.PointerExited += (_, _) => { border.BackgroundColor = Color.FromArgb("#232634"); _map.ReleaseDirection(facing); };
+            border.GestureRecognizers.Add(pointer);
+
+            var tap = new TapGestureRecognizer();
+            tap.Tapped += (_, _) => _map.TryMove(facing);
+            border.GestureRecognizers.Add(tap);
+            return border;
+        }
+
+        private View BuildActionColumn()
+        {
+            var stack = new VerticalStackLayout { Spacing = 10, VerticalOptions = LayoutOptions.End };
+
+            var action = new Border
+            {
+                WidthRequest = 82,
+                HeightRequest = 82,
+                BackgroundColor = Color.FromArgb("#274060"),
+                Stroke = Color.FromArgb("#5AC8FA"),
+                StrokeThickness = 3,
+                StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 41 },
+                Content = new Label { Text = "A", TextColor = Color.FromArgb("#EAF6FF"), FontSize = 30, FontAttributes = FontAttributes.Bold, HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center },
+            };
+            var actionTap = new TapGestureRecognizer();
+            actionTap.Tapped += (_, _) => _map.Interact();
+            action.GestureRecognizers.Add(actionTap);
+
+            var menu = new Border
+            {
+                WidthRequest = 82,
+                HeightRequest = 40,
+                BackgroundColor = Color.FromArgb("#2B2B3A"),
+                Stroke = Color.FromArgb("#3A3F52"),
+                StrokeThickness = 2,
+                StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 10 },
+                Content = new Label { Text = "MENU", TextColor = Color.FromArgb("#C6CEDD"), FontSize = 13, HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center },
+            };
+            var menuTap = new TapGestureRecognizer();
+            menuTap.Tapped += async (_, _) => await OnMenu();
+            menu.GestureRecognizers.Add(menuTap);
+
+            stack.Add(menu);
+            stack.Add(action);
+            return stack;
+        }
+
+        // ---- Lifecycle ----------------------------------------------------
+
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            await LoadPlayerAndWorld();
-            UpdateDisplay();
+
+            if (!_initialised)
+            {
+                if (!await LoadPlayerAndWorld()) return;
+                _initialised = true;
+                await _map.InitAsync(_zone!, _player!.WorldPosition.X, _player!.WorldPosition.Y);
+                HookKeyboard();
+                UpdateBanner();
+            }
+            else
+            {
+                _inBattle = false;
+                _map.StartLoop(); // resume after returning from battle/menu
+                UpdateBanner();
+            }
         }
-        
-        private void InitializeComponent()
+
+        protected override void OnDisappearing()
         {
-            Title = "Exploration";
-            BackgroundColor = Colors.DarkGreen;
-            
-            // Create main layout
-            var mainLayout = new Grid();
-            mainLayout.RowDefinitions.Add(new RowDefinition { Height = 60 });
-            mainLayout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Star });
-            mainLayout.RowDefinitions.Add(new RowDefinition { Height = 180 });
-            
-            // Info bar
-            var infoStack = new StackLayout
-            {
-                Orientation = StackOrientation.Vertical,
-                BackgroundColor = Colors.Black,
-                Padding = new Thickness(10, 5)
-            };
-            
-            _locationLabel = new Label
-            {
-                Text = "Loading...",
-                TextColor = Colors.White,
-                FontSize = 18,
-                FontAttributes = FontAttributes.Bold,
-                FontFamily = "Arial"
-            };
-            
-            _playerInfoLabel = new Label
-            {
-                Text = "Player Info",
-                TextColor = Colors.LightGray,
-                FontSize = 14,
-                FontFamily = "Arial"
-            };
-            
-            infoStack.Children.Add(_locationLabel);
-            infoStack.Children.Add(_playerInfoLabel);
-            Grid.SetRow(infoStack, 0);
-            mainLayout.Children.Add(infoStack);
-            
-            // Map area with scroll view
-            var scrollView = new ScrollView
-            {
-                BackgroundColor = Colors.DarkGreen
-            };
-            
-            _mapGrid = new Grid
-            {
-                BackgroundColor = Colors.Green,
-                Padding = new Thickness(10)
-            };
-            
-            scrollView.Content = _mapGrid;
-            Grid.SetRow(scrollView, 1);
-            mainLayout.Children.Add(scrollView);
-            
-            // Control buttons
-            var controlGrid = new Grid
-            {
-                BackgroundColor = Colors.Black,
-                Padding = new Thickness(10)
-            };
-            
-            // Set up control grid columns and rows
-            for (int i = 0; i < 5; i++)
-                controlGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
-            for (int i = 0; i < 3; i++)
-                controlGrid.RowDefinitions.Add(new RowDefinition { Height = 55 });
-            
-            // Movement buttons
-            _northButton = CreateMovementButton("↑", Colors.DarkBlue);
-            _southButton = CreateMovementButton("↓", Colors.DarkBlue);
-            _eastButton = CreateMovementButton("→", Colors.DarkBlue);
-            _westButton = CreateMovementButton("←", Colors.DarkBlue);
-            
-            // Action buttons
-            _interactButton = CreateActionButton("Interact", Colors.DarkRed);
-            _menuButton = CreateActionButton("Menu", Colors.DarkGray);
-            
-            // Position buttons
-            Grid.SetColumn(_northButton, 1);
-            Grid.SetRow(_northButton, 0);
-            controlGrid.Children.Add(_northButton);
-            
-            Grid.SetColumn(_westButton, 0);
-            Grid.SetRow(_westButton, 1);
-            controlGrid.Children.Add(_westButton);
-            
-            Grid.SetColumn(_interactButton, 1);
-            Grid.SetRow(_interactButton, 1);
-            controlGrid.Children.Add(_interactButton);
-            
-            Grid.SetColumn(_eastButton, 2);
-            Grid.SetRow(_eastButton, 1);
-            controlGrid.Children.Add(_eastButton);
-            
-            Grid.SetColumn(_southButton, 1);
-            Grid.SetRow(_southButton, 2);
-            controlGrid.Children.Add(_southButton);
-            
-            Grid.SetColumn(_menuButton, 4);
-            Grid.SetRow(_menuButton, 0);
-            controlGrid.Children.Add(_menuButton);
-            
-            Grid.SetRow(controlGrid, 2);
-            mainLayout.Children.Add(controlGrid);
-            
-            Content = mainLayout;
+            base.OnDisappearing();
+            _map.StopLoop();
         }
-        
-        private Button CreateMovementButton(string text, Color backgroundColor)
-        {
-            return new Button
-            {
-                Text = text,
-                BackgroundColor = backgroundColor,
-                TextColor = Colors.White,
-                FontSize = 20,
-                FontAttributes = FontAttributes.Bold,
-                CornerRadius = 8,
-                FontFamily = "Arial",
-                HeightRequest = 45,
-                WidthRequest = 60,
-                Margin = new Thickness(2)
-            };
-        }
-        
-        private Button CreateActionButton(string text, Color backgroundColor)
-        {
-            return new Button
-            {
-                Text = text,
-                BackgroundColor = backgroundColor,
-                TextColor = Colors.White,
-                FontSize = 14,
-                FontAttributes = FontAttributes.Bold,
-                CornerRadius = 8,
-                FontFamily = "Arial",
-                HeightRequest = 45,
-                Margin = new Thickness(2)
-            };
-        }
-        
-        private void SetupEventHandlers()
-        {
-            _northButton.Clicked += async (s, e) => { 
-                try { await AnimateButtonPress(_northButton); await MovePlayer(MovementDirection.North); } 
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"North button error: {ex}"); } 
-            };
-            _southButton.Clicked += async (s, e) => { 
-                try { await AnimateButtonPress(_southButton); await MovePlayer(MovementDirection.South); } 
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"South button error: {ex}"); } 
-            };
-            _eastButton.Clicked += async (s, e) => { 
-                try { await AnimateButtonPress(_eastButton); await MovePlayer(MovementDirection.East); } 
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"East button error: {ex}"); } 
-            };
-            _westButton.Clicked += async (s, e) => { 
-                try { await AnimateButtonPress(_westButton); await MovePlayer(MovementDirection.West); } 
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"West button error: {ex}"); } 
-            };
-            
-            _interactButton.Clicked += OnInteractClicked;
-            _menuButton.Clicked += OnMenuClicked;
-            
-            // Subscribe to movement events
-            _movementManager.OnMovementCompleted += OnMovementCompleted;
-            _movementManager.OnMovementBlocked += OnMovementBlocked;
-            
-            // Subscribe to encounter events
-            _encounterService.OnWildEncounter += OnWildEncounter;
-        }
-        
-        private async Task LoadPlayerAndWorld()
+
+        private async Task<bool> LoadPlayerAndWorld()
         {
             try
             {
-                // Get current player profile from service
-                _currentPlayer = _playerProfileService.GetCurrentProfile();
-                
-                if (_currentPlayer == null)
+                _player = _playerProfileService.GetCurrentProfile();
+                if (_player == null)
                 {
-                    // Try to load the most recent profile
                     var profiles = await _playerProfileService.GetSavedProfiles();
                     if (profiles.Any())
-                    {
-                        var latestProfile = profiles.OrderByDescending(p => p.LastPlayedDate).First();
-                        _currentPlayer = await _playerProfileService.LoadProfile(latestProfile.Id);
-                        _playerProfileService.SetCurrentProfile(_currentPlayer);
-                    }
+                        _player = await _playerProfileService.LoadProfile(profiles.OrderByDescending(p => p.LastPlayedDate).First().Id);
                 }
-                
-                if (_currentPlayer == null)
+                if (_player == null)
                 {
-                    await DisplayAlert("Error", "No player profile found. Please create a character first.", "OK");
+                    await DisplayAlert("Error", "No player profile found. Create a character first.", "OK");
                     await Shell.Current.GoToAsync("..");
-                    return;
+                    return false;
                 }
-                
-                // Initialize world if not already done
+
                 if (_worldManager.CurrentZone == null)
                 {
                     _worldManager.InitializeDefaultWorld();
                     _encounterService.InitializeEncounterTables(_worldManager);
                 }
-                
-                // Ensure player has valid world position
-                if (string.IsNullOrEmpty(_currentPlayer.WorldPosition.ZoneId))
+
+                _zone = _worldManager.GetZone(_player.WorldPosition.ZoneId);
+                if (_zone == null)
                 {
-                    _currentPlayer.WorldPosition = new WorldPosition("starter_town", 10, 10);
+                    _player.WorldPosition = new WorldPosition("starter_town", 10, 10);
+                    _zone = _worldManager.GetZone("starter_town");
                 }
-                
-                // Load current zone
-                _currentZone = _worldManager.GetZone(_currentPlayer.WorldPosition.ZoneId);
-                if (_currentZone == null)
-                {
-                    // Reset to starter town if zone not found
-                    _currentPlayer.WorldPosition = new WorldPosition("starter_town", 10, 10);
-                    _currentZone = _worldManager.GetZone("starter_town");
-                }
-                
-                if (_currentZone != null)
-                {
-                    _worldManager.ChangeZone(_currentPlayer.WorldPosition.ZoneId);
-                }
+                if (_zone != null) _worldManager.ChangeZone(_zone.Id);
+                return _zone != null;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"LoadPlayerAndWorld error: {ex}");
                 await DisplayAlert("Error", $"Failed to load world: {ex.Message}", "OK");
-                // Provide fallback
-                try
-                {
-                    _worldManager.InitializeDefaultWorld();
-                    if (_currentPlayer != null)
-                    {
-                        _currentPlayer.WorldPosition = new WorldPosition("starter_town", 10, 10);
-                        _currentZone = _worldManager.GetZone("starter_town");
-                    }
-                }
-                catch (Exception fallbackEx)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Fallback failed: {fallbackEx}");
-                }
+                return false;
             }
         }
-        
-        private void UpdateDisplay()
+
+        private void UpdateBanner()
         {
-            if (_currentPlayer == null || _currentZone == null) return;
-            
-            // Update info labels with smooth text transition
-            var newLocationText = $"{_currentZone.Name} ({_currentPlayer.WorldPosition.X}, {_currentPlayer.WorldPosition.Y})";
-            _locationLabel.Text = newLocationText;
-            
-            var newPlayerInfo = $"{_currentPlayer.PlayerName} | Bots: {_currentPlayer.TotalBots} | Gold: {_currentPlayer.Gold}";
-            _playerInfoLabel.Text = newPlayerInfo;
-            
-            // Update map display
-            RenderMap();
-            
-            // Update button states
-            UpdateMovementButtons();
+            if (_player == null || _zone == null) return;
+            _locationLabel.Text = _zone.Name;
+            _playerInfoLabel.Text = $"{_player.PlayerName}   •   Bots {_player.TotalBots}   •   Gold {_player.Gold}";
         }
-        
-        private async Task UpdateDisplayWithAnimation()
+
+        // ---- Loop wiring --------------------------------------------------
+
+        private async void OnPlayerStepped(int tileX, int tileY)
         {
-            if (_currentPlayer == null || _currentZone == null) return;
-            
-            // Fade out old info
-            await Task.WhenAll(
-                _locationLabel.FadeTo(0.5, 150),
-                _playerInfoLabel.FadeTo(0.5, 150)
-            );
-            
-            // Update content
-            UpdateDisplay();
-            
-            // Fade back in
-            await Task.WhenAll(
-                _locationLabel.FadeTo(1.0, 150),
-                _playerInfoLabel.FadeTo(1.0, 150)
-            );
-        }
-        
-        private void RenderMap()
-        {
-            _mapGrid.Children.Clear();
-            _mapGrid.RowDefinitions.Clear();
-            _mapGrid.ColumnDefinitions.Clear();
-            
-            if (_currentPlayer == null || _currentZone == null) return;
-            
-            var playerX = _currentPlayer.WorldPosition.X;
-            var playerY = _currentPlayer.WorldPosition.Y;
-            
-            // Create visible area around player
-            var startX = Math.Max(0, playerX - VISIBLE_RANGE);
-            var endX = Math.Min(_currentZone.Width - 1, playerX + VISIBLE_RANGE);
-            var startY = Math.Max(0, playerY - VISIBLE_RANGE);
-            var endY = Math.Min(_currentZone.Height - 1, playerY + VISIBLE_RANGE);
-            
-            var mapWidth = endX - startX + 1;
-            var mapHeight = endY - startY + 1;
-            
-            // Setup grid structure
-            for (int i = 0; i < mapWidth; i++)
-                _mapGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = TILE_SIZE });
-            for (int i = 0; i < mapHeight; i++)
-                _mapGrid.RowDefinitions.Add(new RowDefinition { Height = TILE_SIZE });
-            
-            // Render tiles
-            for (int worldX = startX; worldX <= endX; worldX++)
-            {
-                for (int worldY = startY; worldY <= endY; worldY++)
-                {
-                    var gridX = worldX - startX;
-                    var gridY = worldY - startY;
-                    
-                    var tileFrame = CreateTileFrame(worldX, worldY);
-                    
-                    Grid.SetColumn(tileFrame, gridX);
-                    Grid.SetRow(tileFrame, gridY);
-                    _mapGrid.Children.Add(tileFrame);
-                }
-            }
-            
-            // Update interact button state
-            UpdateInteractButton();
-        }
-        
-        private void UpdateInteractButton()
-        {
-            if (_currentPlayer == null || _currentZone == null) return;
-            
-            var playerX = _currentPlayer.WorldPosition.X;
-            var playerY = _currentPlayer.WorldPosition.Y;
-            var hasNearbyInteractables = false;
-            
-            // Check adjacent tiles for interactable objects
-            var adjacentPositions = new[]
-            {
-                (playerX, playerY - 1), // North
-                (playerX, playerY + 1), // South  
-                (playerX - 1, playerY), // West
-                (playerX + 1, playerY), // East
-                (playerX, playerY)      // Current position
-            };
-            
-            foreach (var (x, y) in adjacentPositions)
-            {
-                // Check bounds to avoid out-of-range queries
-                if (x < 0 || y < 0 || x >= _currentZone.Width || y >= _currentZone.Height)
-                    continue;
-                    
-                var objects = _currentZone.GetObjectsAt(x, y);
-                if (objects.Any(obj => obj.IsInteractable && obj.CanInteract(_currentPlayer)))
-                {
-                    hasNearbyInteractables = true;
-                    break;
-                }
-            }
-            
-            // Update button appearance based on nearby interactables
-            _interactButton.BackgroundColor = hasNearbyInteractables ? Colors.Orange : Colors.DarkRed;
-            _interactButton.Text = hasNearbyInteractables ? "Interact!" : "Interact";
-        }
-        
-        private Frame CreateTileFrame(int worldX, int worldY)
-        {
-            var tile = _currentZone?.GetTile(worldX, worldY);
-            var isPlayerPosition = _currentPlayer?.WorldPosition.X == worldX && _currentPlayer?.WorldPosition.Y == worldY;
-            
-            Color tileColor = GetTileColor(tile?.Type ?? TileType.Grass);
-            
-            // Check for interactive objects
-            var objects = _currentZone?.GetObjectsAt(worldX, worldY);
-            bool hasInteractableObject = objects?.Any() == true;
-            bool isBuilding = objects?.Any(o => o.Type == WorldObjectType.Shop || 
-                                               o.Type == WorldObjectType.HealingCenter ||
-                                               o.Type == WorldObjectType.Gym) == true;
-            
-            var frame = new Frame
-            {
-                BackgroundColor = tileColor,
-                BorderColor = isPlayerPosition ? Colors.Gold : 
-                             hasInteractableObject ? Colors.Orange : Colors.Gray,
-                CornerRadius = 6,
-                Padding = new Thickness(2),
-                HasShadow = isPlayerPosition || isBuilding,
-                WidthRequest = TILE_SIZE,
-                HeightRequest = TILE_SIZE,
-                // Add subtle animation-ready properties
-                Opacity = 1.0,
-                Scale = isPlayerPosition ? 1.05 : 1.0
-            };
-            
-            // Store reference to player tile for animations
-            if (isPlayerPosition)
-            {
-                _playerTileFrame = frame;
-            }
-            
-            // Add content based on what's on the tile - support both sprites and text
-            View content;
-            
-            // Check if we have a sprite for this tile
-            var spritePath = GetTileSpritePath(worldX, worldY, isPlayerPosition);
-            if (!string.IsNullOrEmpty(spritePath))
-            {
-                content = new Image
-                {
-                    Source = ImageSource.FromFile(spritePath),
-                    Aspect = Aspect.AspectFill,
-                    HorizontalOptions = LayoutOptions.Fill,
-                    VerticalOptions = LayoutOptions.Fill
-                };
-            }
-            else
-            {
-                // Fallback to emoji/text
-                content = new Label
-                {
-                    Text = GetTileSymbol(worldX, worldY, isPlayerPosition),
-                    TextColor = isPlayerPosition ? Colors.White : 
-                               isBuilding ? Colors.DarkBlue : Colors.Black,
-                    FontSize = isBuilding ? 18 : (isPlayerPosition ? 16 : 14),
-                    FontAttributes = FontAttributes.Bold,
-                    FontFamily = "Arial",
-                    HorizontalOptions = LayoutOptions.Center,
-                    VerticalOptions = LayoutOptions.Center
-                };
-            }
-            
-            frame.Content = content;
-            
-            // Add subtle pulse animation for interactive objects
-            if (hasInteractableObject && !isPlayerPosition)
-            {
-                _ = StartInteractableObjectAnimation(frame);
-            }
-            
-            return frame;
-        }
-        
-        private Color GetTileColor(TileType tileType)
-        {
-            return tileType switch
-            {
-                TileType.Grass => Colors.LightGreen,
-                TileType.Water => Colors.LightBlue,
-                TileType.Mountain => Colors.Gray,
-                TileType.Forest => Colors.DarkGreen,
-                TileType.Desert => Colors.SandyBrown,
-                TileType.Cave => Colors.DarkSlateGray,
-                TileType.Building => Colors.Brown,
-                TileType.Road => Colors.LightGray,
-                TileType.Bridge => Colors.BurlyWood,
-                TileType.Obstacle => Colors.DarkRed,
-                _ => Colors.LightGreen
-            };
-        }
-        
-        private string GetTileSymbol(int worldX, int worldY, bool isPlayerPosition)
-        {
-            if (isPlayerPosition)
-                return "🚶"; // TODO: Replace with sprite - GetPlayerSprite()
-                
-            // Check for objects on this tile
-            var objects = _currentZone?.GetObjectsAt(worldX, worldY);
-            if (objects?.Any() == true)
-            {
-                var obj = objects.First();
-                return obj.Type switch
-                {
-                    WorldObjectType.NPC => "👤",
-                    WorldObjectType.Trainer => "⚔️",
-                    WorldObjectType.Item => "📦",
-                    WorldObjectType.Shop => "🏪",
-                    WorldObjectType.HealingCenter => "🏥",
-                    WorldObjectType.Obstacle => "🚧",
-                    WorldObjectType.Gym => "🏛️",
-                    _ => "❓"
-                };
-            }
-            
-            var tile = _currentZone?.GetTile(worldX, worldY);
-            return tile?.Type switch
-            {
-                TileType.Water => "🌊",
-                TileType.Mountain => "⛰️",
-                TileType.Forest => "🌲",
-                TileType.Desert => "🏜️",
-                TileType.Cave => "🕳️",
-                TileType.Building => "🏢",
-                TileType.Road => "🛤️",
-                TileType.Obstacle => "🚫",
-                _ => " "
-            };
-        }
-        
-        private async Task MovePlayer(MovementDirection direction)
-        {
-            if (_currentPlayer == null || _isAnimating) return;
-            
-            _isAnimating = true;
-            
+            if (_player == null || _zone == null || _inBattle) return;
+
+            _player.WorldPosition = new WorldPosition(_zone.Id, tileX, tileY);
             try
             {
-                // Animate movement start
-                await AnimatePlayerMovement(direction);
-                
-                var success = await _movementManager.MovePlayerAsync(_currentPlayer, direction);
-                if (success)
-                {
-                    // Update display with smooth transition
-                    await UpdateDisplayWithAnimation();
-                    
-                    // Check for random encounters after movement
-                    await _encounterService.CheckForWildEncounterAsync(_currentPlayer);
-                    
-                    // Save player position
+                await _encounterService.CheckForWildEncounterAsync(_player); // may raise OnWildEncounter
+                await _playerProfileService.SaveCurrentProfile();
+            }
+            catch { /* never let a save/encounter hiccup break movement */ }
+        }
+
+        private async void OnWildEncounter(PlayerProfile player, GladiatorBot wild, string zoneName)
+        {
+            if (_inBattle) return;
+            _inBattle = true;
+            _map.StopLoop();
+
+            bool fight = await DisplayAlert("Wild Encounter!",
+                $"A wild {wild.Name} appeared!", "Battle", "Run");
+            if (!fight)
+            {
+                _inBattle = false;
+                _map.StartLoop();
+                return;
+            }
+
+            var bot = player.BotRoster.FirstOrDefault(b => b.CurrentHealth > 0);
+            if (bot == null)
+            {
+                await DisplayAlert("No Battle-Ready Bots", "All your Gladiators are down! Visit the Repair Bay.", "OK");
+                _inBattle = false;
+                _map.StartLoop();
+                return;
+            }
+
+            try
+            {
+                await Navigation.PushAsync(new BattlePage(bot, wild));
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Battle Error", ex.Message, "OK");
+                _inBattle = false;
+                _map.StartLoop();
+            }
+        }
+
+        private async void OnBuildingEntered(WorldObjectType kind)
+        {
+            if (_player == null) return;
+            if (kind == WorldObjectType.HealingCenter)
+            {
+                foreach (var bot in _player.BotRoster) bot.CurrentHealth = bot.MaxHealth;
+                await _playerProfileService.SaveCurrentProfile();
+                UpdateBanner();
+            }
+        }
+
+        private async Task OnMenu()
+        {
+            var action = await DisplayActionSheet("Menu", "Cancel", null,
+                "Gladiator Roster", "Inventory", "Save Game", "Return to Main Menu");
+            switch (action)
+            {
+                case "Gladiator Roster": await Shell.Current.GoToAsync("//BotRoster"); break;
+                case "Inventory": await Shell.Current.GoToAsync("//Inventory"); break;
+                case "Save Game":
                     await _playerProfileService.SaveCurrentProfile();
-                }
-                else
-                {
-                    // Animate blocked movement feedback
-                    await AnimateBlockedMovement(direction);
-                }
-            }
-            finally
-            {
-                _isAnimating = false;
-            }
-        }
-        
-        private void UpdateMovementButtons()
-        {
-            if (_currentPlayer == null) return;
-            
-            _northButton.IsEnabled = _movementManager.CanMove(_currentPlayer, MovementDirection.North);
-            _southButton.IsEnabled = _movementManager.CanMove(_currentPlayer, MovementDirection.South);
-            _eastButton.IsEnabled = _movementManager.CanMove(_currentPlayer, MovementDirection.East);
-            _westButton.IsEnabled = _movementManager.CanMove(_currentPlayer, MovementDirection.West);
-        }
-        
-        private void OnMovementCompleted(WorldPosition newPosition)
-        {
-            // Update current zone if it changed
-            if (_currentPlayer?.WorldPosition.ZoneId != newPosition.ZoneId)
-            {
-                _currentZone = _worldManager.GetZone(newPosition.ZoneId);
-            }
-            
-            UpdateDisplay();
-        }
-        
-        private async void OnMovementBlocked(WorldPosition blockedPosition, string reason)
-        {
-            await DisplayAlert("Cannot Move", reason, "OK");
-        }
-        
-        private async void OnWildEncounter(PlayerProfile player, GladiatorBot wildGladiator, string zoneName)
-        {
-            var result = await DisplayAlert("Wild Encounter!", 
-                $"A wild {wildGladiator.Name} appeared in {zoneName}!\\n\\nDo you want to battle?", 
-                "Battle", "Run Away");
-                
-            if (result)
-            {
-                // Get player's current battle bot
-                var playerBot = player.BotRoster.FirstOrDefault(b => b.CurrentHealth > 0);
-                if (playerBot == null)
-                {
-                    await DisplayAlert("No Battle-Ready Bots", "All your Gladiators are defeated! Visit a Healing Center.", "OK");
-                    return;
-                }
-                
-                try
-                {
-                    // Navigate to battle page with the encounter
-                    var battlePage = new BattlePage(playerBot, wildGladiator);
-                    await Navigation.PushAsync(battlePage);
-                    
-                    // When returning from battle, refresh the display
-                    UpdateDisplay();
-                }
-                catch (Exception ex)
-                {
-                    await DisplayAlert("Battle Error", $"Failed to start battle: {ex.Message}", "OK");
-                }
-            }
-        }
-        
-        private async void OnInteractClicked(object? sender, EventArgs e)
-        {
-            if (_currentPlayer == null || _currentZone == null) return;
-            
-            var playerX = _currentPlayer.WorldPosition.X;
-            var playerY = _currentPlayer.WorldPosition.Y;
-            var interactableObjects = new List<WorldObject>();
-            
-            // Check adjacent tiles (up, down, left, right) for interactable objects
-            var adjacentPositions = new[]
-            {
-                (playerX, playerY - 1), // North
-                (playerX, playerY + 1), // South  
-                (playerX - 1, playerY), // West
-                (playerX + 1, playerY), // East
-                (playerX, playerY)      // Current position (for items on ground)
-            };
-            
-            foreach (var (x, y) in adjacentPositions)
-            {
-                // Check bounds to avoid out-of-range queries
-                if (x < 0 || y < 0 || x >= _currentZone.Width || y >= _currentZone.Height)
-                    continue;
-                    
-                var objects = _currentZone.GetObjectsAt(x, y);
-                var validObjects = objects.Where(obj => obj.IsInteractable && obj.CanInteract(_currentPlayer));
-                interactableObjects.AddRange(validObjects);
-            }
-            
-            if (!interactableObjects.Any())
-            {
-                await DisplayAlert("Interact", "There's nothing to interact with nearby.", "OK");
-                return;
-            }
-            
-            var firstObject = interactableObjects.First();
-            await HandleObjectInteraction(firstObject);
-        }
-        
-        private async Task HandleObjectInteraction(WorldObject obj)
-        {
-            if (_currentPlayer == null)
-            {
-                await DisplayAlert("Error", "No active player found.", "OK");
-                return;
-            }
-            
-            try
-            {
-                // Trigger the object's interaction event
-                obj.Interact(_currentPlayer);
-            }
-            catch (Exception ex)
-            {
-                await DisplayAlert("Interaction Error", $"Failed to interact with {obj.Name}: {ex.Message}", "OK");
-                return;
-            }
-            
-            switch (obj.Type)
-            {
-                case WorldObjectType.NPC:
-                    await DisplayAlert(obj.Name, "Hello there! Welcome to the world of Gladiator battles!", "OK");
+                    await DisplayAlert("Saved", "Game saved.", "OK");
                     break;
-                    
-                case WorldObjectType.HealingCenter:
-                    if (_currentPlayer?.BotRoster != null)
-                    {
-                        // Heal all bots
-                        var healedCount = 0;
-                        foreach (var bot in _currentPlayer.BotRoster)
-                        {
-                            if (bot != null && bot.CurrentHealth < bot.MaxHealth)
-                            {
-                                bot.CurrentHealth = bot.MaxHealth;
-                                healedCount++;
-                            }
-                        }
-                        
-                        var message = healedCount > 0 
-                            ? $"Your {healedCount} Gladiator(s) have been fully healed!" 
-                            : "Your Gladiators are already at full health!";
-                            
-                        await DisplayAlert("Healing Center", message, "OK");
-                        await _playerProfileService.SaveCurrentProfile();
-                    }
-                    break;
-                    
-                case WorldObjectType.Shop:
-                    await DisplayAlert("Shop", "Welcome to the Gladiator Shop!\\n\\n(Shop system to be implemented)", "OK");
-                    break;
-                    
-                case WorldObjectType.Trainer:
-                    await DisplayAlert("Trainer Challenge", $"{obj.Name} wants to battle!\\n\\n(Trainer battle system to be implemented)", "Accept");
-                    break;
-                    
-                default:
-                    await DisplayAlert(obj.Name, obj.Description, "OK");
-                    break;
+                case "Return to Main Menu": await Shell.Current.GoToAsync("//MainMenu"); break;
             }
         }
-        
-        private async void OnMenuClicked(object? sender, EventArgs e)
+
+        // ---- Keyboard (Windows dev head) ----------------------------------
+
+#if WINDOWS
+        private bool _confirmHeld;
+        private void HookKeyboard()
         {
-            try
+            if (Handler?.PlatformView is Microsoft.UI.Xaml.Controls.Panel panel)
             {
-                var action = await DisplayActionSheet("Menu", "Cancel", null, 
-                    "Gladiator Roster", "Inventory", "Save Game", "Return to Main Menu");
-                    
-                switch (action)
-                {
-                    case "Gladiator Roster":
-                        try
-                        {
-                            var botRosterPage = new BotRosterPage();
-                            await Navigation.PushAsync(botRosterPage);
-                        }
-                        catch (Exception ex)
-                        {
-                            await DisplayAlert("Error", $"Failed to open Bot Roster: {ex.Message}", "OK");
-                        }
-                        break;
-                        
-                    case "Inventory":
-                        try
-                        {
-                            var inventoryPage = new InventoryPage();
-                            await Navigation.PushAsync(inventoryPage);
-                        }
-                        catch (Exception ex)
-                        {
-                            await DisplayAlert("Error", $"Failed to open Inventory: {ex.Message}", "OK");
-                        }
-                        break;
-                        
-                    case "Save Game":
-                        if (_currentPlayer != null)
-                        {
-                            await _playerProfileService.SaveCurrentProfile();
-                            await DisplayAlert("Saved", "Game saved successfully!", "OK");
-                        }
-                        else
-                        {
-                            await DisplayAlert("Error", "No player profile to save", "OK");
-                        }
-                        break;
-                        
-                    case "Return to Main Menu":
-                        try
-                        {
-                            // Pop all pages back to main menu
-                            while (Navigation.NavigationStack.Count > 1)
-                            {
-                                await Navigation.PopAsync();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            await DisplayAlert("Error", $"Failed to return to main menu: {ex.Message}", "OK");
-                        }
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Menu error: {ex}");
-                await DisplayAlert("Error", "Menu operation failed", "OK");
+                panel.IsTabStop = true;
+                panel.KeyDown += (_, e) => { if (MapKey(e.Key, true)) e.Handled = true; };
+                panel.KeyUp += (_, e) => { if (MapKey(e.Key, false)) e.Handled = true; };
+                panel.Focus(Microsoft.UI.Xaml.FocusState.Programmatic);
             }
         }
-        
-        // ==================== Animation Methods ====================
-        
-        private async Task AnimatePlayerMovement(MovementDirection direction)
+
+        private bool MapKey(Windows.System.VirtualKey k, bool down)
         {
-            if (_playerTileFrame == null) return;
-            
-            try
+            void Move(Facing f, bool d) { if (d) _map.HoldDirection(f); else _map.ReleaseDirection(f); }
+            switch (k)
             {
-                // Quick scale and color pulse to indicate movement
-                await Task.WhenAll(
-                    _playerTileFrame.ScaleTo(1.2, 100, Easing.CubicOut),
-                    _playerTileFrame.FadeTo(0.8, 100)
-                );
-                
-                await Task.WhenAll(
-                    _playerTileFrame.ScaleTo(1.05, 100, Easing.CubicIn),
-                    _playerTileFrame.FadeTo(1.0, 100)
-                );
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Animation error: {ex}");
+                case Windows.System.VirtualKey.Up: case Windows.System.VirtualKey.W: Move(Facing.Up, down); return true;
+                case Windows.System.VirtualKey.Down: case Windows.System.VirtualKey.S: Move(Facing.Down, down); return true;
+                case Windows.System.VirtualKey.Left: case Windows.System.VirtualKey.A: Move(Facing.Left, down); return true;
+                case Windows.System.VirtualKey.Right: case Windows.System.VirtualKey.D: Move(Facing.Right, down); return true;
+                case Windows.System.VirtualKey.Space:
+                case Windows.System.VirtualKey.Enter:
+                case Windows.System.VirtualKey.E:
+                    if (down && !_confirmHeld) { _confirmHeld = true; _map.Interact(); }
+                    else if (!down) _confirmHeld = false;
+                    return true;
+                default: return false;
             }
         }
-        
-        private async Task AnimateBlockedMovement(MovementDirection direction)
-        {
-            if (_playerTileFrame == null) return;
-            
-            try
-            {
-                // Shake animation for blocked movement
-                var originalTranslation = _playerTileFrame.TranslationX;
-                var shakeDistance = direction switch
-                {
-                    MovementDirection.North => (0, -5),
-                    MovementDirection.South => (0, 5),
-                    MovementDirection.East => (5, 0),
-                    MovementDirection.West => (-5, 0),
-                    _ => (0, 0)
-                };
-                
-                // Quick shake animation
-                await _playerTileFrame.TranslateTo(shakeDistance.Item1, shakeDistance.Item2, 100);
-                await _playerTileFrame.TranslateTo(originalTranslation, 0, 100, Easing.BounceOut);
-                
-                // Flash border red briefly
-                var originalBorderColor = _playerTileFrame.BorderColor;
-                _playerTileFrame.BorderColor = Colors.Red;
-                await Task.Delay(200);
-                _playerTileFrame.BorderColor = originalBorderColor;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Blocked animation error: {ex}");
-            }
-        }
-        
-        private Task StartInteractableObjectAnimation(Frame frame)
-        {
-            try
-            {
-                var animationKey = frame.GetHashCode().ToString();
-                if (_activeAnimations.ContainsKey(animationKey)) return Task.CompletedTask;
-                
-                var pulseAnimation = new Animation();
-                
-                // Subtle pulse effect for interactive objects
-                pulseAnimation.Add(0, 1, new Animation(v => frame.Scale = v, 1.0, 1.1, Easing.SinInOut));
-                pulseAnimation.Add(0, 1, new Animation(v => frame.Opacity = v, 1.0, 0.7, Easing.SinInOut));
-                
-                _activeAnimations[animationKey] = pulseAnimation;
-                
-                // Start continuous pulse
-                _ = Task.Run(async () =>
-                {
-                    while (_activeAnimations.ContainsKey(animationKey))
-                    {
-                        try
-                        {
-                            await MainThread.InvokeOnMainThreadAsync(() =>
-                            {
-                                pulseAnimation.Commit(frame, "Pulse", 16, 2000, Easing.SinInOut, null, () => true);
-                            });
-                            await Task.Delay(2000);
-                        }
-                        catch
-                        {
-                            break;
-                        }
-                    }
-                });
-                
-                // Auto-cleanup after 30 seconds
-                _ = Task.Delay(30000).ContinueWith(t => _activeAnimations.Remove(animationKey));
-                
-                return Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Interactive animation error: {ex}");
-                return Task.CompletedTask;
-            }
-        }
-        
-        private void StopAllAnimations()
-        {
-            try
-            {
-                foreach (var animation in _activeAnimations.Values)
-                {
-                    animation?.Dispose();
-                }
-                _activeAnimations.Clear();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Stop animations error: {ex}");
-            }
-        }
-        
-        private async Task AnimateButtonPress(Button button)
-        {
-            try
-            {
-                // Quick scale down and up for button press feedback
-                await button.ScaleTo(0.9, 50, Easing.CubicOut);
-                await button.ScaleTo(1.0, 50, Easing.CubicIn);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Button animation error: {ex}");
-            }
-        }
-        
-        /// <summary>
-        /// Gets the sprite path for a tile, returns null if no sprite available
-        /// </summary>
-        private string? GetTileSpritePath(int worldX, int worldY, bool isPlayerPosition)
-        {
-            if (isPlayerPosition)
-            {
-                // Return player sprite path - you can add directional sprites here
-                return "player_avatar.png"; // Will use this when the file exists
-            }
-            
-            // Check for objects first
-            var objects = _currentZone?.GetObjectsAt(worldX, worldY);
-            if (objects?.Any() == true)
-            {
-                var obj = objects.First();
-                return obj.Type switch
-                {
-                    WorldObjectType.NPC => "npc_sprite.png",
-                    WorldObjectType.Trainer => "trainer_sprite.png", 
-                    WorldObjectType.Shop => "shop_building.png",
-                    WorldObjectType.HealingCenter => "healing_center.png",
-                    _ => null // Use emoji fallback
-                };
-            }
-            
-            // Terrain sprites
-            var tile = _currentZone?.GetTile(worldX, worldY);
-            return tile?.Type switch
-            {
-                TileType.Water => "water_tile.png",
-                TileType.Mountain => "mountain_tile.png",
-                TileType.Forest => "forest_tile.png",
-                TileType.Desert => "desert_tile.png",
-                TileType.Road => "road_tile.png",
-                TileType.Building => "building_tile.png",
-                _ => null // Use default grass or emoji
-            };
-        }
-        
-        protected override void OnDisappearing()
-        {
-            base.OnDisappearing();
-            StopAllAnimations();
-        }
+#else
+        private void HookKeyboard() { }
+#endif
     }
 }
