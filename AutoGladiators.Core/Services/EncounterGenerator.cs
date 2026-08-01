@@ -10,46 +10,43 @@ namespace AutoGladiators.Core.Services
         private static readonly IAppLogger Log = AppLog.For<EncounterGenerator>();
         private readonly Random _rng = new();
 
-        // MVP: Always generates an encounter for the core loop
+        /// <summary>
+        /// Generate wild encounter using new rarity-driven bot system
+        /// </summary>
         public GladiatorBot? GenerateWildEncounter(string location)
         {
             var playerLevel = GameStateService.Instance.CurrentPlayer?.Level ?? 1;
             
-            // Create deterministic enemy bots based on location
-            var enemyTemplates = new[]
+            // Map location names to zone IDs for the new system
+            var zoneId = MapLocationToZone(location);
+            
+            // Use new BotFactory with proper species and rarity system
+            var enemy = BotFactory.GenerateWildBot(zoneId, playerLevel);
+            
+            if (enemy != null)
             {
-                new { Name = "Scrapling", Element = AutoGladiators.Core.Enums.ElementalCore.Metal, Hp = 60 },
-                new { Name = "Rustbeast", Element = AutoGladiators.Core.Enums.ElementalCore.Fire, Hp = 70 },
-                new { Name = "Voltaic Drone", Element = AutoGladiators.Core.Enums.ElementalCore.Electric, Hp = 55 }
-            };
-            
-            var template = enemyTemplates[_rng.Next(enemyTemplates.Length)];
-            
-            var enemy = new GladiatorBot
+                Log.Info($"Generated wild encounter: {enemy.Name} (Lv{enemy.Level}, {enemy.Rarity}) in {location}");
+            }
+            else
             {
-                Id = _rng.Next(1000, 9999),
-                Name = template.Name,
-                Level = Math.Max(1, playerLevel + _rng.Next(-1, 2)), // ±1 level variance
-                ElementalCore = template.Element,
-                Description = $"A wild {template.Name} encountered in {location}",
-                
-                // Combat stats
-                MaxHealth = template.Hp + (playerLevel * 5),
-                CurrentHealth = template.Hp + (playerLevel * 5),
-                AttackPower = 15 + (playerLevel * 2),
-                Defense = 10 + playerLevel,
-                Speed = 8 + _rng.Next(0, 5),
-                MaxEnergy = 100 + (playerLevel * 5),
-                Energy = 100 + (playerLevel * 5),
-                
-                // Basic moves
-                Moveset = new System.Collections.Generic.List<string> { "Tackle", "Guard" },
-                LearnableMoves = new System.Collections.Generic.List<string> { "Tackle", "Guard", "Power Strike" }
-            };
+                Log.Warn($"Failed to generate encounter for location: {location}");
+            }
             
-            Log.Info($"Generated wild encounter: {enemy.Name} (Lv{enemy.Level}) in {location}");
             return enemy;
         }
+        
+        /// <summary>
+        /// Map legacy location names to new zone system
+        /// </summary>
+        private string MapLocationToZone(string location) => location?.ToLower() switch
+        {
+            "wilds" or "scrapyards" or "scrap yards" or "rusty outskirts" => "route_1",
+            "electricwastes" or "electric wastes" or "static fields" => "forest_path", 
+            "volcanicdepths" or "volcanic depths" or "lava pools" => "mountain_trail",
+            "crystalcaverns" or "crystal caverns" or "crystal depths" => "final_dungeon",
+            "quickbattlearena" or "arena" => "route_1", // Quick battle fallback
+            _ => "route_1" // Default to early area
+        };
     }
 }
 

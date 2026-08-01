@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AutoGladiators.Client.Pages.LogViewerPage"
+             xmlns:viewmodels="clr-namespace:AutoGladiators.Client.ViewModels"
+             Title="Battle Logs Viewer"
+             BackgroundColor="#1a1a2e">
+
+    <ContentPage.BindingContext>
+        <viewmodels:LogViewerViewModel />
+    </ContentPage.BindingContext>
+
+    <ScrollView>
+        <StackLayout Padding="15" Spacing="15">
+            
+            <!-- Header -->
+            <Frame BackgroundColor="#16213e" BorderColor="#0f4c75" HasShadow="True" CornerRadius="10">
+                <StackLayout>
+                    <Label Text="📜 Battle Logs &amp; System Reports" 
+                           FontSize="20" 
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="Center"
+                           TextColor="#00d4aa" />
+                    <Label Text="View and manage your battle logs and system events" 
+                           FontSize="14"
+                           HorizontalTextAlignment="Center"
+                           TextColor="#ddd" />
+                </StackLayout>
+            </Frame>
+
+            <!-- Action Buttons -->
+            <Frame BackgroundColor="#2c2c54" BorderColor="#40407a" HasShadow="True" CornerRadius="10">
+                <StackLayout>
+                    <Button Text="🔄 Refresh Logs" 
+                            Command="{Binding RefreshLogsCommand}"
+                            BackgroundColor="#27ae60"
+                            TextColor="White"
+                            CornerRadius="8" />
+                    
+                    <Button Text="📁 Show Logs Location" 
+                            Command="{Binding OpenLogsDirectoryCommand}"
+                            BackgroundColor="#3498db"
+                            TextColor="White"
+                            CornerRadius="8" />
+                            
+                    <Button Text="📤 Export Battle Log" 
+                            Command="{Binding ExportBattleLogCommand}"
+                            BackgroundColor="#f39c12"
+                            TextColor="White"
+                            CornerRadius="8" />
+                    
+                    <Button Text="🗑️ Clear All Logs" 
+                            Command="{Binding ClearLogsCommand}"
+                            BackgroundColor="#e74c3c"
+                            TextColor="White"
+                            CornerRadius="8" />
+                </StackLayout>
+            </Frame>
+
+            <!-- File Paths Info -->
+            <Frame BackgroundColor="#2f3542" BorderColor="#57606f" HasShadow="True" CornerRadius="10">
+                <StackLayout>
+                    <Label Text="📂 Log File Locations" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="#ffc048" />
+                    <ScrollView MaximumHeightRequest="100">
+                        <Label Text="{Binding LogFilePaths}" 
+                               FontSize="11" 
+                               TextColor="#ddd"
+                               FontFamily="Courier New" />
+                    </ScrollView>
+                </StackLayout>
+            </Frame>
+
+            <!-- Battle Log Section -->
+            <Frame BackgroundColor="#2d1b69" BorderColor="#512da8" HasShadow="True" CornerRadius="10">
+                <StackLayout>
+                    <Label Text="⚔️ Battle Log" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="#ff6b6b" />
+                    <ScrollView MaximumHeightRequest="200">
+                        <Label Text="{Binding BattleLogContent}" 
+                               FontSize="12" 
+                               TextColor="#ddd"
+                               FontFamily="Courier New" />
+                    </ScrollView>
+                </StackLayout>
+            </Frame>
+
+            <!-- System Log Section -->
+            <Frame BackgroundColor="#1a5f3f" BorderColor="#27ae60" HasShadow="True" CornerRadius="10">
+                <StackLayout>
+                    <Label Text="🖥️ System Log" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="#2ecc71" />
+                    <ScrollView MaximumHeightRequest="200">
+                        <Label Text="{Binding SystemLogContent}" 
+                               FontSize="12" 
+                               TextColor="#ddd"
+                               FontFamily="Courier New" />
+                    </ScrollView>
+                </StackLayout>
+            </Frame>
+
+            <!-- Error Log Section -->
+            <Frame BackgroundColor="#8b1538" BorderColor="#e74c3c" HasShadow="True" CornerRadius="10">
+                <StackLayout>
+                    <Label Text="🚨 Error Log" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="#e74c3c" />
+                    <ScrollView MaximumHeightRequest="200">
+                        <Label Text="{Binding ErrorLogContent}" 
+                               FontSize="12" 
+                               TextColor="#ddd"
+                               FontFamily="Courier New" />
+                    </ScrollView>
+                </StackLayout>
+            </Frame>
+
+            <!-- Example Log Formats -->
+            <Frame BackgroundColor="#2f3542" BorderColor="#57606f" HasShadow="True" CornerRadius="10">
+                <StackLayout>
+                    <Label Text="📋 Example Log Formats" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="#ffc048" />
+                    <Label FontSize="11" TextColor="#ddd" FontFamily="Courier New">
+                        <Label.Text>
+Battle Log Example:
+[14:30:25.123] Battle begins! Pyroclast vs Thunder Beast!
+[14:30:27.456] ⚔️ Pyroclast used Quick Strike! It dealt 25 damage!
+[14:30:30.789] 🔴 Thunder Beast used Lightning Bolt! Dealt 30 damage!
+[14:31:15.234] Used Health Potion! Restored 50 HP!
+[14:31:45.567] 🏆 Victory! Pyroclast gained 75 XP!
+
+System Log Example:
+[2025-10-11 14:30:20.123] SYSTEM: Enhanced Battle Started: Pyroclast (Lvl 5) vs Thunder Beast (Lvl 4)
+[2025-10-11 14:30:20.124] SYSTEM: Player Stats - HP: 120/120, MP: 50/50
+[2025-10-11 14:31:50.789] SYSTEM: Battle log exported to: C:\Users\...\Documents\AutoGladiators\Logs\Exports\battle_export_20251011_143150.txt
+                        </Label.Text>
+                    </Label>
+                </StackLayout>
+            </Frame>
+
+        </StackLayout>
+    </ScrollView>
+
+</ContentPage>

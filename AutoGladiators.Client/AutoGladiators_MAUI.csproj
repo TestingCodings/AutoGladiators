@@ -45,5 +45,10 @@
     <ProjectReference Include="..\AutoGladiators.Core\AutoGladiators.Core.csproj" />
   </ItemGroup>
 
+  <!-- Images -->
+  <ItemGroup>
+    <MauiImage Include="Resources\Images\**" />
+  </ItemGroup>
+
 </Project>
 

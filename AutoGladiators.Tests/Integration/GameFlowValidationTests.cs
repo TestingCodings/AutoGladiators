@@ -15,10 +15,10 @@ namespace AutoGladiators.Tests.Integration
     public class GameFlowValidationTests
     {
         private static readonly IAppLogger Log = AppLog.For<GameFlowValidationTests>();
-        private PlayerProfileService _profileService;
-        private GameStateService _gameStateService;
-        private ServiceCollection _services;
-        private ServiceProvider _serviceProvider;
+        private PlayerProfileService _profileService = null!;
+        private GameStateService _gameStateService = null!;
+        private ServiceCollection _services = null!;
+        private ServiceProvider _serviceProvider = null!;
 
         [SetUp]
         public void SetUp()

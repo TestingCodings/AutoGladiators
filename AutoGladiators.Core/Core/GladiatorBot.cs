@@ -19,6 +19,9 @@ namespace AutoGladiators.Core.Core
         // New properties for starter selection system
         public string Nickname { get; set; } = string.Empty;
         public bool IsStarter { get; set; } = false;
+        
+        // Rarity system
+        public string Rarity { get; set; } = "Common"; // Store as string for database compatibility
 
 
         // Stats
@@ -37,7 +40,9 @@ namespace AutoGladiators.Core.Core
         }
         private int damageTaken; // Tracks how much damage has been taken from MaxHealth
 
-        // Optional: create a shorthand
+        // MP System for enhanced moves
+        public int MaxMP { get; set; } = 50;
+        public int CurrentMP { get; set; } = 50;
 
         public int Energy { get; set; }
 
@@ -152,14 +157,17 @@ namespace AutoGladiators.Core.Core
             int levelBonus = Level - 1; // Level 1 has no bonus
             MaxHealth = 100 + (levelBonus * 10);
             MaxEnergy = 100 + (levelBonus * 5);
+            MaxMP = 50 + (levelBonus * 3); // MP scales with level
             AttackPower = 50 + (levelBonus * 2);
             Strength = AttackPower; // Keep Strength in sync
             Defense = 25 + levelBonus;
             Speed = 40 + levelBonus;
             
-            // Ensure current health doesn't exceed max
+            // Ensure current stats don't exceed max
             if (CurrentHealth > MaxHealth)
                 CurrentHealth = MaxHealth;
+            if (CurrentMP > MaxMP)
+                CurrentMP = MaxMP;
         }
 
         // Battle utilities
@@ -223,6 +231,17 @@ namespace AutoGladiators.Core.Core
         {
             if (IsFainted) return; // Cannot heal fainted bots
             CurrentHealth = Math.Min(MaxHealth, CurrentHealth + amount);
+        }
+
+        public void RestoreMP(int amount)
+        {
+            CurrentMP = Math.Min(MaxMP, CurrentMP + amount);
+        }
+
+        public void RegenerateMP(int amount = 5)
+        {
+            // Natural MP regeneration each turn
+            RestoreMP(amount);
         }
 
         public void Repair()

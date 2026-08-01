@@ -3,6 +3,13 @@ using System.IO;
 using System.Text;
 using Microsoft.Extensions.Logging;
 
+// Helper class for logger scope
+internal sealed class NoOpDisposable : IDisposable
+{
+    public static NoOpDisposable Instance { get; } = new();
+    public void Dispose() { }
+}
+
 namespace AutoGladiators.Client.Services.Logging
 {
     public sealed class AndroidFileLoggerProvider : ILoggerProvider
@@ -14,28 +21,50 @@ namespace AutoGladiators.Client.Services.Logging
         public AndroidFileLoggerProvider()
         {
 #if ANDROID
-            // Use Android external storage directory - accessible via ADB
-            var externalStorageDir = Android.OS.Environment.ExternalStorageDirectory?.AbsolutePath;
-            if (string.IsNullOrEmpty(externalStorageDir))
+            // Use public accessible directory - no permissions needed
+            var publicDir = "/sdcard/AutoGladiators/Logs";
+
+            // Try alternative accessible paths if primary fails
+            var alternativePaths = new[]
             {
-                // Fallback to app-specific external directory
-                externalStorageDir = Platform.CurrentActivity?.GetExternalFilesDir(null)?.AbsolutePath
-                    ?? "/sdcard/Android/data/com.testingcodings.autogladiators/files";
+                "/storage/emulated/0/AutoGladiators/Logs",
+                "/mnt/sdcard/AutoGladiators/Logs",
+                Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryDownloads)?.AbsolutePath + "/AutoGladiators/Logs",
+                Platform.CurrentActivity?.GetExternalFilesDir(null)?.AbsolutePath + "/Logs"
+            };
+
+            _logDirectory = publicDir;
+
+            // Try each path until one works
+            foreach (var path in alternativePaths)
+            {
+                if (!string.IsNullOrEmpty(path))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(path);
+                        _logDirectory = path;
+                        break;
+                    }
+                    catch
+                    {
+                        // Try next path
+                        continue;
+                    }
+                }
             }
 #else
             // Non-Android hosts (e.g. the Windows dev head) log under the app data folder.
-            var externalStorageDir = Microsoft.Maui.Storage.FileSystem.AppDataDirectory;
+            _logDirectory = Path.Combine(Microsoft.Maui.Storage.FileSystem.AppDataDirectory, "AutoGladiators", "Logs");
 #endif
 
-            _logDirectory = Path.Combine(externalStorageDir, "AutoGladiators", "Logs");
-            
             try
             {
                 Directory.CreateDirectory(_logDirectory);
-                
+
                 // Write a readme file explaining how to access logs
                 var readmePath = Path.Combine(_logDirectory, "README.txt");
-                File.WriteAllText(readmePath, 
+                File.WriteAllText(readmePath,
                     "AutoGladiators Log Files\n" +
                     "========================\n" +
                     $"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}\n" +
@@ -50,7 +79,7 @@ namespace AutoGladiators.Client.Services.Logging
                     "Or use Android Studio Device File Explorer:\n" +
                     "View > Tool Windows > Device File Explorer\n" +
                     "Navigate to sdcard/AutoGladiators/Logs\n");
-                    
+
                 System.Diagnostics.Debug.WriteLine($"AndroidFileLoggerProvider: Log directory created at {_logDirectory}");
             }
             catch (Exception ex)
@@ -86,7 +115,7 @@ namespace AutoGladiators.Client.Services.Logging
             _lock = lockObject;
         }
 
-        public IDisposable BeginScope<TState>(TState state) => null!;
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull => NoOpDisposable.Instance;
 
         public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Debug;
 
@@ -98,17 +127,17 @@ namespace AutoGladiators.Client.Services.Logging
             var message = formatter(state, exception);
             var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
             var threadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
-            
+
             var logEntry = new StringBuilder();
             logEntry.AppendLine($"[{timestamp}] [{logLevel}] [{threadId}] {_categoryName}");
             logEntry.AppendLine($"  {message}");
-            
+
             if (exception != null)
             {
                 logEntry.AppendLine($"  Exception: {exception.GetType().Name}: {exception.Message}");
                 logEntry.AppendLine($"  StackTrace: {exception.StackTrace}");
             }
-            
+
             logEntry.AppendLine(); // Empty line for readability
 
             WriteToFile(logEntry.ToString());
@@ -122,7 +151,7 @@ namespace AutoGladiators.Client.Services.Logging
                 {
                     var fileName = $"app_{DateTime.Now:yyyy-MM-dd}.log";
                     var filePath = Path.Combine(_logDirectory, fileName);
-                    
+
                     File.AppendAllText(filePath, logEntry, Encoding.UTF8);
                 }
             }

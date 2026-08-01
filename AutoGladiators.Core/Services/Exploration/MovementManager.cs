@@ -149,15 +149,15 @@ namespace AutoGladiators.Core.Services.Exploration
         /// <summary>
         /// Teleports player to a specific position (bypassing movement restrictions)
         /// </summary>
-        public async Task<bool> TeleportPlayerAsync(PlayerProfile player, WorldPosition position)
+        public Task<bool> TeleportPlayerAsync(PlayerProfile player, WorldPosition position)
         {
             var zone = _worldManager.GetZone(position.ZoneId);
             if (zone == null)
-                return false;
+                return Task.FromResult(false);
                 
             var tile = zone.GetTile(position.X, position.Y);
             if (tile == null)
-                return false;
+                return Task.FromResult(false);
             
             var oldPosition = player.WorldPosition;
             player.WorldPosition = position;
@@ -169,7 +169,7 @@ namespace AutoGladiators.Core.Services.Exploration
             }
             
             OnMovementCompleted?.Invoke(position);
-            return true;
+            return Task.FromResult(true);
         }
     }
 }

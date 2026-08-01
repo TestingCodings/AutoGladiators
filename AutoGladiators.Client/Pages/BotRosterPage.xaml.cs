@@ -1,5 +1,7 @@
 ﻿using Microsoft.Maui.Controls;
 using AutoGladiators.Core.Models;
+using AutoGladiators.Core.Core;
+using AutoGladiators.Core.Services;
 using AutoGladiators.Client.Pages;
 using AutoGladiators.Client.Services;
 using System.Collections.Generic;
@@ -12,10 +14,10 @@ namespace AutoGladiators.Client.Pages
 {
     public partial class BotRosterPage : ContentPage, INotifyPropertyChanged
     {
-        private readonly SpriteManager _spriteManager;
-        private readonly AnimationManager _animationManager;
-        private ObservableCollection<BotSummary> _allBots;
-        private ObservableCollection<BotSummary> _filteredBots;
+        private readonly SpriteManager? _spriteManager;
+        private readonly AnimationManager? _animationManager;
+        private ObservableCollection<BotSummary> _allBots = new();
+        private ObservableCollection<BotSummary> _filteredBots = new();
         private string _totalBots = "0";
         private string _avgLevel = "0";
         private string _rarePlusCount = "0";
@@ -61,8 +63,11 @@ namespace AutoGladiators.Client.Pages
         }
 
         // Parameterless constructor for direct instantiation (temporarily)
-        public BotRosterPage() : this(null, null)
+        public BotRosterPage()
         {
+            InitializeComponent();
+            LoadBots();
+            BindingContext = this;
         }
 
         public BotRosterPage(SpriteManager spriteManager, AnimationManager animationManager)
@@ -79,6 +84,9 @@ namespace AutoGladiators.Client.Pages
         {
             base.OnAppearing();
             
+            // Reload bots whenever the page appears to ensure fresh data
+            LoadBots();
+            
             if (_animationManager != null)
             {
                 await _animationManager.AnimatePageEntry(this);
@@ -87,114 +95,175 @@ namespace AutoGladiators.Client.Pages
 
         private void LoadBots()
         {
-            _allBots = new ObservableCollection<BotSummary>
+            try
             {
-                new BotSummary
+                // Check if we have a current profile
+                var currentProfile = PlayerProfileService.Instance.GetCurrentProfile();
+                if (currentProfile == null)
                 {
-                    Name = "AegisCore",
-                    ElementalCore = "Metal",
-                    BotClass = "Tank",
-                    Level = 5,
-                    MaxHealth = 150,
-                    AttackPower = 18,
-                    Defense = 95,
-                    Rarity = "Rare",
-                    Description = "Heavy armored defender bot with superior defensive capabilities.",
-                    ExpProgress = 0.4,
-                    PowerRating = 1250,
-                    StatusText = "Ready for Battle",
-                    HasWeapon = true,
-                    HasArmor = true,
-                    HasAccessory = false,
-                    HasModule = true
-                },
-                new BotSummary
-                {
-                    Name = "FlareByte",
-                    ElementalCore = "Fire",
-                    BotClass = "Brawler",
-                    Level = 3,
-                    MaxHealth = 85,
-                    AttackPower = 28,
-                    Defense = 45,
-                    Rarity = "Common",
-                    Description = "Fast and aggressive striker bot with burning attacks.",
-                    ExpProgress = 0.8,
-                    PowerRating = 890,
-                    StatusText = "Training",
-                    HasWeapon = true,
-                    HasArmor = false,
-                    HasAccessory = true,
-                    HasModule = false
-                },
-                new BotSummary
-                {
-                    Name = "VoltZerker",
-                    ElementalCore = "Electric",
-                    BotClass = "Sniper",
-                    Level = 4,
-                    MaxHealth = 95,
-                    AttackPower = 25,
-                    Defense = 55,
-                    Rarity = "Rare",
-                    Description = "Precision ranged attacker with shocking speed.",
-                    ExpProgress = 0.2,
-                    PowerRating = 1150,
-                    StatusText = "Ready for Battle",
-                    HasWeapon = true,
-                    HasArmor = true,
-                    HasAccessory = false,
-                    HasModule = true
-                },
-                new BotSummary
-                {
-                    Name = "CrystalGuard",
-                    ElementalCore = "Ice",
-                    BotClass = "Support",
-                    Level = 2,
-                    MaxHealth = 110,
-                    AttackPower = 16,
-                    Defense = 70,
-                    Rarity = "Common",
-                    Description = "Defensive ice bot with freezing abilities.",
-                    ExpProgress = 0.6,
-                    PowerRating = 750,
-                    StatusText = "Resting",
-                    HasWeapon = false,
-                    HasArmor = true,
-                    HasAccessory = false,
-                    HasModule = false
-                },
-                new BotSummary
-                {
-                    Name = "StormBreaker",
-                    ElementalCore = "Wind",
-                    BotClass = "Assassin",
-                    Level = 6,
-                    MaxHealth = 75,
-                    AttackPower = 32,
-                    Defense = 40,
-                    Rarity = "Epic",
-                    Description = "Lightning-fast wind element assassin bot.",
-                    ExpProgress = 0.1,
-                    PowerRating = 1480,
-                    StatusText = "Ready for Battle",
-                    HasWeapon = true,
-                    HasArmor = false,
-                    HasAccessory = true,
-                    HasModule = true
+                    System.Diagnostics.Debug.WriteLine("BotRosterPage: No current profile found - displaying empty roster");
+                    _allBots = new ObservableCollection<BotSummary>();
+                    FilteredBots = new ObservableCollection<BotSummary>();
+                    UpdateCollectionStats();
+                    return;
                 }
-            };
 
+                // Get real bot data from GameStateService
+                var gameState = GameStateService.Instance;
+                var realBots = gameState.BotRoster ?? new List<GladiatorBot>();
+                
+                System.Diagnostics.Debug.WriteLine($"BotRosterPage: Loading bots from profile {currentProfile.PlayerName}. Found {realBots.Count} bots in GameStateService");
+                
+                // Debug: List all bots for troubleshooting
+                for (int i = 0; i < realBots.Count; i++)
+                {
+                    var bot = realBots[i];
+                    System.Diagnostics.Debug.WriteLine($"  Bot {i}: {bot.Name}, Level {bot.Level}, Element: {bot.ElementalCore}");
+                }
+
+                _allBots = new ObservableCollection<BotSummary>();
+                
+                // Convert real bots to display format
+                foreach (var bot in realBots)
+                {
+                    var summary = new BotSummary
+                    {
+                        Name = bot.Name ?? "Unknown",
+                        ElementalCore = bot.ElementalCore.ToString(),
+                        BotClass = "Gladiator",
+                        Level = bot.Level,
+                        MaxHealth = bot.MaxHealth,
+                        AttackPower = bot.AttackPower,
+                        Defense = bot.Defense,
+                        Rarity = CalculateBotRarity(bot),
+                        Description = bot.Description ?? "No description available",
+                        ExpProgress = bot.Experience / Math.Max(1.0, (bot.Level + 1) * 100.0), // XP progress to next level
+                        PowerRating = CalculatePowerRating(bot),
+                        StatusText = GetStatusText(bot),
+                        HasWeapon = false,
+                        HasArmor = false,
+                        HasAccessory = false,
+                        HasModule = false
+                    };
+                    _allBots.Add(summary);
+                }
+
+                // If no real bots found (for testing), add a fallback message
+                if (_allBots.Count == 0)
+                {
+                    _allBots.Add(new BotSummary
+                    {
+                        Name = "No Bots Found",
+                        ElementalCore = "None",
+                        BotClass = "N/A",
+                        Level = 0,
+                        MaxHealth = 0,
+                        AttackPower = 0,
+                        Defense = 0,
+                        Rarity = "None",
+                        Description = "No gladiator bots in roster. Start a new game or visit the Debug Menu to add bots.",
+                        ExpProgress = 0,
+                        PowerRating = 0,
+                        StatusText = "Missing",
+                        HasWeapon = false,
+                        HasArmor = false,
+                        HasAccessory = false,
+                        HasModule = false
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading bots: {ex.Message}");
+                
+                // Fallback to empty collection
+                _allBots = new ObservableCollection<BotSummary>
+                {
+                    new BotSummary
+                    {
+                        Name = "Error Loading Bots",
+                        ElementalCore = "Error",
+                        BotClass = "Error",
+                        Level = 0,
+                        MaxHealth = 0,
+                        AttackPower = 0,
+                        Defense = 0,
+                        Rarity = "Error",
+                        Description = $"Error loading bot roster: {ex.Message}",
+                        ExpProgress = 0,
+                        PowerRating = 0,
+                        StatusText = "Error",
+                        HasWeapon = false,
+                        HasArmor = false,
+                        HasAccessory = false,
+                        HasModule = false
+                    }
+                };
+            }
+            
             FilteredBots = new ObservableCollection<BotSummary>(_allBots);
             UpdateCollectionStats();
+        }
+        
+        private int CalculatePowerRating(GladiatorBot bot)
+        {
+            return (bot.Level * 100) + bot.AttackPower * 5 + bot.Defense * 3 + bot.MaxHealth;
+        }
+        
+        private string CalculateBotRarity(GladiatorBot bot)
+        {
+            // Use new rarity system if available
+            if (!string.IsNullOrEmpty(bot.Rarity))
+            {
+                return bot.Rarity;
+            }
+
+            // Fallback calculation for legacy bots without rarity property
+            int totalStats = bot.MaxHealth + bot.AttackPower + bot.Defense + bot.Speed;
+            int avgStat = totalStats / 4;
+            
+            return avgStat switch
+            {
+                <= 50 => "Common",
+                <= 80 => "Uncommon", 
+                <= 120 => "Rare",
+                <= 150 => "Epic",
+                _ => "Legendary"
+            };
+        }
+        
+        private string GetStatusText(GladiatorBot bot)
+        {
+            if (bot.CurrentHealth <= 0)
+                return "Defeated";
+            
+            if (bot.CurrentHealth < bot.MaxHealth * 0.3)
+                return "Critical";
+            
+            if (bot.CurrentHealth < bot.MaxHealth * 0.7)
+                return "Injured";
+                
+            return "Ready for Battle";
         }
 
         private void UpdateCollectionStats()
         {
-            TotalBots = _allBots.Count.ToString();
-            AvgLevel = _allBots.Any() ? ((int)_allBots.Average(b => b.Level)).ToString() : "0";
-            RarePlusCount = _allBots.Count(b => b.Rarity == "Rare" || b.Rarity == "Epic" || b.Rarity == "Legendary").ToString();
+            // Filter out fallback/error entries for accurate statistics
+            var realBots = _allBots.Where(b => 
+                b.Name != "No Bots Found" && 
+                b.Name != "Error Loading Bots" && 
+                b.Level > 0).ToList();
+            
+            TotalBots = realBots.Count.ToString();
+            AvgLevel = realBots.Any() ? realBots.Average(b => b.Level).ToString("F1") : "0";
+            RarePlusCount = realBots.Count(b => b.Rarity == "Rare" || b.Rarity == "Epic" || b.Rarity == "Legendary").ToString();
+            
+            System.Diagnostics.Debug.WriteLine($"UpdateCollectionStats: Total={TotalBots}, AvgLevel={AvgLevel}, Rare+={RarePlusCount}");
+            System.Diagnostics.Debug.WriteLine($"_allBots contains {_allBots.Count} total entries, {realBots.Count} real bots:");
+            foreach (var bot in realBots)
+            {
+                System.Diagnostics.Debug.WriteLine($"  - {bot.Name} (Level {bot.Level}, {bot.Rarity})");
+            }
         }
 
         private void OnSortPickerChanged(object sender, EventArgs e)
@@ -212,7 +281,11 @@ namespace AutoGladiators.Client.Pages
 
         private void ApplyFilters()
         {
-            var filtered = _allBots.AsEnumerable();
+            // Start with real bots only (exclude fallback entries)
+            var filtered = _allBots.Where(b => 
+                b.Name != "No Bots Found" && 
+                b.Name != "Error Loading Bots" && 
+                b.Level > 0);
 
             // TODO: Add filtering when UI controls are connected
             // Apply sorting by level for now
@@ -222,6 +295,12 @@ namespace AutoGladiators.Client.Pages
             foreach (var bot in filtered)
             {
                 FilteredBots.Add(bot);
+            }
+            
+            // If no real bots after filtering, show a placeholder
+            if (FilteredBots.Count == 0 && _allBots.Any(b => b.Name == "No Bots Found"))
+            {
+                FilteredBots.Add(_allBots.First(b => b.Name == "No Bots Found"));
             }
         }
 
@@ -295,18 +374,18 @@ namespace AutoGladiators.Client.Pages
 
     public class BotSummary
     {
-        public string Name { get; set; }
-        public string ElementalCore { get; set; }
-        public string BotClass { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string ElementalCore { get; set; } = string.Empty;
+        public string BotClass { get; set; } = string.Empty;
         public int Level { get; set; }
         public int MaxHealth { get; set; }
         public int AttackPower { get; set; }
         public int Defense { get; set; }
-        public string Rarity { get; set; }
-        public string Description { get; set; }
+        public string Rarity { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
         public double ExpProgress { get; set; }
         public int PowerRating { get; set; }
-        public string StatusText { get; set; }
+        public string StatusText { get; set; } = string.Empty;
         public bool HasWeapon { get; set; }
         public bool HasArmor { get; set; }
         public bool HasAccessory { get; set; }

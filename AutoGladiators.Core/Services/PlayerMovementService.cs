@@ -1,4 +1,5 @@
 ﻿using AutoGladiators.Core.Services.Logging;
+using AutoGladiators.Core.Services.Exploration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Timers;
@@ -14,18 +15,18 @@ namespace AutoGladiators.Core.Services
         private System.Timers.Timer _movementTimer;
         private EncounterService _encounterService;
 
-        public event Action<PlayerLocation> OnPlayerMoved;
+        public event Action<PlayerLocation>? OnPlayerMoved;
 
         public PlayerMovementService(PlayerLocation startingLocation, EncounterService encounterService, int intervalMs = 1000)
         {
             _currentLocation = startingLocation.Clone();
             _encounterService = encounterService;
             _movementTimer = new System.Timers.Timer(intervalMs);
-            _movementTimer.Elapsed += OnTimedMove;
+            _movementTimer.Elapsed += OnTimedMove!;
             _movementTimer.AutoReset = false;
         }
 
-        private void OnTimedMove(object sender, ElapsedEventArgs e)
+        private void OnTimedMove(object? sender, ElapsedEventArgs e)
         {
             _movementTimer.Stop();
             MovePlayer((1, 0)); // Example default right move
@@ -39,7 +40,7 @@ namespace AutoGladiators.Core.Services
 
         public void UpdatePlayerPosition(PlayerLocation newLocation, bool isTeleport = false)
         {
-            if (newLocation == null || newLocation.Equals(_currentLocation)) return;
+            if (newLocation.Equals(_currentLocation)) return;
 
             _currentLocation.Region = newLocation.Region;
             _currentLocation.X = newLocation.X;
@@ -49,8 +50,10 @@ namespace AutoGladiators.Core.Services
 
             if (!isTeleport)
             {
-                AutoGladiators.Core.Core.GladiatorBot encounterTriggered;
-                _encounterService?.TryTriggerEncounter(_currentLocation, out encounterTriggered);
+                AutoGladiators.Core.Core.GladiatorBot? encounterTriggered;
+                // Convert PlayerLocation to WorldPosition (Region -> ZoneId)
+                var worldPos = new WorldPosition(_currentLocation.Region, _currentLocation.X, _currentLocation.Y);
+                _encounterService?.TryTriggerEncounter(worldPos, out encounterTriggered);
             }
         }
 

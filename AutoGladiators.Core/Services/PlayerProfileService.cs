@@ -373,7 +373,7 @@ namespace AutoGladiators.Core.Services
         /// <summary>
         /// Deletes a profile (for future cloud save compatibility)
         /// </summary>
-        public async Task<bool> DeleteProfile(Guid profileId)
+        public Task<bool> DeleteProfile(Guid profileId)
         {
             try
             {
@@ -383,15 +383,15 @@ namespace AutoGladiators.Core.Services
                 {
                     File.Delete(filePath);
                     Log.Info($"Profile deleted: {profileId}");
-                    return true;
+                    return Task.FromResult(true);
                 }
                 
-                return false;
+                return Task.FromResult(false);
             }
             catch (Exception ex)
             {
                 Log.Error($"Failed to delete profile {profileId}: {ex.Message}", ex);
-                return false;
+                return Task.FromResult(false);
             }
         }
     }
