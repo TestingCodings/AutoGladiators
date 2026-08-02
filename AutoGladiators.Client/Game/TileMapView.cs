@@ -2,6 +2,7 @@ using System.Diagnostics;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
+using AutoGladiators.Core.Assets;
 using AutoGladiators.Core.Models.Exploration;
 using AutoGladiators.Core.Utilities;
 
@@ -45,9 +46,14 @@ public sealed class TileMapView : SKCanvasView, IDisposable
     private float _ambientTime;
     private int _ambientFrame;
 
-    // Human NPC sprite sheets available in Resources/Raw/sprites.
-    private static readonly string[] HumanSprites =
+    // Neutral NPC sprite IDs matching entries in Config/AssetManifest.json.
+    // The catalog resolves each ID to an actual file path; see BuildDefaultCatalog()
+    // for the current transitional mapping (pending anonymization).
+    private static readonly string[] NpcSpriteIds =
         { "npc_01", "npc_02", "npc_03", "npc_04", "npc_05", "npc_06", "npc_07", "npc_08", "npc_09" };
+
+    // Resolved at InitAsync time; defaults to Empty if the manifest cannot be loaded.
+    private AssetCatalog _catalog = AssetCatalog.Empty;
 
     private static readonly SKPaint ShadowPaint = new()
     { IsAntialias = true, Style = SKPaintStyle.Fill, Color = new SKColor(0, 0, 0, 70) };
@@ -70,6 +76,7 @@ public sealed class TileMapView : SKCanvasView, IDisposable
         _zone = zone;
         _player = new GameActor(null, playerTileX, playerTileY, TileSize); // procedural robot
         _cameraInitialised = false;
+        _catalog = await TryLoadCatalogAsync();
         _heldDir = null;
         _particles.Clear();
         _dialogue.Close();
@@ -103,8 +110,8 @@ public sealed class TileMapView : SKCanvasView, IDisposable
             SpriteSheet? sheet = null;
             if (!asRobot)
             {
-                string key = HumanSprites[humanIndex % HumanSprites.Length];
-                sheet = await GetSheetAsync(key);
+                string id = NpcSpriteIds[humanIndex % NpcSpriteIds.Length];
+                sheet = await TryLoadSheetAsync(id);
                 humanIndex++;
             }
             else humanIndex++;
@@ -129,6 +136,86 @@ public sealed class TileMapView : SKCanvasView, IDisposable
         _sheetCache[key] = s;
         return s;
     }
+
+    /// <summary>
+    /// Resolves a neutral asset ID to a sprite sheet using the catalog, with a
+    /// convention-based fallback. Returns null if no file is found so the caller
+    /// can fall back to procedural drawing.
+    /// </summary>
+    private async Task<SpriteSheet?> TryLoadSheetAsync(string id)
+    {
+        if (_sheetCache.TryGetValue(id, out var cached)) return cached;
+
+        // 1. Manifest catalog (populated from AssetManifest.json at startup).
+        var path = _catalog.GetExplorationSheetPath(id);
+
+        // 2. Convention fallback: sprites/{id}.png (the expected post-anonymization name).
+        path ??= $"sprites/{id}.png";
+
+        try
+        {
+            var sheet = await SpriteSheet.LoadAsync(path, 16, 16);
+            _sheetCache[id] = sheet;
+            return sheet;
+        }
+        catch
+        {
+            // Sheet not found — NPC will be drawn as a procedural robot.
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to load the asset catalog from Resources/Raw/config/AssetManifest.json.
+    /// Falls back to the compiled-in default catalog if the file is unavailable.
+    /// </summary>
+    private async Task<AssetCatalog> TryLoadCatalogAsync()
+    {
+        try
+        {
+            await using var stream = await FileSystem.OpenAppPackageFileAsync("config/AssetManifest.json");
+            using var reader = new StreamReader(stream);
+            var json = await reader.ReadToEndAsync();
+            return new AssetCatalog(AssetManifestLoader.LoadFromJson(json));
+        }
+        catch
+        {
+            return BuildDefaultCatalog();
+        }
+    }
+
+    /// <summary>
+    /// Transitional default catalog used when the manifest file is not available at
+    /// runtime. Maps neutral IDs to the current personal-name sprite files.
+    /// Once the anonymization PR lands and files are renamed to npc_01.png etc.,
+    /// this method should be removed — the manifest file will be the sole source.
+    /// </summary>
+    private static AssetCatalog BuildDefaultCatalog()
+    {
+        var manifest = new AssetManifest
+        {
+            Assets = new List<AssetManifestEntry>
+            {
+                MakeEntry("npc_01", "sprites/vince.png"),
+                MakeEntry("npc_02", "sprites/chad.png"),
+                MakeEntry("npc_03", "sprites/blue.png"),
+                MakeEntry("npc_04", "sprites/bradley.png"),
+                MakeEntry("npc_05", "sprites/colin.png"),
+                MakeEntry("npc_06", "sprites/john.png"),
+                MakeEntry("npc_07", "sprites/julian.png"),
+                MakeEntry("npc_08", "sprites/maria.png"),
+                MakeEntry("npc_09", "sprites/simon.png"),
+            }
+        };
+        return new AssetCatalog(manifest);
+    }
+
+    private static AssetManifestEntry MakeEntry(string id, string path) => new()
+    {
+        Id = id, Category = "npc", ExplorationSheet = path,
+        FrameWidth = 16, FrameHeight = 16, Columns = 3, Rows = 4,
+        SourceCategory = "pending-anonymization", ReviewStatus = "pending-anonymization",
+    };
 
     // ---- Loop -------------------------------------------------------------
 
